@@ -96,8 +96,9 @@ export const notificationApi = {
 
 // AI API — F2 已废弃 evaluate / batchEvaluate（路由 410 Gone）
 // 评分用 matchingApi.score / matchingApi.recomputeJob / matchingApi.recomputeResume
+// backend mount 在 /api/ai (main.py), 路径 /api/ai/status
 export const aiApi = {
-  status: () => api.get('/ai-evaluation/status'),
+  status: () => api.get('/ai/status'),
 }
 
 // 能力模型 API (F1)
