@@ -4,6 +4,7 @@ set/clear/list 决策, 校验 job + candidate 归属, candidate × job 维度。
 """
 from __future__ import annotations
 
+import logging
 from typing import Literal, Optional
 
 from sqlalchemy.orm import Session
@@ -13,7 +14,35 @@ from app.modules.matching.decision_model import JobCandidateDecision
 from app.modules.screening.models import Job
 
 
+logger = logging.getLogger(__name__)
+
 ALLOWED_ACTIONS = ("passed", "rejected")
+
+
+def _audit_decision(
+    user_id: int,
+    job_id: int,
+    candidate_id: int,
+    prev_action: str | None,
+    new_action: str | None,
+) -> None:
+    """spec 0429-D 收尾 P3-b: 写 worm 审计日志, 失败不阻断主流程。"""
+    try:
+        from app.core.audit.logger import log_event
+        log_event(
+            f_stage="0429-D",
+            action="set" if new_action else "clear",
+            entity_type="job_candidate_decision",
+            entity_id=candidate_id,
+            input_payload={
+                "user_id": user_id, "job_id": job_id,
+                "candidate_id": candidate_id,
+                "prev_action": prev_action, "new_action": new_action,
+            },
+            reviewer_id=user_id,
+        )
+    except Exception as e:
+        logger.warning(f"audit log for decision failed (non-fatal): {e}")
 
 
 class DecisionError(Exception):
@@ -67,10 +96,13 @@ def set_decision(
         .first()
     )
 
+    prev_action = existing.action if existing else None
+
     if action is None:
         if existing:
             db.delete(existing)
             db.commit()
+            _audit_decision(user_id, job_id, candidate_id, prev_action, None)
         return None
 
     if action not in ALLOWED_ACTIONS:
@@ -80,6 +112,7 @@ def set_decision(
         existing.action = action
         db.commit()
         db.refresh(existing)
+        _audit_decision(user_id, job_id, candidate_id, prev_action, action)
         return existing
 
     row = JobCandidateDecision(
@@ -91,6 +124,7 @@ def set_decision(
     db.add(row)
     db.commit()
     db.refresh(row)
+    _audit_decision(user_id, job_id, candidate_id, prev_action, action)
     return row
 
 

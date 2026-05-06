@@ -645,24 +645,29 @@ async function resetJobWeights() {
   }
 }
 
-function jobActionOrder(action) {
+// spec 0429-D: 决策状态排序权重 — passed → undecided → rejected
+// 匹配 Tab 与五维 Tab 共用此 primary 顺序, 仅 secondary key 不同 (created_at vs total_score)。
+function actionOrder(action) {
   if (action === 'passed') return 0
   if (action == null) return 1
   return 2  // 'rejected'
 }
 
-function matchingActionOrder(action) {
-  if (action === 'passed') return 0
-  if (action == null) return 1
-  return 2  // rejected
-}
-
 function sortMatchingItems(items) {
   return [...items].sort((a, b) => {
-    const ao = matchingActionOrder(a.job_action)
-    const bo = matchingActionOrder(b.job_action)
+    const ao = actionOrder(a.job_action)
+    const bo = actionOrder(b.job_action)
     if (ao !== bo) return ao - bo
     return (b.created_at || '').localeCompare(a.created_at || '')
+  })
+}
+
+function sortFiveDimItems(items) {
+  return [...items].sort((a, b) => {
+    const ao = actionOrder(a.job_action)
+    const bo = actionOrder(b.job_action)
+    if (ao !== bo) return ao - bo
+    return (b.total_score || 0) - (a.total_score || 0)
   })
 }
 
@@ -728,14 +733,8 @@ async function setJobAction(item, action) {
     }
     item.job_action = action
     ElMessage.success(action === 'passed' ? '已标记本岗位通过' : action === 'rejected' ? '已标记本岗位淘汰' : '已清除本岗位决策')
-    // Re-sort after action change
-    const sorted = [...matching.value.items].sort((a, b) => {
-      const ao = jobActionOrder(a.job_action)
-      const bo = jobActionOrder(b.job_action)
-      if (ao !== bo) return ao - bo
-      return b.total_score - a.total_score
-    })
-    matching.value.items = sorted
+    // spec 0429-D 收尾 P3-a: 走共享 sortFiveDimItems, 与匹配 Tab primary 顺序一致
+    matching.value.items = sortFiveDimItems(matching.value.items)
   } catch (e) {
     ElMessage.error('操作失败')
   } finally {
