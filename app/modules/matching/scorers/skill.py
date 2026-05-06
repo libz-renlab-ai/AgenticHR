@@ -19,13 +19,18 @@ def _parse_resume_skills(resume_skills_text: str) -> list[str]:
 
 
 def _lookup_resume_canonicals(resume_skill_names: list[str], db_session=None) -> set[int]:
-    """简历侧技能名 → 技能库 canonical_id 集合. db_session=None 时返回空集合（测试用）."""
+    """简历侧技能名 → 技能库 canonical_id 集合. db_session=None 时返回空集合（测试用）.
+
+    skills 表实际列名是 canonical_name (不是 name); 历史 SQL 用 name 全静默走
+    except 兜底 → 简历技能恒命不中 canonical, skill_score 全 0.
+    """
     if not db_session or not resume_skill_names:
         return set()
     from sqlalchemy import text
     placeholders = ",".join(":n" + str(i) for i in range(len(resume_skill_names)))
     params = {f"n{i}": n for i, n in enumerate(resume_skill_names)}
-    query = text(f"SELECT DISTINCT canonical_id FROM skills WHERE name IN ({placeholders}) AND canonical_id IS NOT NULL")
+    # skills 表 id 就是 canonical_id (table 不存 canonical_id 列, model 用 id 当 canonical 主键)
+    query = text(f"SELECT DISTINCT id FROM skills WHERE canonical_name IN ({placeholders})")
     try:
         rows = db_session.execute(query, params).fetchall()
         return {r[0] for r in rows if r[0] is not None}
@@ -44,7 +49,7 @@ def _fetch_resume_embeddings(resume_skill_names: list[str], db_session) -> dict[
     params = {f"n{i}": n for i, n in enumerate(resume_skill_names)}
     try:
         rows = db_session.execute(
-            text(f"SELECT name, embedding FROM skills WHERE name IN ({placeholders}) AND embedding IS NOT NULL"),
+            text(f"SELECT canonical_name, embedding FROM skills WHERE canonical_name IN ({placeholders}) AND embedding IS NOT NULL"),
             params,
         ).fetchall()
         return {r[0]: r[1] for r in rows if r[1]}
@@ -65,7 +70,7 @@ def _max_vector_similarity(skill_name: str, resume_skill_names: list[str], db_se
     from sqlalchemy import text
     try:
         row = db_session.execute(
-            text("SELECT embedding FROM skills WHERE name = :n LIMIT 1"),
+            text("SELECT embedding FROM skills WHERE canonical_name = :n LIMIT 1"),
             {"n": skill_name},
         ).fetchone()
         if not row or not row[0]:
@@ -85,7 +90,7 @@ def _max_vector_similarity(skill_name: str, resume_skill_names: list[str], db_se
             # 兜底路径（未传缓存）：逐条查询（原有行为）
             for rn in resume_skill_names:
                 r = db_session.execute(
-                    text("SELECT embedding FROM skills WHERE name = :n LIMIT 1"),
+                    text("SELECT embedding FROM skills WHERE canonical_name = :n LIMIT 1"),
                     {"n": rn},
                 ).fetchone()
                 if r and r[0]:

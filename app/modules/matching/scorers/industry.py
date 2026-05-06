@@ -17,7 +17,7 @@ def _vector_match(industry: str, work_experience: str, db_session: Any = None) -
     try:
         from sqlalchemy import text
         row_ind = db_session.execute(
-            text("SELECT embedding FROM skills WHERE name = :n LIMIT 1"),
+            text("SELECT embedding FROM skills WHERE canonical_name = :n LIMIT 1"),
             {"n": industry},
         ).fetchone()
         if not row_ind or not row_ind[0]:
