@@ -371,3 +371,37 @@ Worker 在每批之间检查
 - 复用历史结果: 同一份 PDF 跑过不同 job 的筛选 → 缓存 score+reason
 - 模型可选 (claude vs gpt vs gemini CLI)
 - 可视化分数分布直方图
+
+## 当前提交状态 (2026-05-06, commit 0cfb022)
+
+✅ 已完成:
+- 后端 7 文件 + 迁移 0025 + 5 端点
+- 前端 2 组件 + Jobs.vue 接入 + aiScreeningApi
+- 47/47 单测+集成绿 (mock cli_runner.run_claude_batch)
+- 后端全量回归 841/0 fail
+
+⚠️ **未做完善检查/测试** (post-ship 待办):
+
+1. **真跑 E2E** — commit 仅 mock 跑通, 未真调 `claude --print` 子进程
+   - 需用真 PDF + JD 跑完整 HR 流: 启动 → 进度 → 通过/拒绝
+   - 验证 claude 真返回 JSON 格式是否稳定 (含中英混合/markdown 包裹概率)
+
+2. **claude CLI 异常路径** — 未覆盖
+   - 未登录 claude (无 token) 时 stderr / exit code
+   - `--add-dir` 路径含中文/空格 (Windows 常见)
+   - PDF 文件路径不存在 CC 怎么报错
+   - JSON 输出漂移真发生时 prompts.py 是否需微调
+
+3. **前端体验** — 未验证
+   - 退出再进 (刷新/切 tab) 还原 running 视图
+   - 进度条 2s 轮询无 UI 卡顿
+   - cancel → cancelled 实际延迟 (取决当前批次剩余时间)
+   - done 状态手动改 decision 实时反映
+
+4. **边界 case** — 未补测
+   - batch_size hardcode 10, 未做配置项
+   - 多用户并发跑 ai_screening 无全局上限 (V2)
+   - start → 立即 cancel (子进程未起) 的边界
+   - 决赛批失败 fallback 到 stage1 分数的真路径
+
+5. **`frontend/CLAUDE.md`** — TeamAgent 自动文件仍未跟踪, 待决策入 .gitignore 或入库
