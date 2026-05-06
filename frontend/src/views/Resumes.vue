@@ -307,9 +307,20 @@ function getSchoolDisplay(row) {
 // 列表刷新时保留每行的本地 transient 状态 (`_qrBlobUrl` / `_aiLoading` 等),
 // 否则 _qrBlobUrl 丢失 → v-if 失败 → 闪一下变 "点击重试" placeholder.
 // 约定: 任何 `_` 前缀的属性都视为本地 UI 状态, 不被服务端响应覆盖.
+//
+// BUG-120: 服务端 row 被删除时, 旧 row 上的 _qrBlobUrl 不再有 newItem 接管,
+// 必须在合并时主动 URL.revokeObjectURL 防 Blob URL 累积内存泄漏。
 function mergeTransientState(newItems, oldItems) {
   if (!oldItems || oldItems.length === 0) return newItems
   const oldMap = new Map(oldItems.map(r => [r.id, r]))
+  const newIds = new Set(newItems.map(r => r.id))
+  // 服务端已删的 row → 立即 revoke 其 _qrBlobUrl
+  for (const o of oldItems) {
+    if (!newIds.has(o.id) && o._qrBlobUrl) {
+      try { URL.revokeObjectURL(o._qrBlobUrl) } catch {}
+      o._qrBlobUrl = null
+    }
+  }
   for (const n of newItems) {
     const o = oldMap.get(n.id)
     if (!o) continue

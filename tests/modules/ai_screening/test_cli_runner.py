@@ -36,11 +36,14 @@ class TestParseResponse:
         out = parse_claude_response(self._wrap(text))
         assert out[0]["candidate_id"] == 2
 
-    def test_clamps_score_range(self):
+    def test_out_of_range_score_marks_error(self):
+        # BUG-113: 越界不再静默 clamp, 单候选改为 score=None + error 标记
         text = '[{"candidate_id":1,"score":150,"reason":"x"},{"candidate_id":2,"score":-10,"reason":"y"}]'
         out = parse_claude_response(self._wrap(text))
-        assert out[0]["score"] == 100
-        assert out[1]["score"] == 0
+        assert out[0]["score"] is None
+        assert "越界" in out[0].get("error", "")
+        assert out[1]["score"] is None
+        assert "越界" in out[1].get("error", "")
 
     def test_skips_invalid_items(self):
         text = '[{"candidate_id":1,"score":80,"reason":"a"},{"score":90,"reason":"missing id"},{"candidate_id":3,"score":"NaN","reason":"x"}]'
@@ -48,6 +51,28 @@ class TestParseResponse:
         ids = [o["candidate_id"] for o in out]
         assert 1 in ids
         assert 3 not in ids  # score not numeric
+
+    def test_nan_score_skipped_not_crash(self):
+        # BUG-093: NaN 不应 crash 整批, 仅跳过该候选人
+        text = '[{"candidate_id":1,"score":NaN,"reason":"x"},{"candidate_id":2,"score":80,"reason":"y"}]'
+        out = parse_claude_response(self._wrap(text))
+        ids = [o["candidate_id"] for o in out]
+        assert 1 not in ids
+        assert 2 in ids
+
+    def test_float_cid_accepted(self):
+        # BUG-101: cid=1.0 应被接受为整数
+        text = '[{"candidate_id":1.0,"score":80,"reason":"x"}]'
+        out = parse_claude_response(self._wrap(text))
+        assert out and out[0]["candidate_id"] == 1
+
+    def test_greedy_regex_with_two_arrays(self):
+        # BUG-094: LLM 输出含两个 [] 时, 贪婪匹配会跨段, 改非贪婪 raw_decode
+        text = '前缀 [1,2,3] 然后真正评分: [{"candidate_id":7,"score":75,"reason":"r"}]'
+        out = parse_claude_response(self._wrap(text))
+        # 第一个数组不是评分对象数组, 应跳过; 第二个才命中
+        ids = [o["candidate_id"] for o in out]
+        assert 7 in ids
 
     def test_extracts_array_from_chatty_text(self):
         text = '这是结果:\n[{"candidate_id":5,"score":60,"reason":"r"}]\n谢谢'

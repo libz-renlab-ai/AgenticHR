@@ -124,6 +124,10 @@ def _candidate_summary(c: IntakeCandidate, slots: list[IntakeSlot], job_title: s
     )
 
 
+_INTAKE_STATUS_ENUM = {"collecting", "complete", "abandoned", "timed_out", "pending_human"}
+_RECRUIT_STATUS_ENUM = {"pending", "passed", "rejected"}
+
+
 @router.get("/candidates")
 def list_candidates(
     status: str | None = None,
@@ -134,6 +138,11 @@ def list_candidates(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
+    # BUG-122: recruit_status 必须是合法 enum, 防 typo (e.g. accepted) 静默返空
+    if status and status not in _INTAKE_STATUS_ENUM:
+        raise HTTPException(status_code=400, detail=f"status 必须是 {sorted(_INTAKE_STATUS_ENUM)} 之一")
+    if recruit_status and recruit_status not in _RECRUIT_STATUS_ENUM:
+        raise HTTPException(status_code=400, detail=f"recruit_status 必须是 {sorted(_RECRUIT_STATUS_ENUM)} 之一")
     q = db.query(IntakeCandidate).filter(IntakeCandidate.user_id == user_id)
     if status:
         # 历史语义: status filter intake_status (collecting/complete/abandoned/timed_out)

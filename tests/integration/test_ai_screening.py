@@ -84,7 +84,7 @@ class TestStartCancel:
 
         job, cands = _seed_pool(db_session, n=2)
 
-        async def fake_batch(jd_text, batch, *, timeout, handle=None):
+        async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
             return [
                 {"candidate_id": c["candidate_id"], "score": 80, "reason": "x"}
                 for c in batch

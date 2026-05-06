@@ -82,7 +82,7 @@ async def test_single_batch_finalize_writes_decisions(session_factory, db):
     sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=2)
     db.close()
 
-    async def fake_batch(jd_text, batch, *, timeout, handle=None):
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
         return [
             {"candidate_id": c["candidate_id"], "score": 90 - i * 10, "reason": f"r{i}"}
             for i, c in enumerate(batch)
@@ -115,7 +115,7 @@ async def test_ratio_mode(session_factory, db):
     sj = svc.start(db, user_id=1, job_id=job.id, mode="ratio", threshold=50)  # 50% of 4 = 2
     db.close()
 
-    async def fake_batch(jd_text, batch, *, timeout, handle=None):
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
         return [
             {"candidate_id": c["candidate_id"], "score": 80 - i * 10, "reason": "x"}
             for i, c in enumerate(batch)
@@ -139,7 +139,7 @@ async def test_multi_batch_runs_finalist_round(session_factory, db):
 
     call_log = []
 
-    async def fake_batch(jd_text, batch, *, timeout, handle=None):
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
         call_log.append(len(batch))
         # Stage 1 各批返 80~70; 决赛批返 95~85 让 score 升, 验证决赛能覆盖
         return [
@@ -172,7 +172,7 @@ async def test_cancel_mid_run(session_factory, db):
 
     call_count = [0]
 
-    async def fake_batch(jd_text, batch, *, timeout, handle=None):
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
         call_count[0] += 1
         # 第一批跑完后 HR 取消
         if call_count[0] == 1:
@@ -204,7 +204,7 @@ async def test_cli_error_marks_batch_error_continues(session_factory, db):
     sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=1)
     db.close()
 
-    async def fake_batch(jd_text, batch, *, timeout, handle=None):
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
         raise CliError("simulated failure")
 
     with patch("app.modules.ai_screening.worker.run_claude_batch", side_effect=fake_batch):
@@ -230,7 +230,7 @@ async def test_finalize_tie_breaker_lower_id(session_factory, db):
     sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=2)
     db.close()
 
-    async def fake_batch(jd_text, batch, *, timeout, handle=None):
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
         # 全 80 分 → tie-break 用 candidate_id ASC
         return [
             {"candidate_id": c["candidate_id"], "score": 80, "reason": "x"}

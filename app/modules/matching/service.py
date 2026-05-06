@@ -174,14 +174,17 @@ class MatchingService:
         response = self._to_response(row, resume, job, competency_hash, weights_hash)
         # spec 0429-D cleanup (P2-b): 单 row 响应也以决策表为真值, 与 list_results 一致;
         # 防止旧 row.job_action 字段未同步导致前端显示陈旧决策。
+        # BUG-106: 用 job.user_id 作为 owner 真值 (job 已在 router 验过 user 归属);
+        # 不再隐式信任 resume.user_id (历史脏数据可能跨用户)。
         try:
             from app.modules.im_intake.candidate_model import IntakeCandidate
             from app.modules.matching.decision_service import get_decision
+            owner_id = job.user_id
             cand = self.db.query(IntakeCandidate).filter_by(
-                promoted_resume_id=resume.id, user_id=resume.user_id,
+                promoted_resume_id=resume.id, user_id=owner_id,
             ).first()
             if cand:
-                d = get_decision(self.db, resume.user_id, job.id, cand.id)
+                d = get_decision(self.db, owner_id, job.id, cand.id)
                 response.job_action = d.action if d else None
                 response.candidate_id = cand.id
         except Exception as _e:

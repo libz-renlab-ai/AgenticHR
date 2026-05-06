@@ -18,6 +18,36 @@ llm_client: LLMProvider | None = _llm if _llm.is_configured() else None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_tables()
+    # BUG-089: 启动时把上次进程崩溃残留的 status='running' ScreeningJob 标 failed,
+    # 否则用户永远 already_running 阻塞。
+    try:
+        from app.database import SessionLocal
+        from app.modules.ai_screening.models import ScreeningJob
+        from datetime import datetime, timezone
+        _db = SessionLocal()
+        try:
+            stuck = (
+                _db.query(ScreeningJob)
+                .filter(ScreeningJob.status == "running")
+                .all()
+            )
+            now = datetime.now(timezone.utc)
+            for sj in stuck:
+                sj.status = "failed"
+                sj.error_msg = "server restart while running"
+                if sj.finished_at is None:
+                    sj.finished_at = now
+            if stuck:
+                _db.commit()
+                import logging
+                logging.getLogger(__name__).info(
+                    "ai_screening reaper: marked %d stuck running -> failed", len(stuck),
+                )
+        finally:
+            _db.close()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"ai_screening startup reaper failed: {e}")
     # Start Feishu WebSocket client if configured
     if settings.feishu_app_id and settings.feishu_app_secret:
         try:
@@ -108,38 +138,59 @@ async def auth_middleware(request: Request, call_next):
         payload = decode_token(token)
         if not payload:
             return JSONResponse(status_code=401, content={"detail": "登录已过期，请重新登录"})
-        request.state.user_id = int(payload["sub"])
-        request.state.username = payload["username"]
+        # BUG-118: payload 缺 sub / sub 非数字时, 不应 500 抛栈; 一律转 401。
+        sub = payload.get("sub")
+        if sub is None:
+            return JSONResponse(status_code=401, content={"detail": "登录信息无效，请重新登录"})
+        try:
+            request.state.user_id = int(sub)
+        except (TypeError, ValueError):
+            return JSONResponse(status_code=401, content={"detail": "登录信息无效，请重新登录"})
+        request.state.username = payload.get("username", "")
     return await call_next(request)
 
 
-@app.get("/api/health")
-def health_check():
-    from app.config import settings
-
-    feishu_configured = bool(settings.feishu_app_id and settings.feishu_app_secret)
-    ai_configured = bool(settings.ai_enabled and settings.ai_api_key)
-    smtp_configured = bool(getattr(settings, 'smtp_host', '') and getattr(settings, 'smtp_user', ''))
-    meeting_accounts_str = getattr(settings, 'tencent_meeting_accounts', '') or ''
+def _build_health_payload(detailed: bool) -> dict:
+    """BUG-119: 拆 public health vs detailed status。
+    detailed=False (匿名) 仅返 status:ok + app_name; detailed=True (登录后) 返服务清单。
+    """
+    from app.config import settings as _s
+    payload: dict = {"status": "ok", "app_name": _s.app_name}
+    if not detailed:
+        return payload
+    feishu_configured = bool(_s.feishu_app_id and _s.feishu_app_secret)
+    ai_configured = bool(_s.ai_enabled and _s.ai_api_key)
+    smtp_configured = bool(getattr(_s, 'smtp_host', '') and getattr(_s, 'smtp_user', ''))
+    meeting_accounts_str = getattr(_s, 'tencent_meeting_accounts', '') or ''
     meeting_accounts = [a.strip() for a in meeting_accounts_str.split(",") if a.strip()] if meeting_accounts_str else []
-
-    return {
-        "status": "ok",
-        "app_name": settings.app_name,
-        "services": {
-            "feishu": {"configured": feishu_configured},
-            "ai": {
-                "enabled": getattr(settings, 'ai_enabled', False),
-                "configured": ai_configured,
-                "model": getattr(settings, 'ai_model', '') if ai_configured else "",
-            },
-            "email": {"configured": smtp_configured},
-            "meeting": {
-                "configured": len(meeting_accounts) > 0,
-                "account_count": len(meeting_accounts),
-            },
-        }
+    payload["services"] = {
+        "feishu": {"configured": feishu_configured},
+        "ai": {
+            "enabled": getattr(_s, 'ai_enabled', False),
+            "configured": ai_configured,
+            "model": getattr(_s, 'ai_model', '') if ai_configured else "",
+        },
+        "email": {"configured": smtp_configured},
+        "meeting": {
+            "configured": len(meeting_accounts) > 0,
+            "account_count": len(meeting_accounts),
+        },
     }
+    return payload
+
+
+@app.get("/api/health")
+def health_check(request: Request):
+    """匿名访问只返 status:ok; 已登录用户返服务详情。BUG-119 信息泄露修复。"""
+    is_authed = bool(getattr(request.state, "user_id", None))
+    return _build_health_payload(detailed=is_authed)
+
+
+@app.get("/api/health/detailed")
+def health_check_detailed(request: Request):
+    """已登录后才能拿到的详细健康检查 (供 dashboard / settings 页用)。
+    走 _AUTH_WHITELIST 之外, 中间件会强制鉴权。"""
+    return _build_health_payload(detailed=True)
 
 
 # Register routers
@@ -239,11 +290,30 @@ if _frontend_dir:
 
         index.html 必须 no-cache, 否则前端发布新版本时浏览器仍用旧 chunk hash。
         /assets/* 由 StaticFiles 处理 (chunk hash 内含 → 可长期 cache)。
+
+        BUG-116: 路径校验从 startswith(string-prefix) 改为 Path.is_relative_to,
+        防止 `dist-attacker/` 等同前缀目录绕过 (resolved 后 startswith 仍命中)。
         """
         resolved_root = _frontend_dir.resolve()
-        file_path = (_frontend_dir / full_path).resolve()
-        if str(file_path).startswith(str(resolved_root)) and file_path.is_file():
-            return FileResponse(str(file_path))
+        try:
+            file_path = (_frontend_dir / full_path).resolve()
+        except (OSError, ValueError):
+            file_path = None
+        if file_path is not None:
+            try:
+                # is_relative_to (3.9+) 严格检查目录边界, 不会被 dist-attacker 绕过
+                in_root = file_path.is_relative_to(resolved_root)
+            except AttributeError:
+                # 兜底: 比较时强制加分隔符防 prefix-confusion
+                root_str = str(resolved_root)
+                if not root_str.endswith(os.sep):
+                    root_str += os.sep
+                in_root = (
+                    str(file_path) == str(resolved_root)
+                    or str(file_path).startswith(root_str)
+                )
+            if in_root and file_path.is_file():
+                return FileResponse(str(file_path))
         return FileResponse(
             str(_frontend_dir / "index.html"),
             headers={"Cache-Control": "no-cache, no-store, must-revalidate"},

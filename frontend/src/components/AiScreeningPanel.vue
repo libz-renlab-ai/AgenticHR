@@ -162,9 +162,11 @@ const thresholdMax = computed(() => {
   return Math.max(1, eligibleCount.value)
 })
 
-watch(() => form.value.mode, () => {
-  // mode 切换时把 threshold 限到合法范围
-  form.value.threshold = Math.min(form.value.threshold, thresholdMax.value)
+watch(() => form.value.mode, (m) => {
+  // BUG-109: mode 切换时重置 threshold 为典型默认值 (count→5, ratio→20),
+  // 避免 "5 人" 切到 ratio 后仍是 5%, 含义彻底变。同时 clamp 不超过上限。
+  const def = m === 'ratio' ? 20 : 5
+  form.value.threshold = Math.min(def, thresholdMax.value)
 })
 
 async function loadPreview() {
@@ -228,6 +230,8 @@ async function loadItems() {
 function startPolling() {
   stopPolling()
   pollTimer = setInterval(async () => {
+    // BUG-110: 标签页/窗口隐藏时跳过本轮请求, 避免不可见时仍每 2 秒打后端
+    if (typeof document !== 'undefined' && document.hidden) return
     try {
       const r = await aiScreeningApi.current(props.jobId)
       if (r.status !== 'running') {
@@ -257,6 +261,16 @@ function stopPolling() {
   if (pollTimer) {
     clearInterval(pollTimer)
     pollTimer = null
+  }
+}
+
+// BUG-110: 页面 visibility 切换时, 隐藏暂停 polling, 显示恢复 (若仍 running)
+function onVisibilityChange() {
+  if (typeof document === 'undefined') return
+  if (document.hidden) {
+    stopPolling()
+  } else if (status.value === 'running' && !pollTimer) {
+    startPolling()
   }
 }
 
@@ -321,10 +335,16 @@ function reset() {
 
 onMounted(() => {
   loadCurrent()
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', onVisibilityChange)
+  }
 })
 
 onUnmounted(() => {
   stopPolling()
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+  }
 })
 </script>
 

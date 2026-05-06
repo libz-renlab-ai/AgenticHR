@@ -243,13 +243,14 @@ class TestListItems:
         _seed_match(db, r1.id, job.id, hard_pass=1)
         _seed_match(db, r2.id, job.id, hard_pass=1)
         sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=1)
-        # 写分数模拟 worker 跑完
+        # 写分数模拟 worker 跑完 — BUG-103 后 list_items 要求 sj.status != running
         items = db.query(ScreeningJobItem).filter_by(screening_job_id=sj.id).order_by(ScreeningJobItem.candidate_id).all()
         items[0].score = 90
         items[0].reason = "好"
         items[0].pass_flag = 1
         items[1].score = 70
         items[1].reason = "一般"
+        sj.status = "done"
         db.commit()
         # decision: c1 已 pass
         db.add(JobCandidateDecision(user_id=1, job_id=job.id, candidate_id=c1.id, action="passed"))

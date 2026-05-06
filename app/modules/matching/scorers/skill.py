@@ -35,7 +35,11 @@ def _lookup_resume_canonicals(resume_skill_names: list[str], db_session=None) ->
         rows = db_session.execute(query, params).fetchall()
         return {r[0] for r in rows if r[0] is not None}
     except Exception as e:
-        logger.warning(f"lookup canonicals failed: {e}")
+        # BUG-099: SQL 错误 (e.g. 列名漂移) 不应静默, 用 ERROR 级别 + 异常类型暴露
+        logger.error(
+            "lookup canonicals SQL failed (possible schema drift): %s: %s",
+            type(e).__name__, e,
+        )
         return set()
 
 
@@ -54,7 +58,11 @@ def _fetch_resume_embeddings(resume_skill_names: list[str], db_session) -> dict[
         ).fetchall()
         return {r[0]: r[1] for r in rows if r[1]}
     except Exception as e:
-        logger.warning(f"batch fetch resume embeddings failed: {e}")
+        # BUG-099: SQL 错误升 ERROR 级别
+        logger.error(
+            "batch fetch resume embeddings SQL failed (possible schema drift): %s: %s",
+            type(e).__name__, e,
+        )
         return {}
 
 
@@ -99,7 +107,11 @@ def _max_vector_similarity(skill_name: str, resume_skill_names: list[str], db_se
                         best = sim
         return best
     except Exception as e:
-        logger.warning(f"vector similarity failed for {skill_name}: {e}")
+        # BUG-099: SQL/向量失败升 ERROR 级别
+        logger.error(
+            "vector similarity SQL failed for %s (possible schema drift): %s: %s",
+            skill_name, type(e).__name__, e,
+        )
         return 0.0
 
 

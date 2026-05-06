@@ -115,54 +115,55 @@ def list_results(
     if not job_id and not resume_id:
         raise HTTPException(status_code=400, detail="need job_id or resume_id")
 
+    # BUG-097: live/dead filter 推下到 SQL EXISTS, 不再全表 q.all() 后内存过滤;
+    # tag filter 仍在 in-memory 因 SQLite JSON 字段难下推, 但只在 tag 非空时才走 fallback。
+    from app.modules.im_intake.candidate_model import IntakeCandidate
     q = db.query(MatchingResult)
     if job_id:
         job = db.query(Job).filter_by(id=job_id).first()
         if not job or job.user_id != user_id:
             raise HTTPException(status_code=404, detail="岗位不存在")
-        q = q.filter_by(job_id=job_id).order_by(MatchingResult.total_score.desc())
+        q = q.filter(MatchingResult.job_id == job_id)
     if resume_id:
         resume_id = _resolve_or_404(db, resume_id, user_id)
-        q = q.filter_by(resume_id=resume_id).order_by(MatchingResult.total_score.desc())
+        q = q.filter(MatchingResult.resume_id == resume_id)
 
-    raw_rows = q.all()
-    # 防御性过滤：剔除引用已删除 Resume / Job 的孤儿行（matching_results 无 FK）
-    # BUG-071 修复：补上 IntakeCandidate 状态过滤；abandoned/timed_out candidate 对应的
-    # promoted Resume 也应剔除，避免出现"matching 显示但前端列表已过滤"的不一致。
-    if raw_rows:
-        from app.modules.im_intake.candidate_model import IntakeCandidate
-        live_resume_ids = {
-            r.id for r in db.query(Resume.id).filter(
-                Resume.id.in_({m.resume_id for m in raw_rows}),
-                Resume.status != "rejected",
-            ).all()
-        }
-        # 进一步剔除对应 candidate 已 abandoned/timed_out 的 Resume.id
-        if live_resume_ids:
-            dead_via_candidate = {
-                cid for (cid,) in db.query(IntakeCandidate.promoted_resume_id).filter(
-                    IntakeCandidate.promoted_resume_id.in_(live_resume_ids),
-                    IntakeCandidate.intake_status.in_(["abandoned", "timed_out"]),
-                ).all()
-            }
-            live_resume_ids -= dead_via_candidate
-        live_job_ids = {
-            j.id for j in db.query(Job.id).filter(
-                Job.id.in_({m.job_id for m in raw_rows})
-            ).all()
-        }
-        all_rows = [
-            r for r in raw_rows
-            if r.resume_id in live_resume_ids and r.job_id in live_job_ids
-        ]
-    else:
-        all_rows = []
+    # SQL EXISTS: 仅保留指向 status!=rejected Resume 的 matching_results 行
+    live_resume_subq = (
+        db.query(Resume.id).filter(
+            Resume.id == MatchingResult.resume_id,
+            Resume.status != "rejected",
+        ).exists()
+    )
+    q = q.filter(live_resume_subq)
+
+    # SQL NOT EXISTS: 排除指向 abandoned/timed_out candidate 的 Resume
+    dead_cand_subq = (
+        db.query(IntakeCandidate.id).filter(
+            IntakeCandidate.promoted_resume_id == MatchingResult.resume_id,
+            IntakeCandidate.intake_status.in_(["abandoned", "timed_out"]),
+        ).exists()
+    )
+    q = q.filter(~dead_cand_subq)
+
+    # SQL EXISTS: Job 仍存在
+    live_job_subq = (
+        db.query(Job.id).filter(Job.id == MatchingResult.job_id).exists()
+    )
+    q = q.filter(live_job_subq)
+
+    q = q.order_by(MatchingResult.total_score.desc())
+
     if tag:
-        all_rows = [r for r in all_rows if tag in json.loads(r.tags or "[]")]
-
-    total = len(all_rows)
-    start = (page - 1) * page_size
-    rows = all_rows[start: start + page_size]
+        # tag 走 in-memory fallback (JSON 字段下推到 SQL 复杂);
+        # 单 job 内通常 ≤ 几百行, 影响有限。
+        all_rows = [r for r in q.all() if tag in json.loads(r.tags or "[]")]
+        total = len(all_rows)
+        start = (page - 1) * page_size
+        rows = all_rows[start: start + page_size]
+    else:
+        total = q.count()
+        rows = q.offset((page - 1) * page_size).limit(page_size).all()
 
     # 批量预取 resume/job 信息 + 当前 hash
     resume_ids = {r.resume_id for r in rows}
@@ -261,9 +262,7 @@ def set_action(result_id: int, body: _ActionBody, db: Session = Depends(get_db),
         raise HTTPException(status_code=404, detail="matching result not found")
     if body.action not in (None, "passed", "rejected"):
         raise HTTPException(status_code=400, detail="action must be passed/rejected/null")
-    row.job_action = body.action
-    db.commit()
-    # spec 0429-D: 同步写决策表 (job × candidate). 反查 candidate_id by promoted_resume_id.
+    # BUG-098: 决策表写在 row.job_action 之前, 失败时整体不 commit, 避免两表分裂.
     from app.modules.im_intake.candidate_model import IntakeCandidate
     from app.modules.matching.decision_service import set_decision, DecisionError
     cand = db.query(IntakeCandidate).filter_by(
@@ -280,6 +279,9 @@ def set_action(result_id: int, body: _ActionBody, db: Session = Depends(get_db),
                 "decision sync failed: code=%s job_id=%s candidate_id=%s",
                 _e.code, row.job_id, cand.id,
             )
+            # 决策表语义不被旧 row.job_action 替代, 但仍写一份兼容旧前端
+    row.job_action = body.action
+    db.commit()
     return {"id": row.id, "job_action": row.job_action}
 
 

@@ -13,7 +13,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import and_, desc, or_, select
+from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.modules.ai_screening.models import ScreeningJob, ScreeningJobItem
@@ -66,6 +67,8 @@ def _eligible_candidate_query(db: Session, user_id: int, job_id: int):
         .filter(MatchingResult.hard_gate_passed == 1)
         .filter(IntakeCandidate.pdf_path.isnot(None))
         .filter(IntakeCandidate.pdf_path != "")
+        # BUG-100: pdf_path 仅空白也应排除 (防 LLM 编造评分)
+        .filter(func.trim(IntakeCandidate.pdf_path) != "")
         .filter(~IntakeCandidate.id.in_(rejected_subq))
         .all()
     )
@@ -99,8 +102,12 @@ def start(
     job_id: int,
     mode: str,
     threshold: int,
+    cli_path: Optional[str] = None,
 ) -> ScreeningJob:
     """创建 screening_job + lock 候选池 items.
+
+    cli_path: BUG-102, router 解析出的 claude 二进制绝对路径, 锁定到 ScreeningJob.cli_path,
+    worker 读取时不再 resolve, 避免环境变更不一致。
     raise ScreeningError:
       - job_not_found
       - already_running
@@ -132,9 +139,16 @@ def start(
         total=len(cands),
         processed=0,
         started_at=datetime.now(timezone.utc),
+        cli_path=cli_path,
     )
     db.add(sj)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        # BUG-088: partial unique on (user_id, job_id) WHERE status='running'
+        # 并发 start 两次时第二次 INSERT 触发 IntegrityError → 转成 already_running
+        db.rollback()
+        raise ScreeningError("already_running")
 
     for c in cands:
         item = ScreeningJobItem(
@@ -153,6 +167,8 @@ def start(
 
 
 def cancel(db: Session, user_id: int, screening_job_id: int) -> ScreeningJob:
+    """BUG-090: 设 cancel_requested 后立即调 terminate_active 杀当前 claude 子进程,
+    取消立即生效而非等 batch 自然结束 (5min)。"""
     sj = db.query(ScreeningJob).filter_by(id=screening_job_id).first()
     if not sj:
         raise ScreeningError("not_found")
@@ -163,6 +179,11 @@ def cancel(db: Session, user_id: int, screening_job_id: int) -> ScreeningJob:
     sj.cancel_requested = 1
     db.commit()
     db.refresh(sj)
+    try:
+        from app.modules.ai_screening.worker import terminate_active as _term
+        _term(sj.id)
+    except Exception as e:
+        logger.warning("terminate_active failed for sj=%s: %s", sj.id, e)
     return sj
 
 
@@ -185,10 +206,16 @@ def current(
 def list_items(
     db: Session, user_id: int, screening_job_id: int
 ) -> tuple[ScreeningJob, list[dict]]:
-    """返 (screening_job, items 列表), items 含候选名 + 决策状态。"""
+    """返 (screening_job, items 列表), items 含候选名 + 决策状态。
+
+    BUG-103: status='running' 时拒绝返完整 items, 防止 API 自动化拿到中间状态。
+    跑完 (done/failed/cancelled) 才返。
+    """
     sj = db.query(ScreeningJob).filter_by(id=screening_job_id).first()
     if not sj or sj.user_id != user_id:
         raise ScreeningError("not_found")
+    if sj.status not in ("done", "failed", "cancelled"):
+        raise ScreeningError("not_finished")
 
     items = (
         db.query(ScreeningJobItem)

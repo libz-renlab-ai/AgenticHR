@@ -12,6 +12,7 @@ import app.modules.scheduling.models  # noqa: F401
 import app.modules.notification.models  # noqa: F401
 import app.modules.matching.models  # noqa: F401
 import app.modules.matching.decision_model  # noqa: F401 — JobCandidateDecision
+import app.modules.ai_screening.models  # noqa: F401 — ScreeningJob / ScreeningJobItem
 import app.core.audit.models  # noqa: F401
 import app.modules.im_intake.models  # noqa: F401
 import app.modules.im_intake.candidate_model  # noqa: F401

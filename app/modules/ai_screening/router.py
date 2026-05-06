@@ -12,7 +12,7 @@ from app.database import get_db
 from app.modules.auth.deps import get_current_user_id
 from app.modules.ai_screening import service as svc
 from app.modules.ai_screening import worker as wk
-from app.modules.ai_screening.cli_runner import detect_claude_cli
+from app.modules.ai_screening.cli_runner import detect_claude_cli, resolve_claude_binary
 from app.modules.ai_screening.schemas import (
     CurrentResponse,
     ItemResponse,
@@ -35,6 +35,7 @@ _ERR_TO_STATUS = {
     "empty_pool": 422,
     "already_running": 409,
     "not_running": 400,
+    "not_finished": 409,
 }
 
 _ERR_TO_MSG = {
@@ -45,6 +46,7 @@ _ERR_TO_MSG = {
     "empty_pool": "候选池为空, 请先在 [匹配候选人] 跑硬筛",
     "already_running": "已有进行中的筛选任务",
     "not_running": "任务已结束, 无法取消",
+    "not_finished": "任务尚未完成, 请等待跑完后再查看明细",
 }
 
 
@@ -79,6 +81,8 @@ async def start(
             status_code=503,
             detail="Claude Code CLI 未检测到, 请安装 (npm i -g @anthropic-ai/claude-code) 或设置 CLAUDE_CLI_PATH",
         )
+    # BUG-102: 锁定 binary 绝对路径到 ScreeningJob.cli_path, worker 跑时不再 resolve
+    cli_path = resolve_claude_binary()
     try:
         sj = svc.start(
             db,
@@ -86,6 +90,7 @@ async def start(
             job_id=job_id,
             mode=body.mode,
             threshold=body.threshold,
+            cli_path=cli_path,
         )
     except ScreeningError as e:
         _raise(e)

@@ -34,6 +34,9 @@ class ScreeningJob(Base):
     error_msg = Column(Text, nullable=True)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
+    # BUG-102: 锁定 worker 启动时 resolve 出来的 claude binary 路径,
+    # 避免 router/worker 两次 resolve 不一致 (PATH 环境变更窗口)。
+    cli_path = Column(String(500), nullable=True)
     created_at = Column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )

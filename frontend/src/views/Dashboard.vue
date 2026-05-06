@@ -87,7 +87,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
-import { resumeApi, schedulingApi, healthApi } from '../api'
+import { schedulingApi, healthApi } from '../api'
 import { listIntakeCandidates } from '../api/intake'
 
 const router = useRouter()
@@ -118,12 +118,15 @@ const quickStartSteps = [
 
 onMounted(async () => {
   // Fetch stats（4 个统计并行取，首屏更快）
-  // 总/通过 走简历库 (四项齐全 IntakeCandidate);
-  // 已淘汰走 IntakeCandidate.status='rejected' (rejected 候选不必四项齐全)
+  // BUG-117: 三计数同源 — 都走 IntakeCandidate 母集 (无四项齐全约束),
+  // 保证 通过 + 已淘汰 ≤ 总数, 数学自洽。
+  // 总数 = user 的全部 IntakeCandidate
+  // 通过 = recruit_status=passed
+  // 已淘汰 = recruit_status=rejected
   try {
     const [all, passed, rejected, interviews] = await Promise.all([
-      resumeApi.list({ page: 1, page_size: 1, intake_status: 'complete' }),
-      resumeApi.list({ page: 1, page_size: 1, status: 'passed', intake_status: 'complete' }),
+      listIntakeCandidates({ page: 1, size: 1 }),
+      listIntakeCandidates({ recruit_status: 'passed', page: 1, size: 1 }),
       listIntakeCandidates({ recruit_status: 'rejected', page: 1, size: 1 }),
       schedulingApi.listInterviews({ status: 'scheduled' }),
     ])

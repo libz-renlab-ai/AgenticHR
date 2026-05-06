@@ -96,12 +96,41 @@ def _strip_markdown_fence(text: str) -> str:
     return text
 
 
+def _try_extract_json_arrays(text: str) -> list:
+    """尝试从文本里提取 JSON 数组。BUG-094: 改非贪婪 + 多次尝试 raw_decode。
+
+    会扫描所有候选 `[...]` JSON 数组, 优先返回含 dict 元素 (即评分对象数组) 的那一个;
+    否则降级返回任意第一个 list。
+    """
+    decoder = json.JSONDecoder()
+    candidates: list[list] = []
+    i = 0
+    while i < len(text):
+        idx = text.find("[", i)
+        if idx < 0:
+            break
+        try:
+            obj, end = decoder.raw_decode(text[idx:])
+        except json.JSONDecodeError:
+            i = idx + 1
+            continue
+        if isinstance(obj, list):
+            candidates.append(obj)
+            # 第一个含 dict 的数组就是我们要的评分对象数组
+            if any(isinstance(x, dict) for x in obj):
+                return obj
+        i = idx + end
+    return candidates[0] if candidates else None  # type: ignore[return-value]
+
+
 def parse_claude_response(stdout: bytes) -> list[dict]:
     """从 claude --print --output-format json 的 stdout 解析候选人评分数组。
 
     Claude 输出格式 (json):
       {"result": "<text>", ...}
     text 期望是 JSON 数组 (可能被 markdown 包裹)。
+
+    单候选人级别 try/except: BUG-093 (NaN crash), BUG-101 (cid float), BUG-113 (越界).
     """
     try:
         wrapper = json.loads(stdout.decode("utf-8", errors="replace"))
@@ -113,18 +142,17 @@ def parse_claude_response(stdout: bytes) -> list[dict]:
         raise CliError(f"claude result empty; wrapper={wrapper}")
 
     cleaned = _strip_markdown_fence(result_text)
+    arr = None
     try:
-        arr = json.loads(cleaned)
-    except json.JSONDecodeError as e:
-        # 容错: 在文本里抓第一个 [...] JSON 数组
-        m = re.search(r"(\[.*\])", cleaned, re.DOTALL)
-        if not m:
-            raise CliError(f"no JSON array in result: {cleaned[:300]}")
-        try:
-            arr = json.loads(m.group(1))
-        except json.JSONDecodeError as e2:
-            raise CliError(f"json array parse failed: {e2}; text={cleaned[:300]}")
-
+        loaded = json.loads(cleaned)
+        if isinstance(loaded, list):
+            arr = loaded
+    except json.JSONDecodeError:
+        pass
+    if arr is None:
+        arr = _try_extract_json_arrays(cleaned)
+    if arr is None:
+        raise CliError(f"no JSON array in result: {cleaned[:300]}")
     if not isinstance(arr, list):
         raise CliError(f"expected JSON array, got {type(arr).__name__}")
 
@@ -135,17 +163,51 @@ def parse_claude_response(stdout: bytes) -> list[dict]:
         cid = item.get("candidate_id")
         score = item.get("score")
         reason = item.get("reason", "")
-        if not isinstance(cid, int):
+        # BUG-101: cid 容许 float 但要求无小数部分
+        if isinstance(cid, float):
+            if not cid.is_integer():
+                continue
+            cid = int(cid)
+        if not isinstance(cid, int) or isinstance(cid, bool):
             continue
-        if not isinstance(score, (int, float)):
+        if not isinstance(score, (int, float)) or isinstance(score, bool):
             continue
-        score_int = max(0, min(100, int(score)))
+        # BUG-093: NaN/Infinity 单候选跳过, 不影响整批
+        try:
+            f = float(score)
+        except (TypeError, ValueError):
+            continue
+        if f != f or f in (float("inf"), float("-inf")):
+            continue
+        # BUG-113: 越界不静默 clamp, 单候选标记返回 (worker 写 error, 不进 pass)
+        if f < 0 or f > 100:
+            out.append({
+                "candidate_id": cid,
+                "score": None,
+                "reason": "",
+                "error": f"LLM 评分越界: {f}",
+            })
+            continue
         out.append({
             "candidate_id": cid,
-            "score": score_int,
+            "score": int(f),
             "reason": str(reason)[:500],
         })
     return out
+
+
+_SENSITIVE_PAT = re.compile(
+    r"(sk-[a-zA-Z0-9_\-]{8,}|api[_-]?key=\S+|token=[A-Za-z0-9._\-]+|"
+    r"Bearer\s+[A-Za-z0-9._\-]+)",
+    re.IGNORECASE,
+)
+
+
+def _redact_sensitive(text: str) -> str:
+    """BUG-105: 屏蔽 stderr 中的 token/api key 等敏感字符串。"""
+    if not text:
+        return text
+    return _SENSITIVE_PAT.sub("[REDACTED]", text)
 
 
 def _resolve_pdf_dirs(pdf_paths: list[str]) -> list[str]:
@@ -222,17 +284,22 @@ async def run_claude_batch(
     *,
     timeout: int = DEFAULT_TIMEOUT,
     handle: Optional[ClaudeProcessHandle] = None,
+    binary_path: Optional[str] = None,
 ) -> list[dict]:
     """跑一批候选人横向打分。
 
     candidates: [{candidate_id, pdf_path}, ...]  长度建议 ≤ 10
     返回: [{candidate_id, score, reason}, ...]
     raise CliError on failure.
+
+    BUG-102: binary_path 给定时不再 resolve, 直接用. router.start 时锁定写到
+    ScreeningJob.cli_path, worker 跑时读出来传进, 避免 router/worker 两次
+    resolve 结果不一致 (PATH 环境变更窗口)。
     """
     user_prompt = render_user_prompt(jd_text, candidates)
     pdf_dirs = _resolve_pdf_dirs([c["pdf_path"] for c in candidates])
 
-    binary = _resolve_claude_binary()
+    binary = binary_path or _resolve_claude_binary()
     if not binary:
         raise CliError(
             f"claude binary not found via PATH or CLAUDE_CLI_PATH={CLAUDE_BIN!r}"
@@ -264,7 +331,9 @@ async def run_claude_batch(
 
     if rc != 0:
         # cancel 时 returncode 通常 = -15 / 1
-        err_text = stderr.decode("utf-8", errors="replace")[:500] if stderr else ""
+        # BUG-105: stderr 含 token/api key 等敏感字符串 → 屏蔽再入库
+        raw_err = stderr.decode("utf-8", errors="replace") if stderr else ""
+        err_text = _redact_sensitive(raw_err)[:500]
         raise CliError(f"claude exit={rc}; stderr={err_text}")
 
     return parse_claude_response(stdout)
@@ -273,3 +342,8 @@ async def run_claude_batch(
 def detect_claude_cli() -> bool:
     """快速检测 claude binary 是否可用。同步函数, 启动时调用。"""
     return _resolve_claude_binary() is not None
+
+
+def resolve_claude_binary() -> Optional[str]:
+    """对外暴露的 binary path resolver, 供 router.start 调用锁定到 ScreeningJob.cli_path。"""
+    return _resolve_claude_binary()
