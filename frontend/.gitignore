@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# TeamAgent auto-generated knowledge file (managed by global hook)
+CLAUDE.md
