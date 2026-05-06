@@ -171,6 +171,7 @@ def list_results(
     jobs = {j.id: j for j in db.query(Job).filter(Job.id.in_(job_ids)).all()}
 
     # spec 0429-D: 反查 resume_id -> candidate_id (用 promoted_resume_id)
+    # P0-b: 死候选人 (abandoned/timed_out) 不参与反查, 防 list 注入"诈尸" candidate_id
     candidate_id_by_resume: dict[int, int] = {}
     if resume_ids:
         from app.modules.im_intake.candidate_model import IntakeCandidate
@@ -179,6 +180,7 @@ def list_results(
         ).filter(
             IntakeCandidate.promoted_resume_id.in_(resume_ids),
             IntakeCandidate.user_id == user_id,
+            ~IntakeCandidate.intake_status.in_(["abandoned", "timed_out"]),
         ).all():
             candidate_id_by_resume[rid] = cid
 
@@ -237,8 +239,18 @@ class _ActionBody(_PydanticBaseModel):
     action: str | None = None  # 'passed' / 'rejected' / null
 
 
-@router.patch("/results/{result_id}/action")
+@router.patch(
+    "/results/{result_id}/action",
+    deprecated=True,
+    summary="[DEPRECATED] 旧人工决策端点 — 请改用 PATCH /api/jobs/{job_id}/candidates/{candidate_id}/decision",
+)
 def set_action(result_id: int, body: _ActionBody, db: Session = Depends(get_db), user_id: int = Depends(get_current_user_id)):
+    """spec 0429-D cleanup: 兼容旧前端缓存。新代码走 decision_router。
+
+    将在后续 spec 0429-D-cleanup 删除 matching_results.job_action 列前下线。
+    每次命中记 INFO 日志便于评估流量。
+    """
+    logger.info("legacy set_action endpoint hit: result_id=%s", result_id)
     _require_matching_enabled()
     row = db.query(MatchingResult).filter_by(id=result_id).first()
     if not row:
@@ -263,8 +275,11 @@ def set_action(result_id: int, body: _ActionBody, db: Session = Depends(get_db),
                 db, user_id=user_id, job_id=row.job_id,
                 candidate_id=cand.id, action=body.action,
             )
-        except DecisionError:
-            pass
+        except DecisionError as _e:
+            logger.warning(
+                "decision sync failed: code=%s job_id=%s candidate_id=%s",
+                _e.code, row.job_id, cand.id,
+            )
     return {"id": row.id, "job_action": row.job_action}
 
 

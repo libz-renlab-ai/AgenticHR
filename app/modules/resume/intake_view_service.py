@@ -179,7 +179,13 @@ def list_matched_for_job(
     edu_min = job.education_min or ""
     tier_min = (getattr(job, "school_tier_min", "") or "")
 
-    candidates = _complete_query(db, user_id).all()
+    # spec 0429-D edge case 2: 已 abandoned/timed_out candidate 不应出现在岗位匹配列表
+    # (即便决策表残留 passed 行, candidate 已诈尸 → 不可被约面)
+    candidates = (
+        _complete_query(db, user_id)
+        .filter(~IntakeCandidate.intake_status.in_(["abandoned", "timed_out"]))
+        .all()
+    )
     matched = [
         c for c in candidates
         if meets_education(c.education or "", edu_min)
