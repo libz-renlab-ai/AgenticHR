@@ -151,7 +151,7 @@
                       @change="syncBatchCriteria"
                       style="width:120px;"
                     >
-                      <el-option label="不限" :value="null" />
+                      <el-option label="不限" value="" />
                       <el-option label="大专" value="大专" />
                       <el-option label="本科" value="本科" />
                       <el-option label="硕士" value="硕士" />
@@ -389,7 +389,7 @@ const jobForm = ref({ ...defaultForm })
 const batchSchool985 = ref(false)
 const batchSchool211 = ref(false)
 const batchSchoolFirst = ref(false)
-const batchEduMin = ref(null)
+const batchEduMin = ref('')
 
 function syncBatchCriteria() {
   const tiers = []
@@ -408,11 +408,11 @@ function syncBatchCriteria() {
 
 function loadBatchCriteriaFromForm() {
   const c = jobForm.value.batch_collect_criteria
-  if (!c) { batchSchool985.value = false; batchSchool211.value = false; batchSchoolFirst.value = false; batchEduMin.value = null; return; }
+  if (!c) { batchSchool985.value = false; batchSchool211.value = false; batchSchoolFirst.value = false; batchEduMin.value = ''; return; }
   batchSchool985.value = (c.school_tiers || []).includes('985')
   batchSchool211.value = (c.school_tiers || []).includes('211')
   batchSchoolFirst.value = (c.school_tiers || []).includes('双一流')
-  batchEduMin.value = c.education_min || null
+  batchEduMin.value = c.education_min || ''
 }
 
 async function loadJobs() {
