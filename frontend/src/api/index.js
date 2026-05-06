@@ -177,4 +177,15 @@ export const decisionApi = {
     api.patch(`/jobs/${job_id}/candidates/${candidate_id}/decision`, { action }),
 }
 
+// AI 智能筛选 API (claude --print 子进程横向打分)
+export const aiScreeningApi = {
+  preview: (job_id) => api.get(`/jobs/${job_id}/ai-screening/preview`),
+  start: (job_id, { mode, threshold }) =>
+    api.post(`/jobs/${job_id}/ai-screening/start`, { mode, threshold }),
+  current: (job_id) => api.get(`/jobs/${job_id}/ai-screening/current`),
+  cancel: (screening_job_id) =>
+    api.post(`/ai-screening/${screening_job_id}/cancel`),
+  items: (screening_job_id) => api.get(`/ai-screening/${screening_job_id}/items`),
+}
+
 export default api

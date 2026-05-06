@@ -310,7 +310,7 @@
           </template>
         </el-tab-pane>
         <el-tab-pane label="AI智能筛选" name="ai_smart" v-if="editingJob">
-          <el-empty description="开发中" />
+          <AiScreeningPanel :job-id="editingJob.id" />
         </el-tab-pane>
       </el-tabs>
       <template #footer>
@@ -329,6 +329,7 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { jobApi, competencyApi, matchingApi, weightsApi, decisionApi } from '../api'
 import CompetencyEditor from '../components/CompetencyEditor.vue'
+import AiScreeningPanel from '../components/AiScreeningPanel.vue'
 import { extractingJobIds } from '../stores/extractingJobs.js'
 
 const jobs = ref([])

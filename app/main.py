@@ -179,6 +179,9 @@ app.include_router(matching_router)
 from app.modules.matching.decision_router import router as decision_router
 app.include_router(decision_router)
 
+from app.modules.ai_screening.router import router as ai_screening_router
+app.include_router(ai_screening_router)
+
 from app.core.competency.router import router as skills_router
 app.include_router(skills_router)
 
