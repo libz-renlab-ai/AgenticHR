@@ -171,7 +171,22 @@ class MatchingService:
         except Exception as e:
             logger.warning(f"audit log failed (non-fatal): {e}")
 
-        return self._to_response(row, resume, job, competency_hash, weights_hash)
+        response = self._to_response(row, resume, job, competency_hash, weights_hash)
+        # spec 0429-D cleanup (P2-b): 单 row 响应也以决策表为真值, 与 list_results 一致;
+        # 防止旧 row.job_action 字段未同步导致前端显示陈旧决策。
+        try:
+            from app.modules.im_intake.candidate_model import IntakeCandidate
+            from app.modules.matching.decision_service import get_decision
+            cand = self.db.query(IntakeCandidate).filter_by(
+                promoted_resume_id=resume.id, user_id=resume.user_id,
+            ).first()
+            if cand:
+                d = get_decision(self.db, resume.user_id, job.id, cand.id)
+                response.job_action = d.action if d else None
+                response.candidate_id = cand.id
+        except Exception as _e:
+            logger.warning(f"decision lookup failed (non-fatal): {_e}")
+        return response
 
     @staticmethod
     def _compute_matched_skills(hard_skills: list[dict], resume: Resume, missing: list[str]) -> list[str]:
