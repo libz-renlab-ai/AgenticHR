@@ -52,3 +52,9 @@ test_school_only.py
 scripts/seed_40_candidates.py
 scripts/seed_map.json
 .worktrees/
+
+# gstack QA report runtime (本地 audit artifact)
+.gstack/
+
+# Claude Code scheduled tasks runtime lock
+.claude/scheduled_tasks.lock
