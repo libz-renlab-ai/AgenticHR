@@ -88,6 +88,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { resumeApi, schedulingApi, healthApi } from '../api'
+import { listIntakeCandidates } from '../api/intake'
 
 const router = useRouter()
 
@@ -117,11 +118,13 @@ const quickStartSteps = [
 
 onMounted(async () => {
   // Fetch stats（4 个统计并行取，首屏更快）
+  // 总/通过 走简历库 (四项齐全 IntakeCandidate);
+  // 已淘汰走 IntakeCandidate.status='rejected' (rejected 候选不必四项齐全)
   try {
     const [all, passed, rejected, interviews] = await Promise.all([
       resumeApi.list({ page: 1, page_size: 1, intake_status: 'complete' }),
       resumeApi.list({ page: 1, page_size: 1, status: 'passed', intake_status: 'complete' }),
-      resumeApi.list({ page: 1, page_size: 1, status: 'rejected', intake_status: 'complete' }),
+      listIntakeCandidates({ recruit_status: 'rejected', page: 1, size: 1 }),
       schedulingApi.listInterviews({ status: 'scheduled' }),
     ])
     stats.value.totalResumes = all.total

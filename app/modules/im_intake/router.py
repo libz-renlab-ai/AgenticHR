@@ -127,6 +127,7 @@ def _candidate_summary(c: IntakeCandidate, slots: list[IntakeSlot], job_title: s
 @router.get("/candidates")
 def list_candidates(
     status: str | None = None,
+    recruit_status: str | None = None,
     job_id: int | None = None,
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=200),
@@ -135,7 +136,11 @@ def list_candidates(
 ):
     q = db.query(IntakeCandidate).filter(IntakeCandidate.user_id == user_id)
     if status:
+        # 历史语义: status filter intake_status (collecting/complete/abandoned/timed_out)
         q = q.filter(IntakeCandidate.intake_status == status)
+    if recruit_status:
+        # 录用状态 (passed/rejected/pending), spec 0429 阶段 A 引入
+        q = q.filter(IntakeCandidate.status == recruit_status)
     if job_id:
         q = q.filter(IntakeCandidate.job_id == job_id)
     total = q.count()
