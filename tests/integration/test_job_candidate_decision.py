@@ -1,6 +1,7 @@
 """spec 0429-D — PATCH /api/jobs/{job_id}/candidates/{candidate_id}/decision
 + GET /api/matching/passed-resumes/{job_id}?action=... 集成测试"""
 import pytest
+from sqlalchemy import text
 
 from app.modules.im_intake.candidate_model import IntakeCandidate
 from app.modules.im_intake.models import IntakeSlot
@@ -258,3 +259,143 @@ class TestLegacyMatchingResultPatchSyncs:
         resp2 = client.get(f"/api/matching/passed-resumes/{job.id}")
         items = resp2.json()
         assert any(i["name"] == cand.name and i["job_action"] == "passed" for i in items)
+
+
+# ── P1-a 级联删除: ON DELETE CASCADE 验证 ───────────────────────────────────
+
+class TestCascadeDelete:
+    def test_delete_candidate_cascades_decision(self, client, db_session):
+        cand = _mk_candidate(db_session)
+        job = _mk_job(db_session)
+        cand_id, job_id = cand.id, job.id
+        client.patch(
+            f"/api/jobs/{job_id}/candidates/{cand_id}/decision",
+            json={"action": "passed"},
+        )
+        assert db_session.query(JobCandidateDecision).count() == 1
+        # 直接 DB 删 candidate, FK CASCADE 应清 decision
+        db_session.execute(
+            text("DELETE FROM intake_candidates WHERE id=:id"), {"id": cand_id}
+        )
+        db_session.commit()
+        assert db_session.query(JobCandidateDecision).filter_by(
+            candidate_id=cand_id
+        ).count() == 0
+
+    def test_delete_job_cascades_decision(self, client, db_session):
+        cand = _mk_candidate(db_session)
+        job = _mk_job(db_session)
+        cand_id, job_id = cand.id, job.id
+        client.patch(
+            f"/api/jobs/{job_id}/candidates/{cand_id}/decision",
+            json={"action": "rejected"},
+        )
+        assert db_session.query(JobCandidateDecision).count() == 1
+        db_session.execute(
+            text("DELETE FROM jobs WHERE id=:id"), {"id": job_id}
+        )
+        db_session.commit()
+        assert db_session.query(JobCandidateDecision).filter_by(
+            job_id=job_id
+        ).count() == 0
+
+    def test_delete_user_cascades_decision(self, client, db_session):
+        # 用 user_id=2 (conftest 已 seed) 避免影响 user_id=1 默认 client
+        cand = _mk_candidate(db_session, user_id=2)
+        job = _mk_job(db_session, user_id=2)
+        # 直接落库决策行 (绕过 client 因 client 用 user_id=1)
+        d = JobCandidateDecision(
+            user_id=2, job_id=job.id, candidate_id=cand.id, action="passed",
+        )
+        db_session.add(d)
+        db_session.commit()
+        assert db_session.query(JobCandidateDecision).filter_by(user_id=2).count() == 1
+        # 删 user 2; FK CASCADE 应同步清 candidate + decision
+        db_session.execute(text("DELETE FROM users WHERE id=2"))
+        db_session.commit()
+        assert db_session.query(JobCandidateDecision).filter_by(user_id=2).count() == 0
+
+
+# ── P1-b spec 0429-D Edge cases e2e ─────────────────────────────────────────
+
+class TestSpecEdgeCases:
+    def test_passed_then_promote_then_visible(self, client, db_session):
+        """spec edge case 1: 候选人未 promote 被标 passed → 后续 promote → 仍可被约面试。"""
+        from app.modules.resume.models import Resume
+        cand = _mk_candidate(db_session)
+        job = _mk_job(db_session)
+        # 未 promote 时标 passed
+        client.patch(
+            f"/api/jobs/{job.id}/candidates/{cand.id}/decision",
+            json={"action": "passed"},
+        )
+        # 现在做 promote (手工模拟 promote_to_resume 的关键副作用)
+        resume = Resume(
+            user_id=1, name=cand.name, phone=cand.phone, education=cand.education,
+            ai_parsed="yes",
+        )
+        db_session.add(resume)
+        db_session.commit()
+        cand.promoted_resume_id = resume.id
+        db_session.commit()
+        # /passed-resumes?action=passed 仍返该候选人
+        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=passed")
+        items = resp.json()
+        assert any(i["id"] == cand.id and i["job_action"] == "passed" for i in items)
+
+    def test_passed_then_abandoned_disappears(self, client, db_session):
+        """spec edge case 2: passed 后 candidate intake_status 变 abandoned → 从下拉消失。"""
+        cand = _mk_candidate(db_session)
+        job = _mk_job(db_session)
+        client.patch(
+            f"/api/jobs/{job.id}/candidates/{cand.id}/decision",
+            json={"action": "passed"},
+        )
+        # 标 abandoned
+        cand.intake_status = "abandoned"
+        db_session.commit()
+        # passed 列表不应再含该 candidate (_complete_query 在 abandoned 状态下不会返)
+        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=passed")
+        items = resp.json()
+        assert all(i["id"] != cand.id for i in items)
+
+    def test_school_tier_tighten_then_loosen(self, client, db_session):
+        """spec edge case 3: 学校等级门槛调严, passed 残留无害; 放宽后状态复活。"""
+        # candidate=211 (低于 985), 用以测试调严到 985 时被滤出
+        cand = _mk_candidate(db_session, school_tier="211", bachelor_school="苏州大学")
+        job = _mk_job(db_session, school_tier_min="")
+        cand_id, job_id = cand.id, job.id
+        client.patch(
+            f"/api/jobs/{job_id}/candidates/{cand_id}/decision",
+            json={"action": "passed"},
+        )
+        # 当前门槛空, 候选人应在列表
+        items = client.get(f"/api/matching/passed-resumes/{job_id}").json()
+        assert any(i["id"] == cand_id for i in items)
+        # 调严到 985 (211 不达标)
+        job.school_tier_min = "985"
+        db_session.commit()
+        items_strict = client.get(f"/api/matching/passed-resumes/{job_id}").json()
+        assert all(i["id"] != cand_id for i in items_strict)
+        # decision 行仍在 (无害残留)
+        d = db_session.query(JobCandidateDecision).filter_by(
+            job_id=job_id, candidate_id=cand_id
+        ).first()
+        assert d is not None and d.action == "passed"
+        # 放宽回去, candidate 复活带原 passed 状态
+        job.school_tier_min = ""
+        db_session.commit()
+        items_back = client.get(f"/api/matching/passed-resumes/{job_id}?action=passed").json()
+        assert any(i["id"] == cand_id and i["job_action"] == "passed" for i in items_back)
+
+    def test_same_candidate_different_jobs_isolated(self, client, db_session):
+        """spec edge case 4: 同 candidate 不同 job 决策互不冲突 (UNIQUE per pair)."""
+        cand = _mk_candidate(db_session)
+        job_a = _mk_job(db_session, title="A")
+        job_b = _mk_job(db_session, title="B")
+        client.patch(f"/api/jobs/{job_a.id}/candidates/{cand.id}/decision", json={"action": "passed"})
+        client.patch(f"/api/jobs/{job_b.id}/candidates/{cand.id}/decision", json={"action": "rejected"})
+        # 互不污染, 两行独立
+        rows = db_session.query(JobCandidateDecision).filter_by(candidate_id=cand.id).all()
+        assert len(rows) == 2
+        assert {r.job_id: r.action for r in rows} == {job_a.id: "passed", job_b.id: "rejected"}
