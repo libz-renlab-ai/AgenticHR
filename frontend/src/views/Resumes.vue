@@ -304,6 +304,22 @@ function getSchoolDisplay(row) {
   return '—'
 }
 
+// 列表刷新时保留每行的本地 transient 状态 (`_qrBlobUrl` / `_aiLoading` 等),
+// 否则 _qrBlobUrl 丢失 → v-if 失败 → 闪一下变 "点击重试" placeholder.
+// 约定: 任何 `_` 前缀的属性都视为本地 UI 状态, 不被服务端响应覆盖.
+function mergeTransientState(newItems, oldItems) {
+  if (!oldItems || oldItems.length === 0) return newItems
+  const oldMap = new Map(oldItems.map(r => [r.id, r]))
+  for (const n of newItems) {
+    const o = oldMap.get(n.id)
+    if (!o) continue
+    for (const k of Object.keys(o)) {
+      if (k.startsWith('_')) n[k] = o[k]
+    }
+  }
+  return newItems
+}
+
 async function loadResumes() {
   loading.value = true
   try {
@@ -313,7 +329,7 @@ async function loadResumes() {
       keyword: keyword.value || undefined,
       status: statusFilter.value || undefined,
     })
-    resumes.value = data.items
+    resumes.value = mergeTransientState(data.items, resumes.value)
     total.value = data.total
     ensurePollingIfNeeded()
   } catch (e) {
@@ -475,7 +491,7 @@ function pollAiParseStatus() {
         page: page.value, page_size: pageSize,
         keyword: keyword.value || undefined, status: statusFilter.value || undefined,
       })
-      resumes.value = data.items
+      resumes.value = mergeTransientState(data.items, resumes.value)
       total.value = data.total
       const stillPending = resumes.value.some(r => r.ai_parsed === 'no' || r.ai_parsed === 'parsing')
       if (!stillPending && !status.running) {
