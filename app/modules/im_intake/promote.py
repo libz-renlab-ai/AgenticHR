@@ -7,6 +7,49 @@ from app.modules.resume.models import Resume
 _log = logging.getLogger(__name__)
 
 
+# BUG-123: 把 candidate 上抽出/沉淀的结构化字段在 promote 时一并复制到 Resume,
+# 否则 Resume 只剩 name/raw_text/pdf_path, 五维 score_skill/experience/industry
+# 等 scorer 拿到的全部是空值, 打分恒等于占位数; 也让 list_matched_for_job 与
+# screening.screen_resumes 在 candidate vs resume 两套口径上彻底一致.
+_CAND_TO_RESUME_FIELDS: tuple[str, ...] = (
+    "phone", "email", "education",
+    "bachelor_school", "master_school", "phd_school",
+    "skills", "work_experience", "project_experience", "self_evaluation",
+    "job_intention", "work_years", "seniority",
+    "expected_salary_min", "expected_salary_max",
+    "qr_code_path", "ai_parsed", "ai_score", "ai_summary",
+)
+
+
+def _copy_fields(candidate: IntakeCandidate, resume: Resume, *, only_if_empty: bool) -> None:
+    """把 candidate 的结构化字段复制到 resume.
+
+    only_if_empty=True 表示 merge 路径, 不覆盖 Resume 已有的非空数据 (F3 抓取的优先);
+    only_if_empty=False 表示新建路径, 直接覆盖.
+
+    数值/浮点字段 0 视为"未填"; 字符串字段空串视为"未填".
+    """
+    for f in _CAND_TO_RESUME_FIELDS:
+        cand_val = getattr(candidate, f, None)
+        if cand_val is None:
+            continue
+        # 数值视 0 为缺失
+        if isinstance(cand_val, (int, float)) and cand_val == 0:
+            continue
+        if isinstance(cand_val, str) and not cand_val:
+            continue
+        if only_if_empty:
+            cur = getattr(resume, f, None)
+            empty = (
+                cur is None
+                or (isinstance(cur, (int, float)) and cur == 0)
+                or (isinstance(cur, str) and not cur)
+            )
+            if not empty:
+                continue
+        setattr(resume, f, cand_val)
+
+
 def promote_to_resume(db: Session, candidate: IntakeCandidate, user_id: int = 0) -> Resume:
     # BUG-016 / BUG-047: user_id<=0 creates orphan Resume rows (no real user
     # owns user_id 0; they cannot be queried by any /api/resumes endpoint
@@ -50,6 +93,8 @@ def promote_to_resume(db: Session, candidate: IntakeCandidate, user_id: int = 0)
             r.pdf_path = candidate.pdf_path
         if not r.raw_text and candidate.raw_text:
             r.raw_text = candidate.raw_text
+        # BUG-123: 复制结构化字段; merge 路径不覆盖 Resume 已有数据
+        _copy_fields(candidate, r, only_if_empty=True)
         r.intake_status = "complete"
         if not r.intake_started_at and candidate.intake_started_at:
             r.intake_started_at = candidate.intake_started_at
@@ -84,6 +129,8 @@ def promote_to_resume(db: Session, candidate: IntakeCandidate, user_id: int = 0)
         # spec 0429 阶段 C: 反向键 1:1
         intake_candidate_id=candidate.id,
     )
+    # BUG-123: 复制结构化字段, 让五维 scorer 能拿到真实数据
+    _copy_fields(candidate, r, only_if_empty=False)
     db.add(r)
     db.flush()
 
