@@ -194,6 +194,49 @@ def _extract_json(text: str) -> dict:
     return json.loads(text.strip())
 
 
+# BUG-126: 部分 LLM 偶尔输出 "研究生|硕士" / "本科 / 硕士" / "硕士在读" / "研究生" 等
+# 非规范学历字符串, 导致 EDUCATION_LEVELS / meets_education 拿到 0 ord 直接学历不达标。
+# 在写库前规范化为 大专 / 本科 / 硕士 / 博士 / "" 之一, 并取候选中最高的那级。
+_EDU_KEYWORDS = (
+    ("博士", "博士"),
+    ("phd", "博士"),
+    ("doctor", "博士"),
+    ("硕士", "硕士"),
+    ("研究生", "硕士"),
+    ("master", "硕士"),
+    ("mba", "硕士"),
+    ("emba", "硕士"),
+    ("本科", "本科"),
+    ("学士", "本科"),
+    ("bachelor", "本科"),
+    ("undergrad", "本科"),
+    ("大专", "大专"),
+    ("专科", "大专"),
+    ("高职", "大专"),
+    ("associate", "大专"),
+)
+_EDU_RANK = {"": 0, "大专": 1, "本科": 2, "硕士": 3, "博士": 4}
+
+
+def normalize_education(raw: str | None) -> str:
+    """规范化任意 LLM 输出的学历字符串到 大专/本科/硕士/博士/'' 之一。
+
+    多个候选词出现时, 取最高那级 (e.g. "本科/硕士在读" → "硕士").
+    """
+    if not raw:
+        return ""
+    t = str(raw).lower()
+    best_rank = 0
+    best_label = ""
+    for kw, label in _EDU_KEYWORDS:
+        if kw in t:
+            rank = _EDU_RANK[label]
+            if rank > best_rank:
+                best_rank = rank
+                best_label = label
+    return best_label
+
+
 async def ai_parse_resume_vision(file_path: str, ai_provider) -> dict:
     """Use vision model to parse image-based or garbled PDFs page by page."""
     import base64

@@ -154,7 +154,14 @@ async def _do_parse_all(user_id: int = 0):
                     if parsed.get("email") and not resume.email:
                         resume.email = _s(parsed["email"])
                     if parsed.get("education") and not resume.education:
-                        resume.education = _s(parsed["education"])
+                        # BUG-126: LLM 偶尔输出 "研究生|硕士" / "本科/硕士" 等非规范值,
+                        # 在落库前规范化为单值 (大专/本科/硕士/博士).
+                        from app.modules.resume.pdf_parser import normalize_education
+                        norm = normalize_education(_s(parsed["education"]))
+                        if norm:
+                            resume.education = norm
+                        else:
+                            resume.education = _s(parsed["education"])
                     if parsed.get("bachelor_school") and not resume.bachelor_school:
                         resume.bachelor_school = _s(parsed["bachelor_school"])
                     if parsed.get("master_school") and not resume.master_school:
