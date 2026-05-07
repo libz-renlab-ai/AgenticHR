@@ -445,16 +445,18 @@ async def reextract_slots(
     if not msgs:
         return {"id": c.id, "filled": [], "skipped": "no_messages"}
 
+    # 顺序: all_hard_filled (无活可干, 不需 LLM) > LLM 配置检查 > 真跑。
+    # 旧实现先检 LLM 后检 all_filled, 导致已齐用户在 LLM 未配置时被错误 503。
+    slots = {s.slot_key: s for s in db.query(IntakeSlot).filter_by(candidate_id=c.id).all()}
+    pending = [k for k in HARD_SLOT_KEYS if k in slots and not slots[k].value]
+    if not pending:
+        return {"id": c.id, "filled": [], "skipped": "all_hard_filled"}
+
     from app.modules.im_intake.slot_filler import SlotFiller
     from app import main as _main
     llm = getattr(_main, "llm_client", None)
     if llm is None:
         raise HTTPException(503, "LLM not configured")
-
-    slots = {s.slot_key: s for s in db.query(IntakeSlot).filter_by(candidate_id=c.id).all()}
-    pending = [k for k in HARD_SLOT_KEYS if k in slots and not slots[k].value]
-    if not pending:
-        return {"id": c.id, "filled": [], "skipped": "all_hard_filled"}
 
     filler = SlotFiller(llm=llm)
     parsed = await filler.parse_conversation(msgs, c.boss_id, pending)
