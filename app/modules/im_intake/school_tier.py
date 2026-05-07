@@ -259,6 +259,24 @@ def _normalize(name: str | None) -> str:
     return s
 
 
+# BUG-133: 985/211 名校的附属/独立/继续教育机构不应继承名校 tier。
+# 包含以下任一关键词时, 即使被字符串包含命中名校 (如"中山大学新华学院" 含"中山大学"),
+# 也降级为 "" — 这些机构招生标准与名校本部存在显著差异。
+# 注: 排除"工学院/理工学院"等通用学院类型 (麻省理工学院/佐治亚理工学院等正版校名),
+# 仅列举确定指代独立学院/附属/继续教育的关键词。
+_AFFILIATE_DOWNGRADE_KEYWORDS = (
+    # 附属基础教育
+    "附属中学", "附属高中", "附属小学", "附属初中", "附中", "附小",
+    # 继续教育 / 成人教育
+    "继续教育", "成人教育", "夜大", "夜校", "函授", "进修",
+    # 独立学院 (按名校独立学院的实际命名收录, 避免误伤"工学院"等通用学院)
+    "新华学院", "嘉庚学院", "珞珈学院", "锦江学院", "锦城学院",
+    "至诚学院", "南方学院", "三亚学院",
+    # 字面"独立学院" / 通用降级关键词
+    "独立学院",
+)
+
+
 def classify_school(name: str | None) -> str:
     """根据学校名返回等级标签。
 
@@ -266,8 +284,31 @@ def classify_school(name: str | None) -> str:
 
     BUG-125: 中科院系统 (国科大 / 上海高研 / 深先进 / 自动化所等) 与
     国家级实验室 (深圳湾 / 鹏城 / 之江 / 上海AI) 视同 985 档.
+    BUG-133: 名校的"附属中学/继续教育/独立学院"等不继承名校 tier。
+    BUG-134: 带括号歧义的 211 院校 ("中国地质大学（武汉）") 优先用原值直接 lookup,
+    防止 _normalize 剥括号后无法命中。
     """
-    s = _normalize(name)
+    if not name:
+        return ""
+    raw = name.strip()
+    if not raw:
+        return ""
+
+    # BUG-133: 附属/独立学院等机构降级为无 tier (即使包含名校字符串也不继承)
+    for kw in _AFFILIATE_DOWNGRADE_KEYWORDS:
+        if kw in raw:
+            return ""
+
+    # BUG-134: 优先用原值 (含括号) 直接 lookup, 防止 _normalize 把
+    # "中国地质大学（武汉）" 剥成 "中国地质大学" 后无法命中字典里的全名 key。
+    if raw in SCHOOLS_985_EQUIV:
+        return "985"
+    if raw in SCHOOLS_211:
+        return "211"
+    if raw in SCHOOLS_QS_TOP200:
+        return "qs_top200"
+
+    s = _normalize(raw)
     if not s:
         return ""
 

@@ -166,9 +166,14 @@ def start(
     return sj
 
 
-def cancel(db: Session, user_id: int, screening_job_id: int) -> ScreeningJob:
+def cancel(db: Session, user_id: int, screening_job_id: int) -> tuple[ScreeningJob, bool]:
     """BUG-090: 设 cancel_requested 后立即调 terminate_active 杀当前 claude 子进程,
-    取消立即生效而非等 batch 自然结束 (5min)。"""
+    取消立即生效而非等 batch 自然结束 (5min)。
+
+    BUG-135: 返 (sj, terminated_immediately) 元组。terminated_immediately=False 时
+    表示子进程未被立即终止 (handle 缺失或 terminate 抛错), 上层把这个信号回给前端
+    让用户知道"已请求取消, 但当前批次需自然结束 ≤5min"。
+    """
     sj = db.query(ScreeningJob).filter_by(id=screening_job_id).first()
     if not sj:
         raise ScreeningError("not_found")
@@ -179,12 +184,13 @@ def cancel(db: Session, user_id: int, screening_job_id: int) -> ScreeningJob:
     sj.cancel_requested = 1
     db.commit()
     db.refresh(sj)
+    terminated = False
     try:
         from app.modules.ai_screening.worker import terminate_active as _term
-        _term(sj.id)
+        terminated = bool(_term(sj.id))
     except Exception as e:
         logger.warning("terminate_active failed for sj=%s: %s", sj.id, e)
-    return sj
+    return sj, terminated
 
 
 def current(
@@ -211,12 +217,15 @@ def list_items(
     BUG-103: status='running' 时拒绝返完整 items, 防止 API 自动化拿到中间状态。
     跑完 (done/failed/cancelled) 才返。
     BUG-127: worker 用独立 session 写完终态, 调用方 session 缓存 stale 时
-    本来命中的 done 行会被读成 running 触发 not_finished. 统一 expire 后再 query.
+    本来命中的 done 行会被读成 running 触发 not_finished.
+    BUG-140: 改 db.expire_all() 为仅 db.refresh(sj), 不撬碎整个 session cache。
     """
-    db.expire_all()
     sj = db.query(ScreeningJob).filter_by(id=screening_job_id).first()
     if not sj or sj.user_id != user_id:
         raise ScreeningError("not_found")
+    # BUG-127 + BUG-140: 仅 refresh 单一 sj 对象, 跨 session 写入的 status 能被读到,
+    # 同时不像 expire_all 那样让本 session 内其他 ORM 对象统统失效。
+    db.refresh(sj)
     if sj.status not in ("done", "failed", "cancelled"):
         raise ScreeningError("not_finished")
 

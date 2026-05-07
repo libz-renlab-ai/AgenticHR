@@ -110,6 +110,35 @@ def test_promote_copies_structured_fields_to_new_resume():
     assert r.ai_summary == "自驱型应届生"
 
 
+def test_promote_preserves_zero_numeric_values_for_freshman_and_open_salary():
+    """BUG-128: 数值 0 是合法值 (应届生 work_years=0 / 薪资不限 expected_salary_min=0),
+    不应被 _copy_fields 当作"未填"跳过. 否则 Resume 上这些字段会回落默认/None,
+    在 score_experience 里被错算成 "0 年要求 5 年经验" 拉低总分."""
+    s = _s()
+    c = IntakeCandidate(
+        user_id=1, boss_id="b128", name="应届",
+        intake_status="collecting", source="plugin",
+        pdf_path="/tmp/b128.pdf", raw_text="t",
+        education="本科",
+        # 应届生: work_years=0 是真实值, 不是 "未填"
+        work_years=0, seniority="初级",
+        # 薪资不限: 双 0 是真实值
+        expected_salary_min=0.0, expected_salary_max=0.0,
+        # 边界: ai_score=0 是合法分数
+        ai_parsed="yes", ai_score=0,
+    )
+    s.add(c); s.commit()
+
+    r = promote_to_resume(s, c, user_id=1); s.commit()
+    s.refresh(r)
+
+    assert r.work_years == 0
+    assert r.expected_salary_min == 0.0
+    assert r.expected_salary_max == 0.0
+    assert r.ai_score == 0
+    assert r.ai_parsed == "yes"
+
+
 def test_promote_merge_does_not_clobber_richer_resume():
     """BUG-123: 已存在的 boss_id Resume 走 merge 路径时, 原来非空字段不被覆盖,
     只补空缺字段; F3 抓取的丰富数据应被保留."""

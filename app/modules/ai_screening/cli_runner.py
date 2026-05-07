@@ -42,6 +42,22 @@ DEFAULT_TIMEOUT = 300
 # 候选 binary; 允许 env 覆盖
 CLAUDE_BIN = os.environ.get("CLAUDE_CLI_PATH", "claude")
 
+# BUG-136: 改 permission-mode 默认 'acceptEdits' (Edit/Write 自动放行 + Read 仅 add-dir
+# 内自动放行, 之外仍需提示). 历史 bypassPermissions 让 LLM 越狱后可读任意文件
+# (~/.claude/credentials.json, .env 等), 即使 SYSTEM_PROMPT 加了 BUG-104 边界提示也只
+# 是指令级软约束。
+# 真正非交互需要 + 用户允许 broad 读取时, 可设 CLAUDE_PERMISSION_MODE=bypassPermissions 显式回退。
+# 取值: default | acceptEdits | bypassPermissions | plan
+_ALLOWED_PERMISSION_MODES = {"default", "acceptEdits", "bypassPermissions", "plan"}
+_DEFAULT_PERMISSION_MODE = "acceptEdits"
+
+
+def _resolve_permission_mode() -> str:
+    raw = (os.environ.get("CLAUDE_PERMISSION_MODE") or "").strip()
+    if raw in _ALLOWED_PERMISSION_MODES:
+        return raw
+    return _DEFAULT_PERMISSION_MODE
+
 
 def _resolve_claude_binary() -> Optional[str]:
     """解析 claude 真实可执行路径。
@@ -141,6 +157,14 @@ def parse_claude_response(stdout: bytes) -> list[dict]:
     if not result_text:
         raise CliError(f"claude result empty; wrapper={wrapper}")
 
+    # BUG-138: claude CLI 升级后 result 字段可能是 dict/list (非 string),
+    # 直接 .strip() 会 AttributeError 500. 转 CliError 让 worker 走 _mark_batch_error 兜底。
+    if not isinstance(result_text, str):
+        raise CliError(
+            f"claude result field is not a string (type={type(result_text).__name__}, "
+            f"upstream CLI may have changed output schema); preview={str(result_text)[:200]}"
+        )
+
     cleaned = _strip_markdown_fence(result_text)
     arr = None
     try:
@@ -157,6 +181,7 @@ def parse_claude_response(stdout: bytes) -> list[dict]:
         raise CliError(f"expected JSON array, got {type(arr).__name__}")
 
     out = []
+    seen_cids: set[int] = set()  # BUG-137: 同 cid 多次时仅保留首个
     for item in arr:
         if not isinstance(item, dict):
             continue
@@ -169,6 +194,14 @@ def parse_claude_response(stdout: bytes) -> list[dict]:
                 continue
             cid = int(cid)
         if not isinstance(cid, int) or isinstance(cid, bool):
+            continue
+        # BUG-137: 重复 cid 取首个并 log warning (LLM stuttering 时, last-write-wins
+        # 会让分数错乱). 这里 dedup 在 parse 边界, worker 收到清洁数据。
+        if cid in seen_cids:
+            logger.warning(
+                "duplicate candidate_id=%s in LLM output; keeping first, dropping subsequent",
+                cid,
+            )
             continue
         if not isinstance(score, (int, float)) or isinstance(score, bool):
             continue
@@ -187,12 +220,14 @@ def parse_claude_response(stdout: bytes) -> list[dict]:
                 "reason": "",
                 "error": f"LLM 评分越界: {f}",
             })
+            seen_cids.add(cid)
             continue
         out.append({
             "candidate_id": cid,
             "score": int(f),
             "reason": str(reason)[:500],
         })
+        seen_cids.add(cid)
     return out
 
 
@@ -313,7 +348,10 @@ async def run_claude_batch(
     args.extend([
         "--append-system-prompt", SYSTEM_PROMPT,
         "--allowedTools", "Read",
-        "--permission-mode", "bypassPermissions",
+        # BUG-136: 默认 acceptEdits 限定 Read 仅在 --add-dir 内自动放行;
+        # 之外路径要求人工确认 (--print 模式下会失败但不静默泄露). 用户显式
+        # 设 CLAUDE_PERMISSION_MODE=bypassPermissions 才回退到旧的全开放行为。
+        "--permission-mode", _resolve_permission_mode(),
     ])
 
     logger.info(

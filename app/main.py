@@ -20,18 +20,29 @@ async def lifespan(app: FastAPI):
     create_tables()
     # BUG-089: 启动时把上次进程崩溃残留的 status='running' ScreeningJob 标 failed,
     # 否则用户永远 already_running 阻塞。
+    # BUG-141: 多 worker uvicorn 部署 (--workers 4) 下, 进程 A reload 时不应抢杀
+    # 进程 B 正在跑的 sj. 只清理 started_at 早于 STALE_THRESHOLD 之前的行,
+    # 给当前活跃 worker 时间窗。STALE_THRESHOLD 取 batch timeout (5min) 的 2 倍,
+    # 任何活动跑中的 sj 都会在此窗口内继续 update processed/finished_at, 不会被误杀。
     try:
         from app.database import SessionLocal
         from app.modules.ai_screening.models import ScreeningJob
-        from datetime import datetime, timezone
+        from datetime import datetime, timedelta, timezone
         _db = SessionLocal()
         try:
+            now = datetime.now(timezone.utc)
+            # 10 min: 远大于 batch timeout (5min) + finalist timeout (5min) 的合理上限,
+            # 任意活跃 worker 的 started_at 不会比 now-10min 更早。
+            stale_threshold = now - timedelta(minutes=10)
             stuck = (
                 _db.query(ScreeningJob)
                 .filter(ScreeningJob.status == "running")
+                .filter(
+                    (ScreeningJob.started_at.is_(None))
+                    | (ScreeningJob.started_at < stale_threshold)
+                )
                 .all()
             )
-            now = datetime.now(timezone.utc)
             for sj in stuck:
                 sj.status = "failed"
                 sj.error_msg = "server restart while running"
@@ -41,7 +52,8 @@ async def lifespan(app: FastAPI):
                 _db.commit()
                 import logging
                 logging.getLogger(__name__).info(
-                    "ai_screening reaper: marked %d stuck running -> failed", len(stuck),
+                    "ai_screening reaper: marked %d stuck (>10min idle) running -> failed",
+                    len(stuck),
                 )
         finally:
             _db.close()
@@ -125,13 +137,32 @@ async def auth_middleware(request: Request, call_next):
     if _bypass and _is_testing:
         return await call_next(request)
     path = request.url.path
-    if path.startswith("/api/") and path not in _AUTH_WHITELIST:
+    if path.startswith("/api/"):
         # 优先从 Authorization header 取 token
         auth_header = request.headers.get("Authorization", "")
         token = ""
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
         # URL query param token removed (BUG-037: leaks JWT in server logs / browser history)
+        if path in _AUTH_WHITELIST:
+            # BUG-151: 白名单路径下若客户端带了有效 token, 仍然 decode 并 set
+            # request.state.user_id, 让 /api/health 等"分级返回"端点能识别已登录身份
+            # 返服务详情。token 缺失或无效时静默跳过, 不强制 401。
+            if token:
+                try:
+                    from app.modules.auth.service import decode_token
+                    payload = decode_token(token) or {}
+                    sub = payload.get("sub")
+                    if sub is not None:
+                        try:
+                            request.state.user_id = int(sub)
+                            request.state.username = payload.get("username", "")
+                        except (TypeError, ValueError):
+                            pass
+                except Exception:
+                    pass
+            return await call_next(request)
+        # 非白名单: 强制鉴权
         if not token:
             return JSONResponse(status_code=401, content={"detail": "未登录，请先登录"})
         from app.modules.auth.service import decode_token
@@ -293,7 +324,15 @@ if _frontend_dir:
 
         BUG-116: 路径校验从 startswith(string-prefix) 改为 Path.is_relative_to,
         防止 `dist-attacker/` 等同前缀目录绕过 (resolved 后 startswith 仍命中)。
+        BUG-150: 未注册的 /api/* 路径不应返 SPA index.html (HTML 200), 客户端
+        会误以为 endpoint 存在; 一律返 404 JSON 让 SDK / curl 能正确判断。
         """
+        # BUG-150: API 命名空间下未注册的路径返 404 JSON
+        if full_path.startswith("api/") or full_path == "api":
+            return JSONResponse(
+                status_code=404,
+                content={"detail": f"API endpoint not found: /{full_path}"},
+            )
         resolved_root = _frontend_dir.resolve()
         try:
             file_path = (_frontend_dir / full_path).resolve()

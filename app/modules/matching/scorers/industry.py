@@ -11,7 +11,14 @@ logger = logging.getLogger(__name__)
 _SIM_THRESHOLD = getattr(settings, "matching_industry_sim", 0.70)
 
 # BUG-096: industry 命中时, 后接以下 anchor 提高可信度
-_POS_ANCHORS = ("行业", "业", "领域", "公司", "集团", "板块", "市场")
+# BUG-131: 真实简历里 "金融工作经验" / "金融项目" / "金融经验" / "金融经历" 这些
+# 高频用法 anchor 之前被漏掉, 必须扩展, 否则真实金融候选人行业分被错算 0。
+# 注: "系统" / "奖励" 这类产品/活动后缀仍不在列表, 保持 BUG-096 防御
+# ("金融奖励系统" 这类无关行业的命中仍被拒)。
+_POS_ANCHORS = (
+    "行业", "业", "领域", "公司", "集团", "板块", "市场",
+    "工作", "项目", "经验", "经历", "相关", "方面", "业务",
+)
 
 
 def _is_zh_or_alnum(ch: str) -> bool:
@@ -81,20 +88,22 @@ def score_industry(
     """返回 0-100 分.
 
     BUG-096: 子串匹配改 word-boundary aware match, 避免短行业名 (金融/IT) 命中长字符串中无关行业。
+    BUG-152: industries 中过滤空串后无有效要求时返 100% (无要求即满足),
+    与 industries=[] 等价, 不再返回 0/n=0%。
     """
-    if not industries:
+    # BUG-152: 先过滤空串, 用 effective_industries 决定有无要求。
+    effective_industries = [ind for ind in (industries or []) if ind]
+    if not effective_industries:
         return 100.0
     if not resume_work_experience:
         return 0.0
 
     work_lower = resume_work_experience.lower()
     hits = 0
-    for industry in industries:
-        if not industry:
-            continue
+    for industry in effective_industries:
         if _industry_word_match(industry, work_lower):
             hits += 1
         elif _vector_match(industry, resume_work_experience, db_session):
             hits += 1
 
-    return round(hits / len(industries) * 100.0, 2)
+    return round(hits / len(effective_industries) * 100.0, 2)

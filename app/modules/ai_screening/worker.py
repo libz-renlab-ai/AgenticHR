@@ -195,6 +195,19 @@ def _finalize(db: Session, sj_id: int) -> None:
             pass_ids.append(it.candidate_id)
         else:
             it.pass_flag = 0
+
+    # BUG-142: ratio 模式下若 eligible 数 < 期望 (math.ceil(total*threshold/100)),
+    # 实际通过比例 << 用户设定. 在 sj.error_msg 留可见提示而不是静默降级。
+    # count 模式下用户已显式指定数量, 取 min 即可不另行提示。
+    if sj.mode == "ratio":
+        expected = math.ceil(len(items) * sj.threshold / 100)
+        actual = len(chosen_ids)
+        if actual < expected:
+            warn = (
+                f"因评分失败, 实际通过 {actual} 人 < 期望 {expected} 人 "
+                f"(总池 {len(items)} × {sj.threshold}%); 失败原因见各候选 error 字段, 可重新筛选"
+            )
+            sj.error_msg = warn[:1000] if not sj.error_msg else (sj.error_msg + "; " + warn)[:1000]
     db.commit()
 
     # 写决策表 (passed only, 失败不写; force=False 不覆盖 HR 已 reject 的人)
@@ -335,14 +348,21 @@ async def run_screening(
                     handle = ClaudeProcessHandle()
                     _set_active_handle(sj_id, handle)
                     try:
+                        # BUG-129: finalist 同样使用 stage 1 锁定的 cli_path,
+                        # 避免 PATH/环境变更窗口期挑到不同 binary 影响决赛打分。
                         results = await run_claude_batch(
                             jd_text, finalists, timeout=timeout_s, handle=handle,
+                            binary_path=cli_path,
                         )
                         # BUG-114: finalist 用 -1 标 phase, 不与初批冲突
                         _write_batch_results(db, sj_id, results, batch_no=FINALIST_BATCH_NO)
                     except CliError as e:
-                        logger.warning("finalist batch failed: %s", e)
-                        # 决赛失败 → 保留初评分数, 不再覆盖
+                        logger.warning("finalist batch failed (CliError): %s", e)
+                    except Exception as e:
+                        # BUG-130: 决赛阶段任何非 CliError 异常 (parse 类型错 / DB 错 /
+                        # OSError 等) 都只丢决赛分数, 不应杀整个 sj —— stage 1 已花的
+                        # LLM token 不能作废, 用户应至少看到初评结果与据此通过的决策。
+                        logger.exception("finalist batch failed (non-CliError): %s", e)
                     finally:
                         _clear_active_handle(sj_id, handle)
 

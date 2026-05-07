@@ -271,6 +271,62 @@ class TestBug119:
         assert "services" not in body
 
 
+# ---- BUG-150: serve_spa 对 /api/* 未注册返 404 JSON ----
+class TestBug150:
+    def test_unknown_api_endpoint_returns_404_json_not_html(self, client):
+        """未注册 /api/* 必须返 404 JSON, 不能返 SPA index.html (HTML 200)。
+        在 test 环境 frontend/dist 通常不存在 → FastAPI 默认 404 JSON 已满足;
+        如果 dist 存在, serve_spa 也必须 explicitly 返 404 而非 index.html。"""
+        r = client.get("/api/no-such-endpoint-12345")
+        # 关键断言: 不是 200 (即不返 SPA)
+        assert r.status_code != 200, \
+            f"BUG-150: 未注册 /api/* 不应返 200 (HTML); 实得 status={r.status_code}, body={r.text[:100]!r}"
+        # 必须是 JSON
+        ctype = r.headers.get("content-type", "")
+        assert "application/json" in ctype, \
+            f"BUG-150: 未注册 /api/* 应返 JSON, 实得 content-type={ctype!r}"
+
+    def test_serve_spa_function_directly_blocks_api_paths(self):
+        """单元层验证 serve_spa 对 api/ 前缀返 404 (绕过 dist 不存在的部署条件)。"""
+        from app.main import _frontend_dir
+        if _frontend_dir is None:
+            # 测试环境无 dist, serve_spa 没注册, 由 FastAPI 默认 404 处理 — 跳过
+            pytest.skip("frontend/dist 不存在, serve_spa 未注册")
+        # dist 存在时才能测 serve_spa 的内部分支
+        from fastapi.testclient import TestClient
+        from app.main import app
+        c = TestClient(app)
+        r = c.get("/api/no-such-endpoint-12345")
+        assert r.status_code == 404
+        body = r.json()
+        assert "API endpoint not found" in body.get("detail", "")
+
+
+# ---- BUG-151: /api/health 已登录返详情 ----
+class TestBug151:
+    def test_health_with_valid_token_returns_services_detail(self, client, monkeypatch):
+        # 移除 bypass 让中间件真正生效
+        monkeypatch.delenv("AGENTICHR_TEST_BYPASS_AUTH", raising=False)
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        # 拿一个真实可解码的 token (用户 1)
+        from app.modules.auth.service import create_token
+        tok = create_token(user_id=1, username="tester1")
+        r = client.get("/api/health", headers={"Authorization": f"Bearer {tok}"})
+        assert r.status_code == 200
+        body = r.json()
+        assert body.get("status") == "ok"
+        assert "services" in body, \
+            "BUG-151: 已登录访问 /api/health 应返服务详情, 实得 minimal payload"
+
+    def test_health_anonymous_still_minimal(self, client, monkeypatch):
+        monkeypatch.delenv("AGENTICHR_TEST_BYPASS_AUTH", raising=False)
+        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+        # 不带 token
+        r = client.get("/api/health")
+        body = r.json()
+        assert "services" not in body
+
+
 # ---- BUG-122: recruit_status enum 校验 ----
 class TestBug122:
     def test_invalid_recruit_status_returns_400(self, client):

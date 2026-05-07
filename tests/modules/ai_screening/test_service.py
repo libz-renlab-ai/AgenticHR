@@ -187,8 +187,11 @@ class TestCancel:
         c1, r1 = _seed_candidate_with_resume(db, name="a")
         _seed_match(db, r1.id, job.id, hard_pass=1)
         sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=1)
-        result = svc.cancel(db, user_id=1, screening_job_id=sj.id)
-        assert result.cancel_requested == 1
+        # BUG-135: cancel 现在返 (sj, terminated) 元组
+        sj_out, terminated = svc.cancel(db, user_id=1, screening_job_id=sj.id)
+        assert sj_out.cancel_requested == 1
+        # 测试中无活跃 worker handle, terminate_active 返 False (无进程被杀)
+        assert terminated is False
 
     def test_other_user_404(self, db):
         job = _seed_job(db)

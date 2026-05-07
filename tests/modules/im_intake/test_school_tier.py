@@ -140,6 +140,52 @@ class TestResearchInstitutes985Equiv:
         assert classify_school("智源") == "985"
 
 
+class TestBug133AffiliateNotPromotedTo985:
+    """BUG-133: 985/211 高校的"附属中学/继续教育/独立学院/分校"等不应继承 985 标签."""
+
+    def test_affiliate_high_school_not_985(self):
+        assert classify_school("清华大学附属中学") == ""
+        assert classify_school("北京大学附属中学") == ""
+        assert classify_school("中国人民大学附属中学") == ""
+
+    def test_independent_college_not_985(self):
+        # 独立学院 (现已基本独立办学)
+        assert classify_school("中山大学新华学院") == ""
+        assert classify_school("武汉大学珞珈学院") == ""
+        assert classify_school("厦门大学嘉庚学院") == ""
+
+    def test_continuing_education_not_985(self):
+        assert classify_school("北京大学医学部继续教育学院") == ""
+        assert classify_school("清华大学继续教育学院") == ""
+
+    def test_legitimate_985_still_classified(self):
+        # 反向验证: 修复不应误伤正常 985
+        assert classify_school("清华大学") == "985"
+        assert classify_school("北京大学") == "985"
+        assert classify_school("中山大学") == "985"
+
+
+class TestBug134ParenthesizedSchoolsHit:
+    """BUG-134: 带歧义括号的 211 学校 ("中国地质大学（武汉）") 必须被识别。"""
+
+    def test_china_geosciences_wuhan_hit(self):
+        # 候选人写学校全名 (含括号), 应识别为 211
+        assert classify_school("中国地质大学（武汉）") == "211"
+
+    def test_china_geosciences_beijing_hit(self):
+        assert classify_school("中国地质大学（北京）") == "211"
+
+    def test_china_petroleum_beijing_hit(self):
+        assert classify_school("中国石油大学（北京）") == "211"
+
+    def test_china_mining_beijing_hit(self):
+        assert classify_school("中国矿业大学（北京）") == "211"
+
+    def test_no_paren_versions_still_work(self):
+        # 无括号版本也应工作 (历史已存在的 alias 路径)
+        assert classify_school("中国矿业大学") == "211"
+
+
 class TestListIntegrity:
     def test_985_subset_of_211(self):
         assert SCHOOLS_985.issubset(SCHOOLS_211), "所有 985 学校应同时为 211"

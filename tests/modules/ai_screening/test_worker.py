@@ -225,6 +225,103 @@ async def test_cli_error_marks_batch_error_continues(session_factory, db):
 
 
 @pytest.mark.asyncio
+async def test_finalist_receives_locked_cli_path_bug129(session_factory, db):
+    """BUG-129: finalist 阶段必须传 binary_path = sj.cli_path, 与 stage 1 一致.
+    之前 worker.py finalist 调用未传 binary_path → cli_runner 重新 resolve, 不一致风险."""
+    job, cands = _seed(db, n_pass=11)
+    sj = svc.start(
+        db, user_id=1, job_id=job.id, mode="count", threshold=3,
+        cli_path="/locked/path/claude",
+    )
+    db.close()
+
+    binary_args = []
+
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
+        binary_args.append(binary_path)
+        return [
+            {"candidate_id": c["candidate_id"], "score": 80 - i, "reason": "x"}
+            for i, c in enumerate(batch)
+        ]
+
+    with patch("app.modules.ai_screening.worker.run_claude_batch", side_effect=fake_batch):
+        await wk.run_screening(sj.id, batch_size=10, session_factory=session_factory)
+
+    # 应该有 3 次调用 (10+1 stage1 + 8 finalist), 全部携带锁定路径
+    assert len(binary_args) == 3
+    assert binary_args == ["/locked/path/claude"] * 3
+
+
+@pytest.mark.asyncio
+async def test_finalist_unexpected_exception_does_not_kill_sj_bug130(session_factory, db):
+    """BUG-130: finalist 阶段抛非 CliError 异常时, 应只丢决赛分数, 不杀整个 sj.
+    stage 1 已花的 LLM token 不应作废."""
+    job, cands = _seed(db, n_pass=11)
+    sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=3)
+    db.close()
+
+    call_count = [0]
+
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
+        call_count[0] += 1
+        # 前两批 stage1 正常返
+        if call_count[0] <= 2:
+            return [
+                {"candidate_id": c["candidate_id"], "score": 80 - i, "reason": "x"}
+                for i, c in enumerate(batch)
+            ]
+        # 第三批 (finalist) 抛非 CliError 类型异常
+        raise OSError("simulated finalist OSError")
+
+    with patch("app.modules.ai_screening.worker.run_claude_batch", side_effect=fake_batch):
+        await wk.run_screening(sj.id, batch_size=10, session_factory=session_factory)
+
+    s2 = session_factory()
+    sj2 = s2.query(ScreeningJob).filter_by(id=sj.id).first()
+    # 应该走完 _finalize 而不是 status='failed', stage 1 评分被保留并写决策
+    assert sj2.status == "done", f"expected done, got {sj2.status}, error_msg={sj2.error_msg}"
+    decisions = s2.query(JobCandidateDecision).filter_by(job_id=job.id, action="passed").all()
+    assert len(decisions) == 3
+    s2.close()
+
+
+@pytest.mark.asyncio
+async def test_ratio_mode_partial_failure_records_warning_bug142(session_factory, db):
+    """BUG-142: ratio 模式下若评分大量失败, eligible 数 < 用户设的比例预期,
+    sj.error_msg 应记录可见提示, 而不是静默通过更少的人."""
+    job, cands = _seed(db, n_pass=10)
+    sj = svc.start(db, user_id=1, job_id=job.id, mode="ratio", threshold=50)  # 期望 5 人
+    db.close()
+
+    call_count = [0]
+
+    async def fake_batch(jd_text, batch, *, timeout, handle=None, binary_path=None):
+        call_count[0] += 1
+        # 第一批正常, 后续批全部 CliError
+        if call_count[0] == 1:
+            return [
+                {"candidate_id": batch[0]["candidate_id"], "score": 90, "reason": "x"},
+            ]  # 10 人单批, 仅返 1 人 (其余 9 人漏返 → 标 error)
+        return []
+
+    # 改成 batch_size=10 一批就够
+    with patch("app.modules.ai_screening.worker.run_claude_batch", side_effect=fake_batch):
+        await wk.run_screening(sj.id, batch_size=10, session_factory=session_factory)
+
+    s2 = session_factory()
+    sj2 = s2.query(ScreeningJob).filter_by(id=sj.id).first()
+    assert sj2.status == "done"
+    # 实际只有 1 人有效评分, 但用户期望 50% = 5 人
+    decisions = s2.query(JobCandidateDecision).filter_by(job_id=job.id, action="passed").all()
+    assert len(decisions) == 1
+    # 关键断言: error_msg 应有"实际通过 / 期望" 的提示
+    assert sj2.error_msg, "BUG-142: ratio 模式部分失败应在 error_msg 留可见警告"
+    assert "1" in sj2.error_msg and "5" in sj2.error_msg, \
+        f"BUG-142: error_msg 应包含实际通过数 1 与期望数 5, 实际 = {sj2.error_msg!r}"
+    s2.close()
+
+
+@pytest.mark.asyncio
 async def test_finalize_tie_breaker_lower_id(session_factory, db):
     job, cands = _seed(db, n_pass=3)
     sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=2)

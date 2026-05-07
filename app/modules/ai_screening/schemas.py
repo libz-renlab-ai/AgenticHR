@@ -24,6 +24,9 @@ class StartRequest(BaseModel):
 
 class StartResponse(BaseModel):
     screening_job_id: int
+    # BUG-148: 后端权威 total — 前端 onStart 不再用 stale 的本地 eligibleCount,
+    # 直接用 backend 在 start 时锁定的候选池大小, 防止并发 promote 让 UI 显示错。
+    total: int = 0
 
 
 class CurrentResponse(BaseModel):

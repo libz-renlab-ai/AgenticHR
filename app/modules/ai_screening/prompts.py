@@ -25,16 +25,25 @@ SYSTEM_PROMPT = """你是资深 HR 面试官 + 技术评估专家。你需要综
 
 
 def _safe_path(s: str) -> str:
-    """简单转义 pdf_path 防 prompt 注入: 把换行/制表/HTML-tag 字符替换。"""
+    """转义 pdf_path 防 prompt 注入。
+
+    BUG-139: 旧实现仅替 `<>` `\\r\\n\\t`, 漏掉 backtick / `$` / `{}` / `[]` /
+    pipe/semicolon 等模板/Shell 注入符. 一并清掉, 防止 LLM 误把路径里的子串
+    当作 inline 指令或模板展开。
+    """
     if not s:
         return ""
-    return (
+    s = (
         s.replace("\r", " ")
          .replace("\n", " ")
          .replace("\t", " ")
          .replace("<", "&lt;")
          .replace(">", "&gt;")
-    )[:300]
+    )
+    # BUG-139: 模板/控制字符整体替成单空格, 路径只用于声明文件位置, 不需保留这些。
+    for ch in ("`", "$", "{", "}", "[", "]", "|", "&", ";", "\\\\"):
+        s = s.replace(ch, " ")
+    return s[:300]
 
 
 def render_user_prompt(jd_text: str, candidates: list[dict]) -> str:

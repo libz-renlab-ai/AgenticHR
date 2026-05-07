@@ -45,3 +45,30 @@ def test_strips_whitespace():
 
 def test_none_job_safe():
     assert effective_education_min(None) == ""
+
+
+def test_bug154_education_field_as_list_falls_back_to_flat():
+    """BUG-154: cm.education 是 list 时不应 AttributeError 500, 兜底走扁平字段."""
+    job = SimpleNamespace(
+        competency_model={"education": ["本科", "硕士"]},  # LLM 偶尔输出 list
+        education_min="本科",
+    )
+    assert effective_education_min(job) == "本科"
+
+
+def test_bug154_education_field_as_str_falls_back_to_flat():
+    """BUG-154: cm.education 是 str 时也不应 crash."""
+    job = SimpleNamespace(
+        competency_model={"education": "硕士"},  # 老数据格式
+        education_min="本科",
+    )
+    assert effective_education_min(job) == "本科"
+
+
+def test_bug154_education_field_as_int_falls_back_to_flat():
+    """BUG-154: 任意非 dict 类型都不应 crash."""
+    job = SimpleNamespace(
+        competency_model={"education": 0},
+        education_min="大专",
+    )
+    assert effective_education_min(job) == "大专"

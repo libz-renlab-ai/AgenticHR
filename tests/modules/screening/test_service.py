@@ -129,3 +129,29 @@ def test_multi_job_screening_isolation(db_session):
         f"多岗位隔离 bug：Job A 筛选后 Job B 只看到 {result_b['passed']} 人，应为 1 人"
     )
     assert result_b["rejected"] == 2
+
+
+def test_screen_resumes_handles_null_work_years_and_salary_bug145(db_session):
+    """BUG-145: 历史脏数据 / 老 schema 让 work_years/expected_salary_min 为 NULL,
+    `None < int` 会抛 TypeError 整个 job 筛选 500. 修后应用 0 兜底, 走正常路径。"""
+    from app.modules.resume.models import Resume
+    # 直接用 ORM 创建带 NULL 字段的简历, 绕过 ResumeCreate schema 默认 0
+    r1 = Resume(name="脏数据A", education="本科", work_years=None,
+                expected_salary_min=None, expected_salary_max=None,
+                skills="Python", source="boss_zhipin", user_id=1)
+    db_session.add(r1)
+    db_session.commit()
+
+    service = ScreeningService(db_session)
+    job = service.create_job(JobCreate(
+        title="测试岗", education_min="本科",
+        work_years_min=2, required_skills="Python",
+    ))
+
+    # 不应抛 TypeError; work_years=None → 0 → < years_min=2 → reject_reasons 包含工作年限
+    result = service.screen_resumes(job.id, resume_ids=[r1.id])
+    assert result["total"] == 1
+    assert result["rejected"] == 1
+    reasons = result["results"][0]["reject_reasons"]
+    # 0 年 < 2 年要求
+    assert any("工作年限" in r for r in reasons)

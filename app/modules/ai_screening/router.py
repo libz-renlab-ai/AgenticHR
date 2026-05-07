@@ -97,7 +97,8 @@ async def start(
 
     # fire-and-forget worker
     wk.spawn(sj.id)
-    return StartResponse(screening_job_id=sj.id)
+    # BUG-148: 把后端权威 total 返给前端, 防 UI 用 stale eligibleCount。
+    return StartResponse(screening_job_id=sj.id, total=sj.total or 0)
 
 
 @router.get(
@@ -135,10 +136,16 @@ def cancel(
     user_id: int = Depends(get_current_user_id),
 ):
     try:
-        sj = svc.cancel(db, user_id=user_id, screening_job_id=screening_job_id)
+        sj, terminated = svc.cancel(db, user_id=user_id, screening_job_id=screening_job_id)
     except ScreeningError as e:
         _raise(e)
-    return {"id": sj.id, "cancel_requested": sj.cancel_requested}
+    # BUG-135: terminated=False 表示子进程未被立即杀掉 (handle 缺失或 terminate 抛错),
+    # 让前端可以提示用户 "已请求取消, 但当前批次将自然结束 (≤5min)"。
+    return {
+        "id": sj.id,
+        "cancel_requested": sj.cancel_requested,
+        "terminated": terminated,
+    }
 
 
 @router.get(

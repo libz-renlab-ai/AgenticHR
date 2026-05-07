@@ -22,15 +22,22 @@ def effective_education_min(job: Any) -> str:
         job: Job ORM 对象 (含 competency_model + education_min 字段).
 
     优先级:
-      1. competency_model.education.min_level (若 cm dict 存在且字段非空)
+      1. competency_model.education.min_level (若 cm.education 是 dict 且字段非空)
       2. job.education_min (扁平字段)
       3. '' (无门槛)
+
+    BUG-154: cm.education 在历史数据 / 手工改 db / LLM 输出错误下可能是 list/str
+    类型, 之前 `(cm.get("education") or {}).get("min_level")` 在 list 上抛
+    AttributeError 让 screen_resumes / list_matched_for_job 500. 显式 isinstance(dict)
+    检查后兜底 job.education_min。
     """
     if job is None:
         return ""
     cm = getattr(job, "competency_model", None)
     if isinstance(cm, dict):
-        edu = (cm.get("education") or {}).get("min_level")
-        if edu:
-            return str(edu).strip()
+        edu_field = cm.get("education")
+        if isinstance(edu_field, dict):
+            edu = edu_field.get("min_level")
+            if edu:
+                return str(edu).strip()
     return (getattr(job, "education_min", "") or "").strip()

@@ -219,7 +219,9 @@ async function loadItems() {
   try {
     const r = await aiScreeningApi.items(screeningJobId.value)
     items.value = r.items || []
-    if (status.value === 'idle' || status.value === 'done') {
+    // BUG-147: 仅 status='done' 时同步到 lastFinishedItems。idle 是 reset 后空状态,
+    // 之前会把空 items 写进去, 导致折叠面板"上次筛选结果"丢失。
+    if (status.value === 'done') {
       lastFinishedItems.value = items.value
     }
   } catch (e) {
@@ -274,6 +276,28 @@ function onVisibilityChange() {
   }
 }
 
+// BUG-149: axios 错误兜底 — 区分网络中断 vs 后端报错, 给用户友好文案而不是
+// "Request failed with status code 500" 这种内部细节。
+function _friendlyErrorMsg(e, fallback = '操作失败') {
+  // 后端有结构化 detail 时优先
+  const detail = e?.response?.data?.detail
+  if (typeof detail === 'string' && detail) return detail
+  if (detail && typeof detail === 'object' && detail.error) return detail.error
+  // 后端响应了但无 detail
+  if (e?.response?.status) {
+    const s = e.response.status
+    if (s === 401) return '登录已过期, 请重新登录'
+    if (s === 403) return '没有权限执行此操作'
+    if (s === 404) return '请求的资源不存在'
+    if (s === 409) return '操作冲突, 请刷新后重试'
+    if (s >= 500) return '服务器内部错误, 请稍后重试或联系管理员'
+    return `${fallback} (HTTP ${s})`
+  }
+  // 完全没有响应 — 网络层面错误
+  if (e?.message?.includes('Network')) return '网络异常, 请检查连接后重试'
+  return fallback
+}
+
 async function onStart() {
   starting.value = true
   try {
@@ -281,13 +305,14 @@ async function onStart() {
     screeningJobId.value = r.screening_job_id
     status.value = 'running'
     processed.value = 0
-    total.value = eligibleCount.value
+    // BUG-148: 用 backend 返的 total (权威值), 而不是 stale 的本地 eligibleCount;
+    // 兼容老接口若没返 total 时仍用本地值。
+    total.value = (typeof r.total === 'number' && r.total > 0) ? r.total : eligibleCount.value
     errorMsg.value = ''
     items.value = []
     startPolling()
     ElMessage.success('已启动 AI 筛选')
   } catch (e) {
-    const msg = e.response?.data?.detail || e.message
     if (e.response?.status === 503) {
       ElMessageBox.alert(
         '本地未检测到 Claude Code CLI。请先安装: npm i -g @anthropic-ai/claude-code, 或设置环境变量 CLAUDE_CLI_PATH 指向 claude 可执行文件。',
@@ -295,7 +320,7 @@ async function onStart() {
         { type: 'error' },
       )
     } else {
-      ElMessage.error('启动失败: ' + msg)
+      ElMessage.error('启动失败: ' + _friendlyErrorMsg(e, '启动失败'))
     }
   } finally {
     starting.value = false
@@ -305,10 +330,15 @@ async function onStart() {
 async function onCancel() {
   cancelling.value = true
   try {
-    await aiScreeningApi.cancel(screeningJobId.value)
-    ElMessage.info('已请求取消, 等待当前批次完成...')
+    const r = await aiScreeningApi.cancel(screeningJobId.value)
+    // BUG-135: terminated=false 表示子进程未被立即杀, 需提示用户当前批次自然结束
+    if (r && r.terminated === false) {
+      ElMessage.warning('已请求取消, 当前批次将自然结束 (≤5 分钟), 之后停止')
+    } else {
+      ElMessage.info('已请求取消, 等待当前批次完成...')
+    }
   } catch (e) {
-    ElMessage.error('取消失败: ' + (e.response?.data?.detail || e.message))
+    ElMessage.error('取消失败: ' + _friendlyErrorMsg(e, '取消失败'))
   } finally {
     cancelling.value = false
   }
@@ -321,7 +351,7 @@ async function onDecide(item, action) {
     item.decision_action = action
     ElMessage.success(action ? `已${action === 'passed' ? '通过' : '拒绝'}` : '已撤销')
   } catch (e) {
-    ElMessage.error('操作失败: ' + (e.response?.data?.detail || e.message))
+    ElMessage.error('操作失败: ' + _friendlyErrorMsg(e, '操作失败'))
   }
 }
 

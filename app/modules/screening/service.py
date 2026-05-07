@@ -101,19 +101,26 @@ class ScreeningService:
                         f"学历不符：要求{edu_req}，实际{resume.education or '未知'}"
                     )
 
-            if resume.work_years < years_min:
+            # BUG-145: 历史脏数据 / 老 schema 可能让 work_years/expected_salary 为 NULL,
+            # `None < int` 抛 TypeError 让整个 job 筛选 500. 用 `or 0` 兜底, 与
+            # _ai_parse_worker line 173 / intake_view_service line 77 风格一致。
+            r_work_years = resume.work_years or 0
+            r_salary_min = resume.expected_salary_min or 0
+            j_salary_max = job.salary_max or 0
+
+            if r_work_years < years_min:
                 reject_reasons.append(
-                    f"工作年限不足：要求{years_min}年，实际{resume.work_years}年"
+                    f"工作年限不足：要求{years_min}年，实际{r_work_years}年"
                 )
-            if resume.work_years > years_max:
+            if r_work_years > years_max:
                 reject_reasons.append(
-                    f"工作年限超出：最高{years_max}年，实际{resume.work_years}年"
+                    f"工作年限超出：最高{years_max}年，实际{r_work_years}年"
                 )
 
-            if job.salary_max > 0 and resume.expected_salary_min > 0:
-                if resume.expected_salary_min > job.salary_max:
+            if j_salary_max > 0 and r_salary_min > 0:
+                if r_salary_min > j_salary_max:
                     reject_reasons.append(
-                        f"薪资期望过高：岗位上限{job.salary_max}，期望{resume.expected_salary_min}"
+                        f"薪资期望过高：岗位上限{j_salary_max}，期望{r_salary_min}"
                     )
 
             if must_have_skills:

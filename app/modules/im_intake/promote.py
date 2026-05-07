@@ -27,14 +27,14 @@ def _copy_fields(candidate: IntakeCandidate, resume: Resume, *, only_if_empty: b
     only_if_empty=True 表示 merge 路径, 不覆盖 Resume 已有的非空数据 (F3 抓取的优先);
     only_if_empty=False 表示新建路径, 直接覆盖.
 
-    数值/浮点字段 0 视为"未填"; 字符串字段空串视为"未填".
+    BUG-128: 数值 0 是合法值 (应届生 work_years=0 / 薪资不限 expected_salary_min=0 /
+    AI 评分 0 分), 不视为"未填". 仅 None 与字符串空串视为缺失.
+    merge 路径判断 Resume 已有数据时, 仍把数值 0 视为"可被覆盖的占位" (因为新建 Resume
+    时 ORM 默认填 0, 与 candidate 的真实 0 无法区分; 让 candidate 真值优先).
     """
     for f in _CAND_TO_RESUME_FIELDS:
         cand_val = getattr(candidate, f, None)
         if cand_val is None:
-            continue
-        # 数值视 0 为缺失
-        if isinstance(cand_val, (int, float)) and cand_val == 0:
             continue
         if isinstance(cand_val, str) and not cand_val:
             continue

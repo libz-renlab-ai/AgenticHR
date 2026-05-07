@@ -92,6 +92,35 @@ class TestParseResponse:
             parse_claude_response(self._wrap('{"foo": "bar"}'))
 
 
+class TestParseResponseRound10:
+    def _wrap(self, text: str) -> bytes:
+        return json.dumps({"result": text}).encode("utf-8")
+
+    def test_dedup_repeated_candidate_id_takes_first_bug137(self):
+        """BUG-137: LLM 同 cid 输出两次时, parse 阶段应只保留首个并去重."""
+        text = '[{"candidate_id":1,"score":85,"reason":"first"},{"candidate_id":1,"score":40,"reason":"second"},{"candidate_id":2,"score":70,"reason":"r2"}]'
+        out = parse_claude_response(self._wrap(text))
+        ids = [o["candidate_id"] for o in out]
+        # cid=1 仅出现一次, 取第一个
+        assert ids.count(1) == 1
+        cid1 = next(o for o in out if o["candidate_id"] == 1)
+        assert cid1["score"] == 85, f"BUG-137: 应保留首个 score=85, 实得 {cid1['score']}"
+        assert cid1["reason"] == "first"
+        # cid=2 正常
+        assert any(o["candidate_id"] == 2 and o["score"] == 70 for o in out)
+
+    def test_non_string_result_raises_clierror_bug138(self):
+        """BUG-138: claude CLI 升级 result 字段为 dict 时, parse 不应 AttributeError 500.
+        应转 CliError 让 worker 走 _mark_batch_error 兜底路径."""
+        # 模拟 claude --print --output-format json 升级后 result 为对象
+        bad = json.dumps({"result": {"text": "[]", "blocks": []}}).encode()
+        with pytest.raises(CliError) as exc:
+            parse_claude_response(bad)
+        # 错误信息应说明 result 类型问题, 不应是 'has no attribute strip'
+        assert "strip" not in str(exc.value).lower(), \
+            "BUG-138: 不应暴露 strip AttributeError 内部细节"
+
+
 class TestResolveDirs:
     def test_dedup_dirs(self, tmp_path):
         f1 = tmp_path / "a.pdf"
