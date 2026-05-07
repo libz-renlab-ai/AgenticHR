@@ -54,7 +54,41 @@ _EXTRA_211: frozenset[str] = frozenset({
 })
 
 
+# BUG-125: 中国科学院系统的研究生培养机构在历史名单里被漏掉,
+# 但实际招聘中等同 985/双一流 待遇 (中科大已在 985, 这里补的是 北京/上海 总部及主要分支)。
+# 国科大独立招生且名义为 双一流 / 副部级, 直接对齐 985 档。
+# 中科院上海高等研究院 / 深圳先进 / 自动化所 等同视处理 (科研院所人才标签)。
+_EXTRA_RESEARCH_INSTITUTES: frozenset[str] = frozenset({
+    "中国科学院大学",
+    "中国社会科学院大学",
+    "中国科学院上海高等研究院",
+    "中国科学院深圳先进技术研究院",
+    "中国科学院自动化研究所",
+    "中国科学院计算技术研究所",
+    "中国科学院软件研究所",
+    "中国科学院信息工程研究所",
+    "中国科学院微电子研究所",
+    "中国科学院电子学研究所",
+    "中国科学院数学与系统科学研究院",
+    "中国科学院物理研究所",
+    "中国科学院化学研究所",
+    "中国科学院生物物理研究所",
+    "中国科学院心理研究所",
+    # 国家级实验室 (粤港澳 / 长三角 双一流附属编制), 招聘市场上视同 985 平台
+    "深圳湾实验室",
+    "鹏城实验室",
+    "之江实验室",
+    "北京智源人工智能研究院",
+    "上海人工智能实验室",
+    "粤港澳大湾区数字经济研究院",
+})
+
+
 SCHOOLS_211: frozenset[str] = SCHOOLS_985 | _EXTRA_211
+
+# BUG-125: 中科院系统 + 国家级实验室视同 985 档招聘, 与传统 985 高校并列
+SCHOOLS_985_EQUIV: frozenset[str] = SCHOOLS_985 | _EXTRA_RESEARCH_INSTITUTES
+SCHOOLS_211_OR_HIGHER: frozenset[str] = SCHOOLS_211 | _EXTRA_RESEARCH_INSTITUTES
 
 
 SCHOOLS_QS_TOP200: frozenset[str] = frozenset({
@@ -112,6 +146,20 @@ SCHOOLS_QS_TOP200: frozenset[str] = frozenset({
 
 
 _ALIASES: dict[str, str] = {
+    # BUG-125: 中科院系统常见简称
+    "国科大": "中国科学院大学",
+    "中科院大学": "中国科学院大学",
+    "UCAS": "中国科学院大学",
+    "中国科学院": "中国科学院大学",  # 简历里很多人写"中国科学院"省略"大学"
+    "社科院大学": "中国社会科学院大学",
+    "深先进": "中国科学院深圳先进技术研究院",
+    "上海高研": "中国科学院上海高等研究院",
+    "智源": "北京智源人工智能研究院",
+    "上海AI实验室": "上海人工智能实验室",
+    "上海人工智能": "上海人工智能实验室",
+    "鹏城": "鹏城实验室",
+    "之江": "之江实验室",
+    "深圳湾": "深圳湾实验室",
     "清华": "清华大学",
     "北大": "北京大学",
     "人大": "中国人民大学",
@@ -215,6 +263,9 @@ def classify_school(name: str | None) -> str:
     """根据学校名返回等级标签。
 
     返回值: '985' | '211' | 'qs_top200' | ''
+
+    BUG-125: 中科院系统 (国科大 / 上海高研 / 深先进 / 自动化所等) 与
+    国家级实验室 (深圳湾 / 鹏城 / 之江 / 上海AI) 视同 985 档.
     """
     s = _normalize(name)
     if not s:
@@ -222,15 +273,15 @@ def classify_school(name: str | None) -> str:
 
     canonical = _ALIASES.get(s, s)
 
-    if canonical in SCHOOLS_985:
+    if canonical in SCHOOLS_985_EQUIV:
         return "985"
     if canonical in SCHOOLS_211:
         return "211"
     if canonical in SCHOOLS_QS_TOP200:
         return "qs_top200"
 
-    # contains 兜底: 输入中文可能含""分校/校区"或机构后缀
-    for known in SCHOOLS_985:
+    # contains 兜底: 输入中文可能含"分校/校区"或机构后缀
+    for known in SCHOOLS_985_EQUIV:
         if known in s:
             return "985"
     for known in SCHOOLS_211:

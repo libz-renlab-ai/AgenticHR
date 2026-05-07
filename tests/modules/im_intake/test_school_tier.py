@@ -114,6 +114,32 @@ class TestMeetsEducation:
         assert meets_education("本科", "本科") is True
 
 
+class TestResearchInstitutes985Equiv:
+    """BUG-125: 中科院系统 + 国家级实验室视同 985 档."""
+
+    def test_ucas_full_name(self):
+        assert classify_school("中国科学院大学") == "985"
+
+    def test_ucas_aliases(self):
+        for alias in ("国科大", "中科院大学", "UCAS", "中国科学院"):
+            assert classify_school(alias) == "985", f"alias {alias!r} 未命中 985"
+
+    def test_cas_research_institute(self):
+        assert classify_school("中国科学院深圳先进技术研究院") == "985"
+        assert classify_school("中国科学院自动化研究所") == "985"
+        assert classify_school("中国科学院计算技术研究所") == "985"
+
+    def test_national_lab_985_equiv(self):
+        assert classify_school("深圳湾实验室") == "985"
+        assert classify_school("鹏城实验室") == "985"
+        assert classify_school("之江实验室") == "985"
+        assert classify_school("上海人工智能实验室") == "985"
+
+    def test_smaller_alias_resolution(self):
+        assert classify_school("深先进") == "985"
+        assert classify_school("智源") == "985"
+
+
 class TestListIntegrity:
     def test_985_subset_of_211(self):
         assert SCHOOLS_985.issubset(SCHOOLS_211), "所有 985 学校应同时为 211"
