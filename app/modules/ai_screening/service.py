@@ -210,7 +210,10 @@ def list_items(
 
     BUG-103: status='running' 时拒绝返完整 items, 防止 API 自动化拿到中间状态。
     跑完 (done/failed/cancelled) 才返。
+    BUG-127: worker 用独立 session 写完终态, 调用方 session 缓存 stale 时
+    本来命中的 done 行会被读成 running 触发 not_finished. 统一 expire 后再 query.
     """
+    db.expire_all()
     sj = db.query(ScreeningJob).filter_by(id=screening_job_id).first()
     if not sj or sj.user_id != user_id:
         raise ScreeningError("not_found")

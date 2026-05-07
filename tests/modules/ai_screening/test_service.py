@@ -24,18 +24,24 @@ from app.modules.screening.models import Job
 
 
 @pytest.fixture
-def db():
+def db_pair():
+    """共享 engine 但分别给出主 session + 独立 session, 模拟 worker 跨 session 写。"""
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
-    s = Session()
-    s.execute(text(
+    main = Session()
+    main.execute(text(
         "INSERT INTO users (id, username, password_hash, display_name, is_active, daily_cap) "
         "VALUES (1,'u1','x','U1',1,1000), (2,'u2','x','U2',1,1000)"
     ))
-    s.commit()
-    yield s
-    s.close()
+    main.commit()
+    yield main, Session
+    main.close()
+
+
+@pytest.fixture
+def db(db_pair):
+    return db_pair[0]
 
 
 def _seed_job(db, user_id=1, title="后端") -> Job:
@@ -275,3 +281,37 @@ class TestListItems:
         with pytest.raises(ScreeningError) as e:
             svc.list_items(db, user_id=2, screening_job_id=sj.id)
         assert e.value.code == "not_found"
+
+    def test_reads_done_status_after_external_session_writes(self, db_pair):
+        """BUG-127: worker 用独立 session 写完终态, 调用方 session 之前缓存
+        过同一行 (running 时), expire_all 后必须能读到最新 done."""
+        db, Session = db_pair
+        job = _seed_job(db)
+        c1, r1 = _seed_candidate_with_resume(db, name="a")
+        _seed_match(db, r1.id, job.id, hard_pass=1)
+        sj = svc.start(db, user_id=1, job_id=job.id, mode="count", threshold=1)
+        # 让 db session 把 sj 缓存进 identity map (running 状态)
+        cached = db.query(ScreeningJob).filter_by(id=sj.id).first()
+        assert cached.status == "running"
+
+        # 模拟 worker: 用独立 session 写完终态
+        outer_db = Session()
+        try:
+            other_sj = outer_db.query(ScreeningJob).filter_by(id=sj.id).first()
+            other_sj.status = "done"
+            other_items = outer_db.query(ScreeningJobItem).filter_by(
+                screening_job_id=sj.id
+            ).all()
+            for it in other_items:
+                it.score = 80
+                it.reason = "ok"
+                it.pass_flag = 1
+            outer_db.commit()
+        finally:
+            outer_db.close()
+
+        # 调用方 db 上 list_items 必须能看到 done, 不再因缓存抛 not_finished
+        sj2, out = svc.list_items(db, user_id=1, screening_job_id=sj.id)
+        assert sj2.status == "done"
+        assert len(out) == 1
+        assert out[0]["score"] == 80
