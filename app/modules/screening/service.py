@@ -1,6 +1,7 @@
 """岗位管理与硬性条件筛选"""
 from sqlalchemy.orm import Session
 
+from app.modules.screening.job_helpers import effective_education_min
 from app.modules.screening.models import Job
 from app.modules.screening.schemas import JobCreate, JobUpdate
 from app.modules.resume.models import Resume
@@ -70,9 +71,11 @@ class ScreeningService:
             and job.competency_model_status == "approved"
         )
 
+        # BUG-124: 学历门槛走统一 helper, 与 list_matched_for_job 同口径
+        edu_req = effective_education_min(job)
+
         if use_model:
             cm = job.competency_model
-            edu_req = (cm.get("education") or {}).get("min_level", "") or ""
             exp = cm.get("experience") or {}
             years_min = int(exp.get("years_min") or 0)
             years_max_val = exp.get("years_max")
@@ -81,7 +84,6 @@ class ScreeningService:
                 s["name"] for s in (cm.get("hard_skills") or []) if s.get("must_have")
             ]
         else:
-            edu_req = job.education_min or ""
             years_min = job.work_years_min
             years_max = job.work_years_max
             must_have_skills = [

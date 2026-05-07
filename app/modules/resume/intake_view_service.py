@@ -14,6 +14,7 @@ from app.modules.im_intake.candidate_model import IntakeCandidate
 from app.modules.im_intake.models import IntakeSlot
 from app.modules.im_intake.school_tier import meets_education, meets_school_tier
 from app.modules.im_intake.templates import HARD_SLOT_KEYS
+from app.modules.screening.job_helpers import effective_education_min
 from app.modules.screening.models import Job
 
 
@@ -176,7 +177,9 @@ def list_matched_for_job(
     if not job:
         return []
 
-    edu_min = job.education_min or ""
+    # BUG-124: 走 helper 统一读, 与 screening.screen_resumes 一致 —
+    # 优先 competency_model.education.min_level, 回退 job.education_min。
+    edu_min = effective_education_min(job)
     tier_min = (getattr(job, "school_tier_min", "") or "")
 
     # spec 0429-D edge case 2: 已 abandoned/timed_out candidate 不应出现在岗位匹配列表
