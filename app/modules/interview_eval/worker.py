@@ -36,8 +36,9 @@ def _download_recording(interview, dest_path: str) -> tuple[str, int, int]:
 
 
 def _transcribe(mp4_path: str) -> list[dict[str, Any]]:
-    """返回 [{start_ms, end_ms, speaker, text}, ...]. Task 6 替换."""
-    raise NotImplementedError("Task 6 will inject tencent_asr.transcribe")
+    """返回 [{start_ms, end_ms, speaker, text}, ...]. Task 6 注入腾讯云 ASR."""
+    from app.modules.interview_eval.tencent_asr import transcribe
+    return transcribe(mp4_path)
 
 
 def _score_with_llm(interview, transcript: list[dict]) -> dict:
