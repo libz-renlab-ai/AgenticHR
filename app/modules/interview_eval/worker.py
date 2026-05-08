@@ -56,6 +56,12 @@ def _chat_complete_sync(system: str, user: str, temperature: float = 0.2) -> str
     base_url = (settings.ai_base_url or "").rstrip("/")
     model = settings.ai_model
 
+    # IE-003 fail-fast: 三字段任一为空时立即抛，避免外层 retry 3 次浪费
+    if not api_key or not base_url or not model:
+        missing = [n for n, v in [("ai_api_key", api_key), ("ai_base_url", base_url),
+                                   ("ai_model", model)] if not v]
+        raise RuntimeError(f"AI 服务未配置：{', '.join(missing)} 为空")
+
     async def _call() -> str:
         async with httpx.AsyncClient(timeout=120.0) as client:
             resp = await client.post(
@@ -106,15 +112,14 @@ def _score_with_llm(interview, transcript: list[dict]) -> dict:
     user_msg = build_user_message(ctx, transcript)
     raw = _chat_complete_sync(system=SYSTEM, user=user_msg, temperature=0.2)
 
-    # 容错：剥 markdown ```json 包裹
+    # IE-004 容错：剥 markdown ```json 包裹（兼容多种格式）
     if isinstance(raw, str):
         s = raw.strip()
         if s.startswith("```"):
-            # 兼容 ```json\n...\n``` 和 ```\n...\n```
-            s = s.strip("`")
+            # 兼容: ```json\n...\n```  /  ```\n...\n```  /  ```\njson\n...\n```
+            s = s.strip("`").strip()
             if s.lower().startswith("json"):
-                s = s[4:]
-            s = s.strip()
+                s = s[4:].strip()
         return json.loads(s)
     return raw  # already dict
 
@@ -156,6 +161,9 @@ def terminate_active(job_id: int) -> bool:
 
 # ---- 主流水线 ----
 def _check_cancel(db, job_id: int) -> bool:
+    # IE-002: identity map 缓存导致看不到外部 cancel_requested 改动；
+    # 每次入口先 expire_all 强制重读
+    db.expire_all()
     job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
     if job is None:
         return True

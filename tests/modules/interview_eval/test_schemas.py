@@ -50,6 +50,17 @@ def test_evidence_speaker_enum():
         EvidenceSegment(start_ms=0, end_ms=1, speaker="random", text="x")
 
 
+def test_evidence_end_ms_must_ge_start_ms():
+    """IE-009: evidence end_ms < start_ms 应被 model_validator 拒绝."""
+    from app.modules.interview_eval.schemas import EvidenceSegment
+    # 合法
+    EvidenceSegment(start_ms=100, end_ms=200, speaker="candidate", text="x")
+    EvidenceSegment(start_ms=100, end_ms=100, speaker="candidate", text="x")  # 等长 OK
+    # 非法：反序
+    with pytest.raises(ValidationError):
+        EvidenceSegment(start_ms=500, end_ms=100, speaker="candidate", text="x")
+
+
 def test_strengths_max_5():
     from app.modules.interview_eval.schemas import ScorecardOutput
     bad = {

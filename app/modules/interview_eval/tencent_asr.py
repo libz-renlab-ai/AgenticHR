@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_S = 5
 POLL_MAX_ATTEMPTS = 120  # 最多等 10min
+MAX_BASE64_INPUT_BYTES = 5 * 1024 * 1024  # IE-006: 腾讯云 ASR SourceType=1 单次请求 ≤5MB
 
 
 def _get_client():
@@ -38,6 +39,15 @@ def _get_client():
 
 def _submit_task(client, mp4_path: str) -> dict[str, Any]:
     """提交识别任务，返回 {Data: {TaskId: int}}."""
+    import os as _os
+    # IE-006: 检查 mp4 大小，超过 5MB 时 base64 路径不可用
+    raw_size = _os.path.getsize(mp4_path)
+    if raw_size > MAX_BASE64_INPUT_BYTES:
+        raise RuntimeError(
+            f"录像 {raw_size // (1024**2)}MB 超过腾讯云 ASR base64 上限 "
+            f"{MAX_BASE64_INPUT_BYTES // (1024**2)}MB（SourceType=1）。"
+            "需先上传到 COS 改 SourceType=0（待生产灰度后实施）"
+        )
     with open(mp4_path, "rb") as f:
         data_b64 = base64.b64encode(f.read()).decode("ascii")
     req = models.CreateRecTaskRequest()
@@ -85,8 +95,14 @@ def transcribe(mp4_path: str) -> list[dict[str, Any]]:
     """提交 → 轮询 → 返回结构化 [{start_ms, end_ms, speaker, text}].
 
     Raises:
-        RuntimeError: 鉴权失败 / 配额超限 / 识别失败 / 轮询超时
+        RuntimeError: 凭证未配置 / 鉴权失败 / 配额超限 / 识别失败 / 轮询超时
     """
+    # IE-010: 凭证空时 fail-fast，避免 SDK 抛 AuthFailure 误导用户
+    if not settings.tencent_cloud_secret_id or not settings.tencent_cloud_secret_key:
+        raise RuntimeError(
+            "腾讯云 ASR 凭证未配置：请在 .env 设置 "
+            "TENCENT_CLOUD_SECRET_ID / TENCENT_CLOUD_SECRET_KEY"
+        )
     try:
         client = _get_client()
         submit_resp = _submit_task(client, mp4_path)

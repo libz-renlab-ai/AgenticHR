@@ -1,6 +1,6 @@
 """F-interview-eval Pydantic 请求/响应 + LLM 输出 schema."""
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 # === 请求 ===
@@ -14,6 +14,13 @@ class EvidenceSegment(BaseModel):
     end_ms: int = Field(ge=0)
     speaker: Literal["interviewer", "candidate"]
     text: str
+
+    @model_validator(mode="after")
+    def _end_ge_start(self) -> "EvidenceSegment":
+        # IE-009: end_ms 必须 ≥ start_ms（防 LLM 时间反序导致前端跳转错乱）
+        if self.end_ms < self.start_ms:
+            raise ValueError(f"end_ms ({self.end_ms}) must be >= start_ms ({self.start_ms})")
+        return self
 
 
 class DimensionScore(BaseModel):

@@ -18,6 +18,7 @@ from app.adapters.tencent_meeting_web import browser_data_dir_for
 logger = logging.getLogger(__name__)
 
 RECORD_LIST_URL = "https://meeting.tencent.com/user-center/meeting-record"
+MAX_DOWNLOAD_BYTES = 2 * 1024 * 1024 * 1024  # IE-007: 单录像 ≤2GB（防磁盘写爆）
 
 
 def _open_record_page(account_label: str):
@@ -33,7 +34,7 @@ def _open_record_page(account_label: str):
 
 
 def _stream_download(url: str, dest: str) -> int:
-    """流式下载 mp4 到 dest，返回 bytes。"""
+    """流式下载 mp4 到 dest，返回 bytes。超过 MAX_DOWNLOAD_BYTES 时中断+清理。"""
     with requests.get(url, stream=True, timeout=300) as r:
         r.raise_for_status()
         size = 0
@@ -41,6 +42,17 @@ def _stream_download(url: str, dest: str) -> int:
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk); size += len(chunk)
+                    if size > MAX_DOWNLOAD_BYTES:
+                        f.close()
+                        try:
+                            import os as _os
+                            _os.remove(dest)
+                        except OSError:
+                            pass
+                        raise RuntimeError(
+                            f"录像超过单文件上限 {MAX_DOWNLOAD_BYTES // (1024**3)}GB，"
+                            "请缩短会议时长或调整 MAX_DOWNLOAD_BYTES"
+                        )
     return size
 
 

@@ -10,11 +10,15 @@ def _no_sleep_no_real_client(monkeypatch):
 
     1. POLL_INTERVAL_S = 0 → time.sleep(0)，但仍走一次轮询路径
     2. _get_client → MagicMock，避免 SDK 校验空凭证
+    3. transcribe 入口已加凭证 fail-fast (IE-010)，测试时灌测试凭证绕过
     """
     from app.modules.interview_eval import tencent_asr
+    from app.config import settings
 
     monkeypatch.setattr(tencent_asr, "POLL_INTERVAL_S", 0)
     monkeypatch.setattr(tencent_asr, "_get_client", lambda: MagicMock())
+    monkeypatch.setattr(settings, "tencent_cloud_secret_id", "test-id")
+    monkeypatch.setattr(settings, "tencent_cloud_secret_key", "test-key")
     yield
 
 
@@ -102,3 +106,31 @@ def test_speaker_map_only_one_speaker(tmp_path):
          }):
         result = tencent_asr.transcribe(str(mp4))
         assert all(s["speaker"] == "candidate" for s in result)
+
+
+# ===== Round 11 chaos QA 回归测试 =====
+
+def test_transcribe_no_credentials_fail_fast(tmp_path, monkeypatch):
+    """IE-010: 凭证空时 transcribe 入口立即抛 RuntimeError，不进 SDK 调用."""
+    from app.modules.interview_eval import tencent_asr
+    from app.config import settings
+    # 覆盖 fixture 设的 test 凭证，模拟开发期空配置
+    monkeypatch.setattr(settings, "tencent_cloud_secret_id", "")
+    monkeypatch.setattr(settings, "tencent_cloud_secret_key", "")
+    mp4 = tmp_path / "x.mp4"; mp4.write_bytes(b"\x00")
+    with pytest.raises(RuntimeError) as exc:
+        tencent_asr.transcribe(str(mp4))
+    assert "凭证未配置" in str(exc.value)
+    assert "TENCENT_CLOUD_SECRET_ID" in str(exc.value)
+
+
+def test_submit_task_oversize_mp4_rejected(tmp_path):
+    """IE-006: mp4 超过 5MB 上限时 _submit_task 抛 RuntimeError，避免发送过大请求被腾讯云拒绝."""
+    from app.modules.interview_eval import tencent_asr
+    big_mp4 = tmp_path / "big.mp4"
+    # 写 6MB 文件
+    big_mp4.write_bytes(b"\x00" * (6 * 1024 * 1024))
+    with pytest.raises(RuntimeError) as exc:
+        tencent_asr._submit_task(MagicMock(), str(big_mp4))
+    assert "5MB" in str(exc.value) or "上限" in str(exc.value)
+    assert "COS" in str(exc.value) or "SourceType" in str(exc.value)

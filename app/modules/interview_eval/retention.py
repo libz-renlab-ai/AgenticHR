@@ -28,10 +28,13 @@ def purge_expired() -> int:
             .all()
         )
         for job in rows:
-            mp4 = os.path.join(RECORDING_DIR, f"{job.id}.mp4")
+            # IE-013: 优先用 job.recording_path 字段（RECORDING_DIR 配置变化时仍能命中）
+            mp4_paths = [os.path.join(RECORDING_DIR, f"{job.id}.mp4")]
+            if job.recording_path and job.recording_path not in mp4_paths:
+                mp4_paths.insert(0, job.recording_path)
             ts = os.path.join(TRANSCRIPT_DIR, f"{job.id}.json")
             removed = 0
-            for p in (mp4, ts):
+            for p in mp4_paths + [ts]:
                 if os.path.exists(p):
                     try:
                         os.remove(p); removed += 1

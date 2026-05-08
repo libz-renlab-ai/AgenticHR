@@ -199,3 +199,77 @@ def test_worker_terminate_active_handle(monkeypatch):
     from app.modules.interview_eval import worker
     # 不真跑，仅验 API 存在
     assert callable(worker.terminate_active)
+
+
+# ===== Round 11 chaos QA 回归测试 =====
+
+def test_chat_complete_sync_fail_fast_on_empty_config(monkeypatch):
+    """IE-003: ai_api_key/ai_base_url/ai_model 任一为空时立即抛 RuntimeError，
+    不进入 httpx 调用避免外层 retry 3 次浪费。"""
+    from app.modules.interview_eval import worker
+    from app.config import settings
+    monkeypatch.setattr(settings, "ai_api_key", "")
+    monkeypatch.setattr(settings, "ai_base_url", "https://api.test")
+    monkeypatch.setattr(settings, "ai_model", "test-model")
+    with pytest.raises(RuntimeError) as exc:
+        worker._chat_complete_sync(system="s", user="u")
+    assert "未配置" in str(exc.value)
+    assert "ai_api_key" in str(exc.value)
+
+
+def test_score_with_llm_strips_markdown_fence_variants(monkeypatch):
+    """IE-004: ```json\\n...\\n``` 与裸 ``` 包裹 + 多换行变体均能解析."""
+    from app.modules.interview_eval import worker
+
+    valid_json = '{"dimensions":[],"hire_recommendation":"hire","strengths":[],"risks":[],"followups":[]}'
+    cases = [
+        valid_json,
+        f"```json\n{valid_json}\n```",
+        f"```\n{valid_json}\n```",
+        f"  ```json\n{valid_json}\n```  ",
+    ]
+    for raw in cases:
+        monkeypatch.setattr(worker, "_chat_complete_sync", lambda **kw: raw)
+        # _score_with_llm 还要 db.query Job/Resume，用 mock interview
+        class _Iv:
+            id = 1; resume_id = 1; job_id = 3001
+        result = worker._score_with_llm(_Iv(), [])
+        assert result["hire_recommendation"] == "hire", f"failed for raw={raw!r}"
+
+
+def test_check_cancel_sees_external_update(monkeypatch, tmp_path):
+    """IE-002: worker._check_cancel 必须能看到外部 session 设置的 cancel_requested.
+    用两个 SessionLocal 模拟 worker session vs cancel session."""
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob
+
+    db_worker = SessionLocal()
+    try:
+        # 先建 pending job
+        job_id = _make_pending_job(db_worker, interview_id=2099)
+        # worker 第一次 _check_cancel：cancel_requested=0，应返回 False
+        assert worker._check_cancel(db_worker, job_id) is False
+
+        # 外部 session（模拟 service.cancel_job）改 cancel_requested=1
+        db_external = SessionLocal()
+        try:
+            db_external.query(InterviewEvalJob).filter_by(id=job_id).update(
+                {"cancel_requested": 1}
+            )
+            db_external.commit()
+        finally:
+            db_external.close()
+
+        # worker 第二次 _check_cancel：必须看到 cancel_requested=1
+        # （没修前因 identity map 缓存返回 False，回归保护）
+        monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+        assert worker._check_cancel(db_worker, job_id) is True
+        # 验证 status 已更新
+        db_external = SessionLocal()
+        try:
+            j = db_external.query(InterviewEvalJob).filter_by(id=job_id).first()
+            assert j.status == "cancelled"
+        finally:
+            db_external.close()
+    finally:
+        db_worker.close()

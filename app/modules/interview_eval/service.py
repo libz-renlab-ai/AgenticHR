@@ -56,8 +56,8 @@ def create_job(*, interview_id: int, user_id: int) -> int:
                 400, "请先在 Jobs 页完成能力模型抽取并审核通过（F1）",
             )
 
-        # 校验 3：meeting_id + meeting_account
-        if not interview.meeting_id:
+        # 校验 3：meeting_id + meeting_account（IE-011: strip 后判空）
+        if not (interview.meeting_id or "").strip():
             raise ServiceError(400, "本次面试无腾讯会议记录")
         if interview.meeting_account not in _account_pool():
             raise ServiceError(
@@ -89,7 +89,32 @@ def create_job(*, interview_id: int, user_id: int) -> int:
             meeting_account=interview.meeting_account, retention_until=retention_until,
         )
         db.add(new_job); db.commit(); db.refresh(new_job)
-        _spawn_worker(new_job.id)
+
+        # IE-001 并发防御：commit 后再查 active job > 1 → 回滚
+        # （5 道校验门 + INSERT 之间无 db 锁，并发可绕过校验 4）
+        active_count = (
+            db.query(InterviewEvalJob)
+            .filter(
+                InterviewEvalJob.interview_id == interview_id,
+                InterviewEvalJob.status.in_(
+                    ["pending", "downloading", "transcribing", "scoring"]
+                ),
+            )
+            .count()
+        )
+        if active_count > 1:
+            db.delete(new_job); db.commit()
+            raise ServiceError(409, "已有进行中的 AI 面评任务（并发竞争）")
+
+        # IE-005 spawn 失败兜底：避免 pending job 永远卡死
+        try:
+            _spawn_worker(new_job.id)
+        except Exception as e:
+            db.query(InterviewEvalJob).filter_by(id=new_job.id).update(
+                {"status": "failed", "error_msg": f"[spawn] {e}"}
+            )
+            db.commit()
+            raise ServiceError(500, f"启动后台任务失败：{e}")
         return new_job.id
     finally:
         db.close()
