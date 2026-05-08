@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     # 飞书
     feishu_app_id: str = ""
     feishu_app_secret: str = ""
+    # F-interview-eval：AI 面评完成后是否给触发分析的 HR 也推飞书卡片。默认 False —
+    # HR 在 UI 已看到 done 状态，重复卡片噪声大；面试官始终推送。
+    feishu_notify_trigger_hr: bool = False
 
     # 腾讯会议 - 账号池（逗号分隔的标签），每个标签对应 data/meeting_browser_{label}/ 的
     # Playwright 持久化 Chrome 目录，首次用新标签时需人工扫码登录一次

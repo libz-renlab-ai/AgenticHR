@@ -237,6 +237,120 @@ def test_score_with_llm_strips_markdown_fence_variants(monkeypatch):
         assert result["hire_recommendation"] == "hire", f"failed for raw={raw!r}"
 
 
+def test_llm_retry_on_transient_error(monkeypatch, tmp_path):
+    """IE-014: 瞬时错误（httpx.ConnectError）应触发 retry，第 3 次成功仍 done."""
+    import httpx
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob, InterviewEvalScorecard
+
+    monkeypatch.setattr(worker, "_download_recording", lambda iv, dest: (str(dest), 100, 60))
+    monkeypatch.setattr(worker, "_transcribe", lambda mp4: [
+        {"start_ms": 0, "end_ms": 1, "speaker": "candidate", "text": "x"}
+    ])
+
+    call_count = {"n": 0}
+    valid_payload = {
+        "dimensions": [
+            {"name": "技术深度", "score": 8, "reasoning": "ok",
+             "evidence": [{"start_ms": 0, "end_ms": 1, "speaker": "candidate", "text": "x"}]},
+            {"name": "沟通能力", "score": 7, "reasoning": "ok",
+             "evidence": [{"start_ms": 0, "end_ms": 1, "speaker": "candidate", "text": "x"}]},
+        ],
+        "hire_recommendation": "hire",
+        "strengths": [], "risks": [], "followups": [],
+    }
+
+    def _flaky(iv, t):
+        call_count["n"] += 1
+        if call_count["n"] < 3:
+            raise httpx.ConnectError("conn refused")
+        return valid_payload
+
+    monkeypatch.setattr(worker, "_score_with_llm", _flaky)
+    monkeypatch.setattr(worker, "_publish_feishu", MagicMock())
+    monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "TRANSCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "RECORDING_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "LLM_MAX_RETRY", 3)
+
+    db = SessionLocal()
+    try:
+        job_id = _make_pending_job(db, interview_id=2010)
+        worker.run(job_id)
+        job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
+        assert job.status == "done", f"expected done, got {job.status}: {job.error_msg}"
+        assert call_count["n"] == 3, f"expected 3 retries on transient, got {call_count['n']}"
+    finally:
+        db.close()
+
+
+def test_llm_no_retry_on_permanent_error(monkeypatch, tmp_path):
+    """IE-014: 永久错误（ValidationError，schema 不合法）应 fail-fast，仅 1 次调用."""
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob
+
+    monkeypatch.setattr(worker, "_download_recording", lambda iv, dest: (str(dest), 100, 60))
+    monkeypatch.setattr(worker, "_transcribe", lambda mp4: [
+        {"start_ms": 0, "end_ms": 1, "speaker": "candidate", "text": "x"}
+    ])
+
+    call_count = {"n": 0}
+
+    def _bad_schema(iv, t):
+        call_count["n"] += 1
+        return {"dimensions": []}  # 缺 hire_recommendation 等 → ValidationError
+
+    monkeypatch.setattr(worker, "_score_with_llm", _bad_schema)
+    monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "TRANSCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "RECORDING_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "LLM_MAX_RETRY", 3)
+
+    db = SessionLocal()
+    try:
+        job_id = _make_pending_job(db, interview_id=2011)
+        worker.run(job_id)
+        job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
+        assert job.status == "failed"
+        assert call_count["n"] == 1, f"permanent error should not retry, got {call_count['n']} calls"
+    finally:
+        db.close()
+
+
+def test_llm_no_retry_on_runtime_error(monkeypatch, tmp_path):
+    """IE-014: RuntimeError（如 IE-003 fail-fast '未配置'）不应 retry，仅 1 次调用."""
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob
+
+    monkeypatch.setattr(worker, "_download_recording", lambda iv, dest: (str(dest), 100, 60))
+    monkeypatch.setattr(worker, "_transcribe", lambda mp4: [
+        {"start_ms": 0, "end_ms": 1, "speaker": "candidate", "text": "x"}
+    ])
+
+    call_count = {"n": 0}
+
+    def _runtime_fail(iv, t):
+        call_count["n"] += 1
+        raise RuntimeError("AI 服务未配置：ai_api_key 为空")
+
+    monkeypatch.setattr(worker, "_score_with_llm", _runtime_fail)
+    monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "TRANSCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "RECORDING_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "LLM_MAX_RETRY", 3)
+
+    db = SessionLocal()
+    try:
+        job_id = _make_pending_job(db, interview_id=2012)
+        worker.run(job_id)
+        job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
+        assert job.status == "failed"
+        assert call_count["n"] == 1, f"RuntimeError should not retry, got {call_count['n']} calls"
+        assert "未配置" in job.error_msg
+    finally:
+        db.close()
+
+
 def test_check_cancel_sees_external_update(monkeypatch, tmp_path):
     """IE-002: worker._check_cancel 必须能看到外部 session 设置的 cancel_requested.
     用两个 SessionLocal 模拟 worker session vs cancel session."""

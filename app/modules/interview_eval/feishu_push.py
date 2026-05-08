@@ -83,7 +83,8 @@ def _build_card(interview, scorecard) -> dict:
                 "tag": "button",
                 "text": {"tag": "plain_text", "content": "查看完整 AI 面评 →"},
                 "type": "primary",
-                "url": f"http://{settings.app_host}:{settings.app_port}"
+                "url": f"http://{getattr(settings, 'app_host', '127.0.0.1')}"
+                       f":{getattr(settings, 'app_port', 8000)}"
                        f"/interviews?id={interview.id}&tab=ai-eval",
             }]},
             {"tag": "note", "elements": [{"tag": "plain_text",
@@ -99,10 +100,14 @@ def push(interview, scorecard) -> None:
         return
 
     card = _build_card(interview, scorecard)
-    for resolver, label in (
-        (lambda: _resolve_hr_feishu_id(interview.user_id), "HR"),
-        (lambda: _resolve_interviewer_feishu_id(interview.interviewer_id), "interviewer"),
-    ):
+    targets = []
+    # BUG-IE-015: HR 是触发者，UI 已有 done 状态反馈；默认不重复推送，需开关启用
+    if getattr(settings, "feishu_notify_trigger_hr", False):
+        targets.append((lambda: _resolve_hr_feishu_id(interview.user_id), "HR"))
+    targets.append(
+        (lambda: _resolve_interviewer_feishu_id(interview.interviewer_id), "interviewer")
+    )
+    for resolver, label in targets:
         try:
             uid = resolver()
             if uid:

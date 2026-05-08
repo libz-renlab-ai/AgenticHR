@@ -12,6 +12,8 @@ import os
 import threading
 from typing import Any
 
+import httpx
+
 from app.database import SessionLocal
 from app.modules.interview_eval.models import InterviewEvalJob, InterviewEvalScorecard
 from app.modules.interview_eval.schemas import ScorecardOutput
@@ -26,6 +28,26 @@ LLM_MAX_RETRY = 3
 
 _HANDLE_LOCK = threading.Lock()
 _ACTIVE_HANDLES: dict[int, threading.Event] = {}
+
+
+def _is_transient_llm_error(e: Exception) -> bool:
+    """IE-014: 仅对网络/5xx 等瞬时错误 retry，永久错误（schema/RuntimeError）立即抛.
+
+    Transient（重试）：httpx 连接/超时类、HTTPStatusError 5xx
+    Permanent（直抛）：JSONDecodeError、ValidationError、RuntimeError、其他
+    """
+    if isinstance(e, (
+        httpx.ConnectError,
+        httpx.TimeoutException,
+        httpx.NetworkError,
+        httpx.ReadTimeout,
+        httpx.WriteTimeout,
+        httpx.PoolTimeout,
+    )):
+        return True
+    if isinstance(e, httpx.HTTPStatusError):
+        return e.response.status_code >= 500
+    return False
 
 
 # ---- 外部 IO（Task 5/6/7/8 替换成真实 import）----
@@ -238,7 +260,17 @@ def run(job_id: int) -> None:
                 break
             except Exception as e:
                 last_err = e
-                logger.warning("LLM scoring attempt %d failed: %s", attempt + 1, e)
+                if not _is_transient_llm_error(e):
+                    # IE-014: 永久错误（schema 不合法 / RuntimeError 等）立即抛，
+                    # 避免对必然失败的请求重试 3 次浪费 token + 时间
+                    logger.warning(
+                        "LLM scoring permanent error on attempt %d, no retry: %s",
+                        attempt + 1, e,
+                    )
+                    raise
+                logger.warning(
+                    "LLM scoring transient error on attempt %d: %s", attempt + 1, e,
+                )
         if scorecard_data is None:
             raise RuntimeError(
                 f"LLM 输出 schema validation 失败 {LLM_MAX_RETRY} 次: {last_err}"
