@@ -225,6 +225,13 @@
           </el-table-column>
         </el-table>
       </div>
+      <div class="ai-eval-block" v-if="currentResume">
+        <h4 style="margin: 12px 0 6px; color: #606266">面试 AI 评价</h4>
+        <ResumeAiEvaluationsList
+          :resume-id="currentResume.id"
+          @open-interview="openInterview"
+        />
+      </div>
       <template #footer>
         <el-button v-if="currentResume?.pdf_path" type="primary" @click="viewPdf(currentResume.id)">查看PDF</el-button>
         <el-button @click="showDetail = false">关闭</el-button>
@@ -238,6 +245,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading, WarningFilled, Refresh, ArrowRight } from '@element-plus/icons-vue'
 import { resumeApi, matchingApi } from '../api'
+import ResumeAiEvaluationsList from '../components/ResumeAiEvaluationsList.vue'
 
 const resumes = ref([])
 const loading = ref(false)
@@ -408,6 +416,12 @@ function scoreColor(s) {
 
 function viewMatchingOnJob(jobId, resumeId) {
   window.open(`/#/jobs/${jobId}?tab=matching&highlight_resume=${resumeId}`, '_blank')
+}
+
+// 面试 AI 评价 → 跳转到 Interviews 页（与 viewMatchingOnJob 一致风格：新窗口 hash 路由）
+function openInterview(interviewId) {
+  if (!interviewId) return
+  window.open(`/#/interviews?highlight_id=${interviewId}`, '_blank')
 }
 
 async function viewPdf(resumeId) {
