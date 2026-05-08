@@ -31,7 +31,8 @@ _ACTIVE_HANDLES: dict[int, threading.Event] = {}
 # ---- 外部 IO（Task 5/6/7/8 替换成真实 import）----
 def _download_recording(interview, dest_path: str) -> tuple[str, int, int]:
     """返回 (mp4_path, size_bytes, duration_sec). Task 5 替换."""
-    raise NotImplementedError("Task 5 will inject tencent_meeting_recording.download")
+    from app.modules.interview_eval.tencent_meeting_recording import download
+    return download(interview, dest_path)
 
 
 def _transcribe(mp4_path: str) -> list[dict[str, Any]]:
