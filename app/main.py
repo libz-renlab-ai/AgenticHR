@@ -75,6 +75,25 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(f"AI parse worker failed to auto-start: {e}")
+    # F-interview-eval：每日 retention 清理
+    try:
+        if settings.interview_eval_enabled:
+            import asyncio
+            from app.modules.interview_eval.retention import purge_expired
+
+            async def _retention_loop():
+                while True:
+                    await asyncio.sleep(24 * 3600)
+                    try:
+                        purge_expired()
+                    except Exception as e:
+                        import logging
+                        logging.getLogger(__name__).exception("retention loop: %s", e)
+
+            asyncio.create_task(_retention_loop())
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("retention cron init failed: %s", e)
     yield
 
 
