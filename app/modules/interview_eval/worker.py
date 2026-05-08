@@ -41,9 +41,82 @@ def _transcribe(mp4_path: str) -> list[dict[str, Any]]:
     return transcribe(mp4_path)
 
 
+def _chat_complete_sync(system: str, user: str, temperature: float = 0.2) -> str:
+    """同步调用 OpenAI 兼容接口（沿用 ai_provider.AIProvider 同款 base_url/api_key/model）.
+
+    AIProvider 仅有 async evaluate_resume；此处 wrap 同步 chat/completions
+    供 worker 同步流水线复用。返回 raw content 字符串。
+    """
+    import asyncio
+    import httpx
+
+    from app.config import settings
+
+    api_key = settings.ai_api_key
+    base_url = (settings.ai_base_url or "").rstrip("/")
+    model = settings.ai_model
+
+    async def _call() -> str:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            resp = await client.post(
+                f"{base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    "temperature": temperature,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data["choices"][0]["message"]["content"]
+
+    return asyncio.run(_call())
+
+
 def _score_with_llm(interview, transcript: list[dict]) -> dict:
-    """返回 LLM 原始 dict（待 Pydantic 校验）. Task 7 替换."""
-    raise NotImplementedError("Task 7 will inject prompts + ai_provider")
+    """调 LLM 评分。返回 LLM 原始 dict（待 Pydantic 校验）."""
+    from app.database import SessionLocal
+    from app.modules.interview_eval.prompts import SYSTEM, build_user_message
+    from app.modules.resume.models import Resume
+    from app.modules.screening.models import Job
+
+    db = SessionLocal()
+    try:
+        job = db.query(Job).filter_by(id=interview.job_id).first()
+        resume = db.query(Resume).filter_by(id=interview.resume_id).first()
+        cm = (job.competency_model if job else None) or {}
+        ctx = {
+            "candidate_name": getattr(resume, "name", "") if resume else "",
+            "candidate_education": getattr(resume, "education", "") if resume else "",
+            "candidate_years": getattr(resume, "work_years", 0) if resume else 0,
+            "candidate_skills": getattr(resume, "skills", "") if resume else "",
+            "job_title": job.title if job else "",
+            "assessment_dimensions": cm.get("assessment_dimensions", []),
+        }
+    finally:
+        db.close()
+
+    user_msg = build_user_message(ctx, transcript)
+    raw = _chat_complete_sync(system=SYSTEM, user=user_msg, temperature=0.2)
+
+    # 容错：剥 markdown ```json 包裹
+    if isinstance(raw, str):
+        s = raw.strip()
+        if s.startswith("```"):
+            # 兼容 ```json\n...\n``` 和 ```\n...\n```
+            s = s.strip("`")
+            if s.lower().startswith("json"):
+                s = s[4:]
+            s = s.strip()
+        return json.loads(s)
+    return raw  # already dict
 
 
 def _publish_feishu(interview, scorecard) -> None:
