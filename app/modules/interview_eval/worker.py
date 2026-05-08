@@ -120,13 +120,15 @@ def _score_with_llm(interview, transcript: list[dict]) -> dict:
 
 
 def _publish_feishu(interview, scorecard) -> None:
-    """Task 8 替换."""
-    raise NotImplementedError("Task 8 will inject feishu_push")
+    """T8: 走 feishu_push.push，内部失败仅日志不抛。"""
+    from app.modules.interview_eval.feishu_push import push
+    push(interview, scorecard)
 
 
 def _audit(action: str, **kwargs) -> None:
-    """Task 8 替换为真实 audit_events 写入."""
-    pass
+    """T8: 真实写入 audit_events 行（复用 F1 表）。"""
+    from app.modules.interview_eval.audit import record
+    record(action, **kwargs)
 
 
 # ---- cancel handle 注册 ----
