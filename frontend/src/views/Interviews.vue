@@ -91,8 +91,20 @@
             <el-button size="small" type="primary" plain @click="sendNotification(iv)">发送面试通知</el-button>
           </div>
           <div class="action-group">
+            <span class="group-label">AI</span>
+            <el-button size="small" type="warning" plain @click="openAiEvalDialog(iv)">AI 面评</el-button>
+          </div>
+          <div class="action-group">
             <span class="group-label">状态</span>
             <el-button size="small" plain @click="cancelInterview(iv.id)">取消面试</el-button>
+          </div>
+        </div>
+
+        <!-- 已完成面试也允许查看 AI 面评 -->
+        <div class="card-footer" v-else-if="iv.status === 'completed'">
+          <div class="action-group">
+            <span class="group-label">AI</span>
+            <el-button size="small" type="warning" plain @click="openAiEvalDialog(iv)">AI 面评</el-button>
           </div>
         </div>
       </div>
@@ -246,6 +258,14 @@
         <el-button type="primary" @click="copyInvitationText">复制到剪贴板</el-button>
       </template>
     </el-dialog>
+
+    <!-- AI 面评对话框 -->
+    <el-dialog v-model="showAiEvalDialog" title="AI 面评" width="1100px" top="3vh" destroy-on-close>
+      <AiInterviewEvalPanel v-if="showAiEvalDialog && aiEvalInterviewId" :interview-id="aiEvalInterviewId" />
+      <template #footer>
+        <el-button @click="showAiEvalDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -257,6 +277,7 @@ import { schedulingApi, notificationApi, resumeApi, meetingApi, jobApi, matching
 import FullCalendar from '@fullcalendar/vue3'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import AiInterviewEvalPanel from '../components/AiInterviewEvalPanel.vue'
 
 const interviews = ref([])
 const loading = ref(false)
@@ -601,6 +622,15 @@ async function autoCreateMeeting(row) {
     }
   }
 }
+// === AI 面评对话框 ===
+const showAiEvalDialog = ref(false)
+const aiEvalInterviewId = ref(null)
+
+function openAiEvalDialog(row) {
+  aiEvalInterviewId.value = row.id
+  showAiEvalDialog.value = true
+}
+
 // === 邀请信息编辑对话框 ===
 const showInvitationDialog = ref(false)
 const invitationText = ref('')
