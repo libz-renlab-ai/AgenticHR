@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     # Playwright 持久化 Chrome 目录，首次用新标签时需人工扫码登录一次
     tencent_meeting_accounts: str = "default"
 
+    # F-interview-eval：AI 面评（默认关闭，凭证未配置时整模块不挂载）
+    interview_eval_enabled: bool = False
+    tencent_cloud_secret_id: str = ""
+    tencent_cloud_secret_key: str = ""
+    tencent_cloud_asr_region: str = "ap-shanghai"
+    interview_eval_recording_retention_days: int = 180
+
     # Boss 直聘
     boss_adapter: str = "edge_extension"
     boss_max_operations_per_hour: int = 30

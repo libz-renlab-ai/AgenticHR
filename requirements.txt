@@ -17,3 +17,4 @@ reportlab==4.4.10
 pymupdf==1.27.2.2
 apscheduler>=3.10
 playwright==1.58.0
+tencentcloud-sdk-python>=3.0.1300  # F-interview-eval: 录音文件识别 ASR
