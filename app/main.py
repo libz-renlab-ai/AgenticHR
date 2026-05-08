@@ -295,6 +295,11 @@ app.include_router(recruit_router)
 from app.modules.im_intake.router import router as intake_router
 app.include_router(intake_router)
 
+# F-interview-eval 条件挂载（开关 + 凭证齐全才挂；否则路由不存在 → /api/interview-eval/* 返 404）
+if settings.interview_eval_enabled and settings.tencent_cloud_secret_id:
+    from app.modules.interview_eval.router import router as interview_eval_router
+    app.include_router(interview_eval_router)
+
 # F1 HITL wiring: F1_competency_review approve → apply competency_model to jobs
 from app.core.hitl.service import register_approve_callback as _register_hitl_cb
 from app.modules.screening.competency_service import apply_competency_to_job as _apply_comp
