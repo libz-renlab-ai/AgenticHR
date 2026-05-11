@@ -83,17 +83,19 @@ def test_0027_partial_table_adds_missing_columns(temp_db_url):
     _bootstrap_baseline_schema(temp_db_url)
 
     # 2) 手工创建一个不完整的 interview_eval_jobs（模拟 legacy 手工 patch）
+    # 注意：上一步 create_all 如果在 sys.modules 已 import 过 interview_eval.models
+    # 的进程里跑（共享 pytest 进程），Base.metadata 会包含 IE 表 → create_all 已建。
+    # 显式 drop 后再用 legacy 不完整 schema 建。
     engine = create_engine(temp_db_url)
     with engine.begin() as conn:
+        conn.execute(text("DROP TABLE IF EXISTS interview_eval_jobs"))
+        conn.execute(text("DROP TABLE IF EXISTS interview_eval_scorecards"))
         conn.execute(text(
             "CREATE TABLE interview_eval_jobs ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "interview_id INTEGER NOT NULL"
             ")"
         ))
-
-    # 同样手工创建一个不完整的 scorecards
-    with engine.begin() as conn:
         conn.execute(text(
             "CREATE TABLE interview_eval_scorecards ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "

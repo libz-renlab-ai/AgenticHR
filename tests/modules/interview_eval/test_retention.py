@@ -13,12 +13,14 @@ def setup_tables():
     test_retention 的 _make_job 复用 interview_id=1。多次调用会建多个相同 interview_id
     的 InterviewEvalJob 行——必须每次 setup 清理避免污染（参考 T8 audit 清理模式）。
     """
-    Base.metadata.create_all(bind=engine)
+    # 必须先 import 所有 model 让 Base.metadata 完整，再 create_all 建表
+    import app.modules.screening.models  # noqa: F401 — Interview.job_id FK 需要 jobs 表
     from app.modules.resume.models import Resume
     from app.modules.scheduling.models import Interviewer, Interview
     from app.modules.interview_eval.models import (
         InterviewEvalJob, InterviewEvalScorecard,
     )
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         db.merge(Resume(id=1, name="dummy_resume_t9"))

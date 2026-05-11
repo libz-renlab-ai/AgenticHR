@@ -14,13 +14,18 @@ def setup_tables():
     interviewer_id 是 NOT NULL FK，sqlite PRAGMA foreign_keys=ON 下需要
     上游行存在。这里统一在 setup 里 merge 三表的 id=99001 占位行，多个测试共享。
     """
-    Base.metadata.create_all(bind=engine)
+    import app.modules.screening.models  # noqa: F401 — Interview.job_id FK 需要 jobs 表元数据
+    import app.modules.interview_eval.models  # noqa: F401 — register IE tables in Base
     from app.modules.resume.models import Resume
     from app.modules.scheduling.models import Interview, Interviewer
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
+        # SQLite PRAGMA foreign_keys=ON: 必须先 commit 上游再 INSERT 下游，
+        # ORM merge 单次 flush 不保证按 FK 拓扑排序
         db.merge(Resume(id=99001, name="dummy_resume"))
         db.merge(Interviewer(id=99001, name="dummy_interviewer"))
+        db.commit()
         db.merge(Interview(
             id=99001, resume_id=99001, interviewer_id=99001,
             start_time=datetime.now(timezone.utc),

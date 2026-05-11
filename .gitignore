@@ -58,3 +58,6 @@ scripts/seed_map.json
 
 # Claude Code scheduled tasks runtime lock
 .claude/scheduled_tasks.lock
+
+# 演示截图（不入仓库）
+demo-*.png
