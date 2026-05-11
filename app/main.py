@@ -76,6 +76,7 @@ async def lifespan(app: FastAPI):
         import logging
         logging.getLogger(__name__).warning(f"AI parse worker failed to auto-start: {e}")
     # F-interview-eval：每日 retention 清理
+    _retention_task = None
     try:
         if settings.interview_eval_enabled:
             import asyncio
@@ -90,12 +91,13 @@ async def lifespan(app: FastAPI):
                         import logging
                         logging.getLogger(__name__).exception("retention loop: %s", e)
 
-            asyncio.create_task(_retention_loop())
+            _retention_task = asyncio.create_task(_retention_loop())
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning("retention cron init failed: %s", e)
 
     # F-interview-eval：startup 一次性 + 周期僵尸任务自愈
+    _reconcile_task = None
     try:
         if settings.interview_eval_enabled:
             import asyncio
@@ -118,11 +120,21 @@ async def lifespan(app: FastAPI):
                     except Exception as e:
                         _logger.exception("reconcile loop: %s", e)
 
-            asyncio.create_task(_reconcile_loop())
+            _reconcile_task = asyncio.create_task(_reconcile_loop())
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning("reconcile cron init failed: %s", e)
     yield
+    # IE-021: lifespan 退出时 cancel 后台 task，避免 "Task was destroyed but pending" warning
+    # 与累积 graceful shutdown 不彻底（同步顺便修 retention task leak）
+    import asyncio as _asyncio
+    for _t in (_retention_task, _reconcile_task):
+        if _t is not None and not _t.done():
+            _t.cancel()
+            try:
+                await _t
+            except (_asyncio.CancelledError, Exception):
+                pass
 
 
 app = FastAPI(

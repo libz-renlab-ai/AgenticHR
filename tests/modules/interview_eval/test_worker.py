@@ -387,3 +387,49 @@ def test_check_cancel_sees_external_update(monkeypatch, tmp_path):
             db_external.close()
     finally:
         db_worker.close()
+
+
+# IE-016: worker.run 在 scoring 阶段 LLM 调用前后必须 bump heartbeat
+def test_worker_scoring_bumps_heartbeat_around_llm(monkeypatch, tmp_path):
+    """LLM 调用慢 (>stale_threshold) 时 worker 必须打心跳避免被 reconcile 误杀."""
+    from datetime import datetime, timezone
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob
+
+    bumps = []
+
+    def _spy_bump(db, jid):
+        # 真正改 db 让效果可观察
+        db.query(InterviewEvalJob).filter_by(id=jid).update(
+            {"last_heartbeat": datetime.now(timezone.utc)}
+        )
+        db.commit()
+        bumps.append(datetime.now(timezone.utc))
+
+    monkeypatch.setattr(worker, "_bump_heartbeat", _spy_bump)
+    monkeypatch.setattr(worker, "_download_recording", lambda iv, d: (str(d), 1, 1))
+    monkeypatch.setattr(worker, "_transcribe", lambda mp4: [
+        {"start_ms": 0, "end_ms": 100, "speaker": "candidate", "text": "x"},
+    ])
+    monkeypatch.setattr(worker, "_score_with_llm", lambda iv, t: {
+        "dimensions": [{"name": "技术深度", "score": 8, "reasoning": "x",
+                        "evidence": [{"start_ms": 0, "end_ms": 100,
+                                      "speaker": "candidate", "text": "x"}]},
+                       {"name": "沟通能力", "score": 7, "reasoning": "y",
+                        "evidence": [{"start_ms": 0, "end_ms": 100,
+                                      "speaker": "candidate", "text": "x"}]}],
+        "hire_recommendation": "hire", "strengths": [], "risks": [], "followups": [],
+    })
+    monkeypatch.setattr(worker, "_publish_feishu", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "TRANSCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "RECORDING_DIR", str(tmp_path))
+
+    db = SessionLocal()
+    try:
+        job_id = _make_pending_job(db, interview_id=2050)
+        worker.run(job_id)
+        # IE-016: 至少 2 次 bump（LLM 调用前 + 后），实际为 retry 循环每次都 bump
+        assert len(bumps) >= 2, f"expected >=2 heartbeat bumps in scoring phase, got {len(bumps)}"
+    finally:
+        db.close()

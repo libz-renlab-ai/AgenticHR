@@ -30,12 +30,17 @@ def _send_card(receive_id: str, card: dict[str, Any]) -> None:
         # 大多数调用环境无活跃 event loop（worker 同步线程）
         asyncio.run(coro)
     except RuntimeError:
-        # 如果调用方已在 event loop 里（罕见），新建 loop 跑一遍
+        # IE-027: 已在 event loop 里时新建 loop，用完不仅 close 还要解绑 thread-local
+        # 避免长期累积 loop 对象 / signal handler 引用
         loop = asyncio.new_event_loop()
         try:
+            asyncio.set_event_loop(loop)
             loop.run_until_complete(coro)
         finally:
-            loop.close()
+            try:
+                loop.close()
+            finally:
+                asyncio.set_event_loop(None)
 
 
 def _resolve_hr_feishu_id(user_id: int) -> str:

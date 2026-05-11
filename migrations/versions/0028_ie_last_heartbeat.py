@@ -41,5 +41,10 @@ def downgrade() -> None:
         op.drop_index("ix_ieval_jobs_heartbeat", table_name="interview_eval_jobs")
     cols = {c["name"] for c in insp.get_columns("interview_eval_jobs")}
     if "last_heartbeat" in cols:
-        with op.batch_alter_table("interview_eval_jobs") as batch:
-            batch.drop_column("last_heartbeat")
+        # IE-023: SQLite 3.35+ 原生 ALTER TABLE DROP COLUMN，保留 CHECK / FK / 索引
+        # 避免 batch_alter_table 在 SQLite 上对 named CHECK 的 reflect round-trip 不可靠
+        # 其他方言走 op.drop_column 原生路径
+        if bind.dialect.name == "sqlite":
+            op.execute("ALTER TABLE interview_eval_jobs DROP COLUMN last_heartbeat")
+        else:
+            op.drop_column("interview_eval_jobs", "last_heartbeat")

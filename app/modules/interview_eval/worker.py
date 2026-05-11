@@ -199,7 +199,10 @@ def _check_cancel(db, job_id: int) -> bool:
 
 def _set_status(db, job_id: int, status: str, **fields) -> None:
     from datetime import datetime, timezone
-    fields.setdefault("last_heartbeat", datetime.now(timezone.utc))
+    # IE-022: setdefault 只判 key 存在性，遇 last_heartbeat=None 不覆盖→写入 NULL
+    # 改为 None-safe: 显式 None 或缺失都补 now()
+    if fields.get("last_heartbeat") is None:
+        fields["last_heartbeat"] = datetime.now(timezone.utc)
     db.query(InterviewEvalJob).filter_by(id=job_id).update(
         {"status": status, **fields}
     )
@@ -265,8 +268,12 @@ def run(job_id: int) -> None:
         scorecard_data: ScorecardOutput | None = None
         for attempt in range(LLM_MAX_RETRY):
             if _check_cancel(db, job_id): return
+            # IE-016: scoring 阶段 LLM 调用慢 (可能 >stale_threshold), 调用前后
+            # 各 bump 一次心跳，避免被 reconcile cron 误杀活跃 worker
+            _bump_heartbeat(db, job_id)
             try:
                 raw = _score_with_llm(interview, transcript)
+                _bump_heartbeat(db, job_id)
                 scorecard_data = ScorecardOutput(**raw)
                 break
             except Exception as e:

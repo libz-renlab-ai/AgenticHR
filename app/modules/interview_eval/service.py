@@ -84,9 +84,12 @@ def create_job(*, interview_id: int, user_id: int) -> int:
         retention_until = datetime.now(timezone.utc) + timedelta(
             days=settings.interview_eval_recording_retention_days
         )
+        # IE-017: pending 行显式打心跳，避免 reconcile 周期 cron 抢杀
+        # (last_heartbeat=NULL 会被视为陈旧立刻 failed，留下 error_msg="服务中断"残留)
         new_job = InterviewEvalJob(
             interview_id=interview_id, user_id=user_id, status="pending",
             meeting_account=interview.meeting_account, retention_until=retention_until,
+            last_heartbeat=datetime.now(timezone.utc),
         )
         db.add(new_job); db.commit(); db.refresh(new_job)
 

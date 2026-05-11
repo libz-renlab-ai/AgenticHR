@@ -74,3 +74,24 @@ def test_strengths_max_5():
     }
     with pytest.raises(ValidationError):
         ScorecardOutput(**bad)
+
+
+# IE-026: 放宽 evidence max_length 到 5（LLM 偶尔输出 4-5 个证据）
+def test_dimension_accepts_up_to_5_evidence():
+    from app.modules.interview_eval.schemas import DimensionScore
+    d = DimensionScore(
+        name="技术深度", score=8, reasoning="x",
+        evidence=[{"start_ms": i * 100, "end_ms": i * 100 + 50,
+                   "speaker": "candidate", "text": f"e{i}"} for i in range(5)],
+    )
+    assert len(d.evidence) == 5
+
+
+def test_dimension_rejects_6_evidence():
+    from app.modules.interview_eval.schemas import DimensionScore
+    with pytest.raises(ValidationError):
+        DimensionScore(
+            name="技术深度", score=8, reasoning="x",
+            evidence=[{"start_ms": i * 100, "end_ms": i * 100 + 50,
+                       "speaker": "candidate", "text": f"e{i}"} for i in range(6)],
+        )

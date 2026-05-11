@@ -70,7 +70,7 @@ def get_job(job_id: int, user_id: int = Depends(get_current_user_id)):
 @router.get("/{job_id}/scorecard")
 def get_scorecard(job_id: int, user_id: int = Depends(get_current_user_id)):
     try:
-        service.get_job(job_id=job_id, user_id=user_id)  # 401/404 校验
+        job = service.get_job(job_id=job_id, user_id=user_id)  # 401/404 校验
     except ServiceError as e:
         raise _err_to_http(e)
     db = SessionLocal()
@@ -83,13 +83,16 @@ def get_scorecard(job_id: int, user_id: int = Depends(get_current_user_id)):
         )
         if sc is None:
             raise HTTPException(404, "scorecard 尚未生成")
+        # IE-025: 用 job.recording_path 字段而非硬编码相对路径，
+        # 与 IE-013 retention 修复对齐（RECORDING_DIR 配置变化时一致）
+        recording_path = job.recording_path or f"data/recordings/{job_id}.mp4"
         return {
             "job_id": sc.job_id, "interview_id": sc.interview_id,
             "dimensions": sc.dimensions_json,
             "hire_recommendation": sc.hire_recommendation,
             "strengths": sc.strengths, "risks": sc.risks, "followups": sc.followups,
             "transcript_available": os.path.exists(sc.transcript_path),
-            "recording_available": os.path.exists(f"data/recordings/{job_id}.mp4"),
+            "recording_available": os.path.exists(recording_path),
             "llm_model": sc.llm_model, "prompt_version": sc.prompt_version,
             "created_at": sc.created_at.isoformat(),
         }
@@ -113,10 +116,11 @@ def get_transcript(job_id: int, user_id: int = Depends(get_current_user_id)):
 @router.get("/{job_id}/recording")
 def get_recording(job_id: int, user_id: int = Depends(get_current_user_id)):
     try:
-        service.get_job(job_id=job_id, user_id=user_id)
+        job = service.get_job(job_id=job_id, user_id=user_id)
     except ServiceError as e:
         raise _err_to_http(e)
-    path = f"data/recordings/{job_id}.mp4"
+    # IE-025: 同 get_scorecard，用 job.recording_path 字段优先
+    path = job.recording_path or f"data/recordings/{job_id}.mp4"
     if not os.path.exists(path):
         raise HTTPException(404, "录像已被清理或尚未下载完成")
     return FileResponse(path, media_type="video/mp4")

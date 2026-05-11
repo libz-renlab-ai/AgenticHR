@@ -305,3 +305,33 @@ def test_create_job_concurrent_race_rolls_back_duplicate(monkeypatch):
         assert "并发" in exc.value.message or "已有" in exc.value.message
     finally:
         db.close()
+
+
+# IE-017: create_job 创建 pending 时必须写 last_heartbeat=now，避免 reconcile 抢杀
+def test_create_job_writes_heartbeat_on_pending(monkeypatch):
+    from datetime import datetime, timezone
+    from app.modules.interview_eval import service
+    from app.modules.interview_eval.models import InterviewEvalJob
+
+    monkeypatch.setattr(service.settings, "interview_eval_enabled", True)
+    monkeypatch.setattr(service.settings, "tencent_cloud_secret_id", "x")
+    monkeypatch.setattr(service.settings, "tencent_meeting_accounts", "default,main")
+    monkeypatch.setattr(service, "_spawn_worker", lambda jid: None)  # 不真起 worker
+
+    db = SessionLocal()
+    try:
+        db.query(InterviewEvalJob).filter(
+            InterviewEvalJob.interview_id.between(7000, 7099)
+        ).delete(synchronize_session=False)
+        db.commit()
+        _make_interview(db, interview_id=7001, job_id=7001)
+        before = datetime.now(timezone.utc).replace(microsecond=0)
+        job_id = service.create_job(interview_id=7001, user_id=1)
+        new_job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
+        assert new_job.last_heartbeat is not None  # 关键：不能 NULL
+        hb = new_job.last_heartbeat
+        if hb.tzinfo is None:
+            hb = hb.replace(tzinfo=timezone.utc)
+        assert hb >= before.replace(tzinfo=timezone.utc) - timedelta(seconds=1)
+    finally:
+        db.close()

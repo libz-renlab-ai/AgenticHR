@@ -65,3 +65,16 @@ def test_bump_heartbeat_helper(db_session):
     assert job.last_heartbeat is not None
     hb = job.last_heartbeat.replace(tzinfo=timezone.utc) if job.last_heartbeat.tzinfo is None else job.last_heartbeat
     assert hb >= before
+
+
+# IE-022: setdefault 不防 None，必须用 None-safe 判断
+def test_set_status_with_explicit_none_heartbeat_uses_now(db_session):
+    """显式传 last_heartbeat=None 时必须用 now() 覆盖，不能写入 NULL."""
+    from app.modules.interview_eval.worker import _set_status
+    session, job_id = db_session
+    before = datetime.now(timezone.utc) - timedelta(seconds=1)
+    _set_status(session, job_id, "downloading", last_heartbeat=None)
+    job = session.query(InterviewEvalJob).filter_by(id=job_id).first()
+    assert job.last_heartbeat is not None  # 关键：不能是 NULL
+    hb = job.last_heartbeat.replace(tzinfo=timezone.utc) if job.last_heartbeat.tzinfo is None else job.last_heartbeat
+    assert hb >= before

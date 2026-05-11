@@ -105,3 +105,43 @@ def test_sweep_returns_count(db_session):
     _make_job(db_session, "done", heartbeat_ago_sec=1000)         # terminal
     n = sweep_stale_jobs(threshold_seconds=180)
     assert n == 2
+
+
+# IE-020: 跳过 cancel_requested=1 让 worker 自己处理成 cancelled
+def test_sweep_skips_cancel_requested_job(db_session):
+    from app.modules.interview_eval.reconcile import sweep_stale_jobs
+    job = _make_job(db_session, "scoring", heartbeat_ago_sec=1000)
+    job.cancel_requested = 1
+    db_session.commit()
+    n = sweep_stale_jobs(threshold_seconds=180)
+    assert n == 0
+    db_session.refresh(job)
+    assert job.status == "scoring"  # 未被改 failed
+    assert job.error_msg == ""       # 未写入"服务中断"
+
+
+# IE-018: 防御性最低 threshold
+def test_sweep_rejects_zero_or_negative_threshold(db_session):
+    from app.modules.interview_eval.reconcile import sweep_stale_jobs
+    job = _make_job(db_session, "scoring", heartbeat_ago_sec=1000)
+    assert sweep_stale_jobs(threshold_seconds=0) == 0
+    assert sweep_stale_jobs(threshold_seconds=-1) == 0
+    db_session.refresh(job)
+    assert job.status == "scoring"  # 没被误杀
+
+
+# IE-024: audit_record 失败不影响 status 修改持久化
+def test_sweep_status_committed_before_audit(db_session, monkeypatch):
+    from app.modules.interview_eval import reconcile as reconcile_module
+    job = _make_job(db_session, "scoring", heartbeat_ago_sec=1000)
+
+    def _failing_audit(*args, **kwargs):
+        raise RuntimeError("audit log broken")
+    monkeypatch.setattr(reconcile_module, "audit_record", _failing_audit)
+
+    n = reconcile_module.sweep_stale_jobs(threshold_seconds=180)
+    assert n == 1
+    db_session.refresh(job)
+    # audit 失败但 status 已 commit
+    assert job.status == "failed"
+    assert "服务中断" in job.error_msg

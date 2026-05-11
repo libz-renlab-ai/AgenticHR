@@ -34,7 +34,18 @@ def client(monkeypatch):
         for r in app.routes
     )
     if not already_mounted:
+        # 防 catch-all `/{full_path:path}` 截胡：fixture 后挂时 include_router
+        # 会把路由 append 到 catch-all 后面，所有 GET 都先被 catch-all 吃 → 假 404。
+        # 把 catch-all 暂时摘掉，挂完 ie_router 再 append 回去。
+        catch_all = next(
+            (r for r in app.routes if getattr(r, "path", "") == "/{full_path:path}"),
+            None,
+        )
+        if catch_all is not None:
+            app.routes.remove(catch_all)
         app.include_router(ie_router)
+        if catch_all is not None:
+            app.routes.append(catch_all)
 
     app.dependency_overrides[get_current_user_id] = lambda: 1
     try:
@@ -88,3 +99,62 @@ def test_cancel_409_when_done(monkeypatch, client):
     monkeypatch.setattr(service, "cancel_job", _raise)
     r = client.post("/api/interview-eval/1/cancel")
     assert r.status_code == 409
+
+
+# IE-025: router 录像路径用 job.recording_path 字段，与 IE-013 retention 修复对齐
+def test_get_recording_uses_job_recording_path(client, tmp_path, monkeypatch):
+    """RECORDING_DIR 配置变化场景：job.recording_path 是绝对路径而非默认 'data/recordings/{id}.mp4'."""
+    import os
+    from datetime import datetime, timezone, timedelta
+    from app.config import settings
+    from app.database import SessionLocal
+    from app.modules.interview_eval.models import InterviewEvalJob
+    from app.modules.resume.models import Resume
+    from app.modules.scheduling.models import Interview, Interviewer
+    from app.modules.screening.models import Job
+
+    monkeypatch.setattr(settings, "interview_eval_enabled", True)
+
+    # 准备一个真 mp4 文件到非默认路径
+    custom_dir = tmp_path / "nfs_recordings"
+    custom_dir.mkdir()
+    mp4_path = custom_dir / "demo.mp4"
+    mp4_path.write_bytes(b"FAKE_MP4")
+
+    db = SessionLocal()
+    try:
+        # FK 上游
+        db.merge(Resume(id=1, name="r"))
+        db.merge(Interviewer(id=1, name="i"))
+        db.merge(Job(id=8001, user_id=1, title="t",
+                     competency_model={}, competency_model_status="approved"))
+        db.commit()
+        db.merge(Interview(
+            id=8001, user_id=1, resume_id=1, interviewer_id=1, job_id=8001,
+            meeting_id="m", meeting_account="default",
+            start_time=datetime.now(timezone.utc),
+            end_time=datetime.now(timezone.utc) + timedelta(hours=1),
+        ))
+        db.commit()
+        # 清旧
+        db.query(InterviewEvalJob).filter_by(interview_id=8001).delete()
+        db.commit()
+        # 创建 job，recording_path 指向自定义路径
+        job = InterviewEvalJob(
+            interview_id=8001, user_id=1, status="done",
+            recording_path=str(mp4_path),
+            retention_until=datetime.now(timezone.utc) + timedelta(days=180),
+        )
+        db.add(job); db.commit(); db.refresh(job)
+
+        # 默认路径不存在
+        default_path = f"data/recordings/{job.id}.mp4"
+        if os.path.exists(default_path):
+            os.remove(default_path)
+
+        r = client.get(f"/api/interview-eval/{job.id}/recording")
+        # IE-025: 必须能从 job.recording_path 读到，不是 404
+        assert r.status_code == 200, f"router 没用 job.recording_path，可能仍在硬编码 data/recordings/{{id}}.mp4: {r.text}"
+        assert r.content == b"FAKE_MP4"
+    finally:
+        db.close()

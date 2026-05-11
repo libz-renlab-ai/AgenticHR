@@ -1,5 +1,6 @@
 """统一配置管理"""
 from pathlib import Path
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -62,9 +63,10 @@ class Settings(BaseSettings):
     tencent_cloud_asr_region: str = "ap-shanghai"
     interview_eval_recording_retention_days: int = 180
     # 心跳自愈：worker 在每次 _set_status 时打心跳；超过 stale_threshold 无心跳→判死
-    interview_eval_heartbeat_interval_seconds: int = 30
-    interview_eval_stale_threshold_seconds: int = 180
-    interview_eval_reconcile_period_seconds: int = 300
+    # IE-018/IE-019: 校验下界，防误配 0/负数误杀活跃 worker 或事件循环死转
+    interview_eval_heartbeat_interval_seconds: int = Field(default=30, ge=5)
+    interview_eval_stale_threshold_seconds: int = Field(default=180, ge=10)
+    interview_eval_reconcile_period_seconds: int = Field(default=300, ge=10)
 
     # Boss 直聘
     boss_adapter: str = "edge_extension"

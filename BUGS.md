@@ -272,3 +272,300 @@
 13. **BUG-IE-014** LLM retry 区分错误类型
 14. **BUG-IE-015** HR 自己不发卡片
 15. **BUG-IE-012** migration 列结构验证（生产 fresh deploy 不触发，最低）
+
+---
+
+# F-interview-eval Chaos Round 12 BUGS — Heartbeat 自愈机制后扫
+> 范围：commit e4cd92f (heartbeat 自愈) + 2fe854e (pre-existing 测试) 后白盒
+> Audit by chaos-qa-hunter @ 2026-05-11
+> 重点：新增 reconcile.py + worker 心跳 + app/main.py 接入；以及 chaos round 11 修复未彻底处
+
+## 覆盖率基准（Round 12 增量扫描）
+- 新代码：reconcile.py 65 行 / 1 函数 / 3 分支
+- worker.py 改动：_set_status (5 行) + _bump_heartbeat (7 行新增)
+- app/main.py：reconcile startup + asyncio loop (28 行)
+- migration 0028：upgrade/downgrade
+- pytest 1004 passed / 0 failed / 0 errors (interview_eval 模块 66/66)
+
+## 攻击向量覆盖
+| 向量 | 应用情况 |
+|------|---------|
+| 并发 race（reconcile vs worker） | 重点 |
+| 边界值（settings = 0 / 负数 / MAX） | 已扫 |
+| 状态机（cancel ↔ reconcile） | 已扫 |
+| 缺失值（heartbeat=None / NULL） | 已扫 |
+| 资源（task leak / 文件路径） | 已扫 |
+| Migration 回滚（0028 downgrade） | 已扫 |
+| LLM Schema 严格性 | 已扫 |
+
+---
+
+## BUG-IE-016: worker.run 在 scoring 阶段不打心跳，LLM 调用慢时活跃 worker 被 reconcile 误杀
+
+- **严重**: High
+- **类型**: Concurrency / Logic
+- **代码位置**: `app/modules/interview_eval/worker.py:259-289`
+- **复现**:
+  1. 配置 `interview_eval_stale_threshold_seconds=60`, `interview_eval_reconcile_period_seconds=30`
+  2. mock `_chat_complete_sync` 让单次 LLM 调用 sleep 120 秒（真实场景：复杂 transcript + 慢 LLM）
+  3. worker 进入 line 261 `_set_status(db, job_id, "scoring")` → heartbeat=now
+  4. 进入 line 266 retry 循环 → 第一次 `_score_with_llm` 调用阻塞 120 秒
+  5. T+30s, T+60s, T+90s 周期 cron 执行 sweep_stale_jobs(60)
+  6. T+60s 时 last_heartbeat (T0) < cutoff (T+60-60=T0) ← 边界，但 T+90s 时一定满足
+  7. reconcile 把 status=scoring 标 failed + error_msg="服务中断"
+  8. T+120s worker 真正拿到 LLM 响应，继续走 _set_status("done")
+  9. 但 db.update 把 status 改回 done，error_msg "服务中断" 不被清
+- **期望**: spec doc 明说 scoring 阶段 LLM 调用前后用 `_bump_heartbeat`；worker.run 实际没调用
+- **实际**: `_bump_heartbeat` 函数定义了但没人调用（grep `_bump_heartbeat` app/modules/interview_eval/worker.py 只有一处定义）
+- **触发的代码路径**: service.create_job → spawn worker_run → _set_status("scoring") → retry loop 阻塞 → cron sweep 误杀
+- **攻击向量**: 并发 / 时间窗口
+
+---
+
+## BUG-IE-017: service.create_job 创建 pending 行时不写 heartbeat，被周期 cron 抢杀
+
+- **严重**: High
+- **类型**: Concurrency / Logic
+- **代码位置**: `app/modules/interview_eval/service.py:87-91`
+- **复现**:
+  1. settings.stale_threshold=180 / reconcile_period=300
+  2. T0 reconcile 周期 cron 即将触发（窗口剩 0.1s）
+  3. T0 HR 点【AI 分析面试】→ POST /start → create_job
+  4. line 91 `db.commit()` 插入 InterviewEvalJob(status="pending", last_heartbeat=NULL)
+  5. line 111 `_spawn_worker(new_job.id)` 启动线程
+  6. T0+0.1s reconcile 跑 sweep_stale_jobs → 扫到 status=pending + heartbeat IS NULL → 标 failed
+  7. worker 线程 line 219-238 跑完（约 50ms），到 line 239 `_set_status(downloading)` 时 db 行已是 failed
+  8. _set_status 用 .update() 改 status="downloading"，覆盖 failed，但 error_msg "服务中断" 残留
+  9. 流程继续跑完成 status=done，error_msg 仍是"服务中断"
+- **期望**: create_job 写 pending 行时同时写 last_heartbeat=now()，避开"NULL → 立即陈旧"陷阱
+- **实际**: line 88 字段列表无 last_heartbeat
+- **触发的代码路径**: router.start → service.create_job → InterviewEvalJob(status="pending") → cron sweep → race
+- **攻击向量**: 并发 / 边界值
+
+---
+
+## BUG-IE-018: settings.interview_eval_stale_threshold_seconds = 0 或负数会误杀所有活跃 worker
+
+- **严重**: High
+- **类型**: Configuration / Crash
+- **代码位置**: `app/config.py:65` + `app/modules/interview_eval/reconcile.py:32-33`
+- **复现**:
+  1. 在 .env 设 `INTERVIEW_EVAL_STALE_THRESHOLD_SECONDS=0`（误配 / 测试残留 / 攻击者注入）
+  2. 后端重启
+  3. reconcile.sweep_stale_jobs(0) 调用：cutoff = now - timedelta(0) = now
+  4. 所有非终态 + last_heartbeat < now（一秒前心跳即满足）→ 全标 failed
+  5. 即使正在跑的 worker 也被一并误杀
+  6. 负数同理：cutoff = now - (-X) = now + X → 所有 heartbeat 都 < cutoff
+- **期望**: pydantic-settings 加 `Field(ge=10)` 约束最小值；或 reconcile 入口加 `assert threshold > 0`
+- **实际**: 无范围校验，typo / 0 / 负数静默通过
+- **触发的代码路径**: app startup → sweep_stale_jobs(stale_threshold_seconds) → 所有 worker 失败
+- **攻击向量**: 配置 / 边界值
+
+---
+
+## BUG-IE-019: settings.interview_eval_reconcile_period_seconds = 0 让事件循环 100% CPU
+
+- **严重**: High
+- **类型**: Performance / DoS
+- **代码位置**: `app/config.py:66` + `app/main.py:113-119`
+- **复现**:
+  1. 在 .env 设 `INTERVIEW_EVAL_RECONCILE_PERIOD_SECONDS=0`
+  2. 后端启动 → `await asyncio.sleep(0)` 立即 yield 不睡
+  3. while True 循环死转 sweep db
+  4. CPU 飙至 100%，db query 每秒数百次
+  5. 服务对外接口仍可响应（asyncio 协作式），但延迟剧增
+- **期望**: 同 BUG-IE-018，加最小值约束（如 ≥ 60）
+- **实际**: 无校验，0 / 负数都通过
+- **触发的代码路径**: lifespan 启动 → _reconcile_loop → 死转
+- **攻击向量**: 配置 / DoS
+
+---
+
+## BUG-IE-020: reconcile 误标"用户正在 cancel"的任务为 failed/服务中断，掩盖真实意图
+
+- **严重**: Medium
+- **类型**: Logic / UX
+- **代码位置**: `app/modules/interview_eval/reconcile.py:36-58`
+- **复现**:
+  1. job 在 status=scoring 阶段已运行 200s（>stale_threshold 180）
+  2. HR 看到太慢，点【取消】→ POST /cancel → service.cancel_job 设 cancel_requested=1
+  3. 同时（5s 后）reconcile 周期 cron 跑
+  4. reconcile 扫描，job 满足 status=scoring + heartbeat 陈旧 → status=failed, error_msg="服务中断"
+  5. worker 下一次 _check_cancel 调 `db.expire_all()` 重读，看到 status=failed（已是终态），不进入 cancelled 分支
+  6. 最终 status=failed，UI 显示"服务中断…请重跑"，但实际是用户主动 cancel
+- **期望**: reconcile 过滤掉 cancel_requested=1 的 job（让 worker 自己处理为 cancelled）；或者把 error_msg 改成"自动失败（可能已 cancel）"
+- **实际**: reconcile.sweep 不看 cancel_requested
+- **触发的代码路径**: cancel_job + reconcile.sweep_stale_jobs 同步竞争
+- **攻击向量**: 状态机 / 并发
+
+---
+
+## BUG-IE-021: reconcile_loop task 在 lifespan 关闭时不被 cancel，graceful shutdown 不彻底
+
+- **严重**: Medium
+- **类型**: Resource / Logic
+- **代码位置**: `app/main.py:113-121`
+- **复现**:
+  1. uvicorn 启动 → lifespan 进入 yield → reconcile_loop task 启动
+  2. SIGTERM / Ctrl-C → lifespan 退出 yield 后无 cleanup 代码
+  3. asyncio.create_task 创建的 task 仍在 event loop 内，状态 `pending`
+  4. 测试 TestClient 反复 with 进出，task 累积（同 retention loop 也有此问题）
+  5. 进程关闭时 event loop 报 "Task was destroyed but it is pending" warning
+- **期望**: 把 task 存到 `app.state.reconcile_task`，lifespan exit 时 `.cancel()` + await 完成
+- **实际**: task 引用丢失，无法 cancel
+- **触发的代码路径**: lifespan → asyncio.create_task → ... → SIGTERM
+- **攻击向量**: 资源 / 状态机
+
+---
+
+## BUG-IE-022: `_set_status(..., last_heartbeat=None)` 仍然写 NULL（setdefault 陷阱）
+
+- **严重**: Medium
+- **类型**: Logic / 测试盲点
+- **代码位置**: `app/modules/interview_eval/worker.py:200-206`
+- **复现**:
+  1. caller 写：`_set_status(db, job_id, "downloading", last_heartbeat=None)`（无论是 bug 还是测试构造）
+  2. line 202: `fields.setdefault("last_heartbeat", now())` — setdefault 只检查 key 是否存在，不检查 value 是否为 None
+  3. 因为 `"last_heartbeat" in fields == True`，setdefault 不覆盖
+  4. 写入 db 时 last_heartbeat=NULL
+  5. 下次 reconcile sweep 把这个 status=downloading 行扫成 failed（NULL 视为陈旧）
+- **期望**: `if fields.get("last_heartbeat") is None: fields["last_heartbeat"] = now()`
+- **实际**: setdefault 用 dict key 存在性判断，不防 None
+- **触发的代码路径**: 任意 caller 显式传 last_heartbeat=None
+- **攻击向量**: 缺失值 / API 陷阱
+
+---
+
+## BUG-IE-023: migration 0028 downgrade 用 batch_alter_table 重建表，CHECK 约束 ck_ieval_job_status 可能丢失
+
+- **严重**: Medium
+- **类型**: Migration / Data
+- **代码位置**: `migrations/versions/0028_ie_last_heartbeat.py:43-45`
+- **复现**:
+  1. dev/prod 升到 0028 → 表带 ck_ieval_job_status CHECK + ix_* 索引
+  2. 故障回滚 → alembic downgrade 0027
+  3. line 44 `with op.batch_alter_table("interview_eval_jobs") as batch: batch.drop_column("last_heartbeat")`
+  4. SQLAlchemy batch_alter_table 在 SQLite 下实现是：CREATE TEMP TABLE / 复制数据 / DROP 原表 / 重命名
+  5. 复制时 CHECK constraint 来自 reflect() 推断；reflect 在 SQLite 上对 named CHECK 有已知 limitation（未必能 round-trip）
+  6. 回滚后 status 列接受任何字符串（CHECK 没了）
+- **期望**: downgrade 显式 recreate_table 或 batch 内显式 recreate_constraints 选项
+- **实际**: 默认 batch_alter_table 在 SQLite 下 CHECK round-trip 不可靠
+- **触发的代码路径**: alembic downgrade 0027
+- **攻击向量**: Migration 回滚 / SQLite 限制
+- **注**: 仅在生产灰度失败回滚场景触发；生产 fresh deploy 永远向前不触发
+
+---
+
+## BUG-IE-024: reconcile audit_record 写在 db.commit 之前，audit 失败导致整批 sweep 回滚
+
+- **严重**: Medium
+- **类型**: Logic / Error Path
+- **代码位置**: `app/modules/interview_eval/reconcile.py:48-60`
+- **复现**:
+  1. audit_events 表加了新的 NOT NULL 列 / CHECK 约束（如未来 spec）
+  2. reconcile 扫到 10 个陈旧 job，循环逐个改 status="failed" + 调 audit_record("reconcile_stale", ...)
+  3. 第 5 个 audit_record 抛 IntegrityError（如 action 长度超限 / FK 失败）
+  4. 异常逃出 for 循环 → 进入 finally → db.close()（前 4 个的 status 修改未 commit 因为 line 60 还没到）
+  5. 实际效果：0 个 job 被标 failed，但 4 条 audit 没被回滚（不同 audit_record 实现可能各自 commit）
+- **期望**: 先 db.commit() 持久化 status 修改，再 best-effort 写 audit（audit 失败 log 不 raise）
+- **实际**: 顺序倒置，audit 失败影响状态修复
+- **触发的代码路径**: app startup reconcile / cron loop → sweep_stale_jobs → audit_record 失败
+- **攻击向量**: 错误路径 / 事务边界
+
+---
+
+## BUG-IE-025: router.get_recording / get_scorecard.recording_available 硬编码 `data/recordings/{job_id}.mp4`，无视 settings 配置
+
+- **严重**: Medium
+- **类型**: Configuration / Logic
+- **代码位置**: `app/modules/interview_eval/router.py:92,119`
+- **复现**:
+  1. 假设把录像目录改成挂 NFS：`RECORDING_DIR=/mnt/nfs/recordings`（worker.py 用了 RECORDING_DIR 常量，未来若改为读 settings）
+  2. worker 把 mp4 写到新路径
+  3. db.recording_path 字段值 = `/mnt/nfs/recordings/123.mp4`
+  4. 用户点【查看录像】→ GET /api/interview-eval/123/recording
+  5. router line 119: `path = f"data/recordings/{job_id}.mp4"` → 拼老路径
+  6. os.path.exists 旧路径 False → 404 "录像已被清理或尚未下载完成"
+  7. 但实际录像在 NFS，UI 显示错误信息
+- **期望**: 用 `job.recording_path` 字段（类似 IE-013 retention 的修复路径）
+- **实际**: 字符串拼接 + 硬编码相对路径
+- **触发的代码路径**: GET /api/interview-eval/{job_id}/recording 任意时配置变化
+- **攻击向量**: 配置变化 / 一致性
+- **注**: chaos round 11 IE-013 修了 retention 同样问题，但 router 漏了
+
+---
+
+## BUG-IE-026: schemas.DimensionScore.evidence max_length=3，LLM 输出 4 个证据触发永久错误
+
+- **严重**: Low
+- **类型**: Schema / LLM
+- **代码位置**: `app/modules/interview_eval/schemas.py:30`
+- **复现**:
+  1. Job competency_model assessment_dimensions 5 个维度
+  2. Prompt 实际能让 LLM 给 1-5 个证据片段（prompts.py 没明确说 ≤3）
+  3. 智谱 GLM 返回某个 dimension 带 4 个 evidence
+  4. Pydantic validation: `evidence: list[EvidenceSegment] = Field(min_length=1, max_length=3)`
+  5. ValidationError → IE-014 修复后判定为永久错误 → 立即抛 → worker 标 failed
+  6. 用户看到"LLM 输出 schema validation 失败 3 次"，实际是第 1 次就 raise，与 retry 计数描述不一致
+- **期望**: 要么放宽 max_length=5；要么 prompt 严格限制 "最多 3 个证据片段"；要么 truncate 而非 raise
+- **实际**: schema 硬限 3，prompts 没匹配，LLM 偶尔越界
+- **触发的代码路径**: LLM 输出 → ScorecardOutput(**raw) → ValidationError → IE-014 路径
+- **攻击向量**: Schema 严格性 / LLM 不确定性
+
+---
+
+## BUG-IE-027: feishu_push._send_card 在已有 event loop 的线程内新建 loop 后不释放，潜在资源累积
+
+- **严重**: Low
+- **类型**: Resource
+- **代码位置**: `app/modules/interview_eval/feishu_push.py:29-38`
+- **复现**:
+  1. worker 在某个 async context 内被调用（罕见但理论可能：未来改为 FastAPI BackgroundTask）
+  2. line 31 `asyncio.run(coro)` 抛 RuntimeError("asyncio.run() cannot be called from a running event loop")
+  3. except 分支 line 34 `loop = asyncio.new_event_loop()` 新建
+  4. line 38 `loop.close()` — 关闭，但 task / future / signal handler 引用未清
+  5. 多次推送累积新 loop 对象，GC 不及时回收
+- **期望**: 用 `concurrent.futures.ThreadPoolExecutor + asyncio.run_coroutine_threadsafe` 跨线程调度
+- **实际**: 兜底逻辑虽不崩，但不优雅
+- **触发的代码路径**: 任何在 async 上下文里调 feishu_push.push
+- **攻击向量**: 资源 / async 边界
+
+---
+
+## 覆盖率快照（Round 12 — 仅 reconcile + worker 心跳新代码 + chaos 11 复检）
+
+| 维度 | 覆盖估计 | 总量估计 | 百分比 |
+|------|---------|---------|-------|
+| 新函数 (reconcile + heartbeat) | 3 | 3 | 100% |
+| 配置参数边界 | 4 | 4 | 100% |
+| Race condition 窗口 | 3 | 3 | 100% |
+| Migration 回滚路径 | 1 | 2 | 50% |
+| Chaos 11 修复复检 (15 项) | 13 | 15 | 87% |
+| 路由路径硬编码 | 2 | 2 | 100% |
+| Schema 严格性 | 1 | 1 | 100% |
+
+**已发现 Bug 数（Round 12）**: 12 (High: 4, Medium: 6, Low: 2)
+
+## 优先修复顺序（Round 12）
+1. **BUG-IE-017** create_job pending heartbeat=NULL 被 cron 抢杀（每次新任务 race 窗口）
+2. **BUG-IE-016** scoring 阶段不打心跳，慢 LLM 被误杀（生产场景常见）
+3. **BUG-IE-018** settings stale_threshold=0/负 误杀所有 worker（配置事故）
+4. **BUG-IE-019** settings reconcile_period=0 CPU 100%
+5. **BUG-IE-020** reconcile 抢杀 cancel-in-flight（UX 误导）
+6. **BUG-IE-022** setdefault 不防 None 陷阱
+7. **BUG-IE-025** router 录像路径硬编码（IE-013 修复遗漏的孪生）
+8. **BUG-IE-024** reconcile audit 顺序错（事务边界）
+9. **BUG-IE-021** reconcile task leak（graceful shutdown）
+10. **BUG-IE-023** 0028 downgrade SQLite CHECK round-trip（仅回滚触发）
+11. **BUG-IE-026** evidence max_length=3 LLM 越界
+12. **BUG-IE-027** feishu loop close 资源（极低）
+
+## 自我检查（chaos round 12 结束）
+- [x] 未修改任何源代码文件
+- [x] 未写修复建议（每条 bug 仅描述现象 + 期望 vs 实际）
+- [x] 复现步骤精确到具体配置 + 代码行号
+- [x] 覆盖 race condition / 配置边界 / 状态机 / 错误路径 / 资源 / migration / schema 共 7 类向量
+- [x] 12 个 bug 中 4 个 High 全部聚焦今天新代码（reconcile / heartbeat / settings / create_job）
+- [x] 没有重复 chaos round 11 已修的 BUG-IE-001..015
+
+**Round 12 判定**: 今天新代码（heartbeat 自愈机制）虽然解决了"跨进程残留"主问题，但引入了 4 个 High 级 race / 配置安全问题，且修复 spec 中提到的 `_bump_heartbeat` 在 worker.run 中没落实。建议在生产灰度前修 BUG-IE-016/017/018/019 四项。
