@@ -29,6 +29,7 @@ class InterviewEvalJob(Base):
     cancel_requested = Column(Integer, nullable=False, default=0)
     retention_until = Column(DateTime, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
+    last_heartbeat = Column(DateTime, nullable=True, index=True)
     created_at = Column(
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False,
     )

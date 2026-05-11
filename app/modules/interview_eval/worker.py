@@ -198,8 +198,19 @@ def _check_cancel(db, job_id: int) -> bool:
 
 
 def _set_status(db, job_id: int, status: str, **fields) -> None:
+    from datetime import datetime, timezone
+    fields.setdefault("last_heartbeat", datetime.now(timezone.utc))
     db.query(InterviewEvalJob).filter_by(id=job_id).update(
         {"status": status, **fields}
+    )
+    db.commit()
+
+
+def _bump_heartbeat(db, job_id: int) -> None:
+    """只刷新 last_heartbeat，不切状态；scoring 阶段 LLM 调用前后用。"""
+    from datetime import datetime, timezone
+    db.query(InterviewEvalJob).filter_by(id=job_id).update(
+        {"last_heartbeat": datetime.now(timezone.utc)}
     )
     db.commit()
 

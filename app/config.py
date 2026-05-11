@@ -61,6 +61,10 @@ class Settings(BaseSettings):
     tencent_cloud_secret_key: str = ""
     tencent_cloud_asr_region: str = "ap-shanghai"
     interview_eval_recording_retention_days: int = 180
+    # 心跳自愈：worker 在每次 _set_status 时打心跳；超过 stale_threshold 无心跳→判死
+    interview_eval_heartbeat_interval_seconds: int = 30
+    interview_eval_stale_threshold_seconds: int = 180
+    interview_eval_reconcile_period_seconds: int = 300
 
     # Boss 直聘
     boss_adapter: str = "edge_extension"

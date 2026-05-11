@@ -94,6 +94,34 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning("retention cron init failed: %s", e)
+
+    # F-interview-eval：startup 一次性 + 周期僵尸任务自愈
+    try:
+        if settings.interview_eval_enabled:
+            import asyncio
+            import logging as _log
+            from app.modules.interview_eval.reconcile import sweep_stale_jobs
+
+            _logger = _log.getLogger(__name__)
+            try:
+                n = sweep_stale_jobs(settings.interview_eval_stale_threshold_seconds)
+                if n:
+                    _logger.warning("startup reconcile: swept %d stale ieval jobs", n)
+            except Exception as e:
+                _logger.exception("startup reconcile failed: %s", e)
+
+            async def _reconcile_loop():
+                while True:
+                    await asyncio.sleep(settings.interview_eval_reconcile_period_seconds)
+                    try:
+                        sweep_stale_jobs(settings.interview_eval_stale_threshold_seconds)
+                    except Exception as e:
+                        _logger.exception("reconcile loop: %s", e)
+
+            asyncio.create_task(_reconcile_loop())
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("reconcile cron init failed: %s", e)
     yield
 
 
