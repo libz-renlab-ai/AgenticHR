@@ -57,3 +57,39 @@ def qa_db_path(round_no):
 @pytest.fixture(scope="session")
 def qa_db_url(qa_db_path):
     return f"sqlite:///{qa_db_path}"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def qa_engine_bound(qa_db_path):
+    """把 app.database.engine 重绑到 qa_test_N.db, 让 in-process service 调用走对库.
+
+    根因: app/database.py 在 import time 就根据 settings.database_url(默认 recruitment.db)
+    创建 engine; 测试函数若直接 `from app.database import engine/SessionLocal` 走的是
+    默认库,导致跨库污染、外键残留、purge/clear-all 等用例失败.
+    本 fixture 在 session 启动时把 engine + SessionLocal 重绑到 qa_test_N.db,
+    teardown 还原.
+    """
+    from sqlalchemy import create_engine, event
+    from sqlalchemy.orm import sessionmaker
+    import app.database as _appdb
+
+    new_url = f"sqlite:///{qa_db_path}"
+    new_engine = create_engine(new_url, connect_args={"check_same_thread": False})
+
+    @event.listens_for(new_engine, "connect")
+    def _pragma(dbapi_conn, _):
+        cur = dbapi_conn.cursor()
+        cur.execute("PRAGMA journal_mode=WAL")
+        cur.execute("PRAGMA foreign_keys=ON")
+        cur.close()
+
+    old_engine = _appdb.engine
+    old_session = _appdb.SessionLocal
+    _appdb.engine = new_engine
+    _appdb.SessionLocal = sessionmaker(bind=new_engine, autocommit=False, autoflush=False)
+    try:
+        yield
+    finally:
+        _appdb.engine = old_engine
+        _appdb.SessionLocal = old_session
+        new_engine.dispose()

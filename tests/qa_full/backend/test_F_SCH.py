@@ -612,12 +612,6 @@ def test_F_SCH_14_cancel_post_endpoint(api_base, http, auth_headers, qa_db_path)
 
 
 @pytest.mark.api
-@pytest.mark.xfail(
-    reason="见 round-1: 测试间 DB 残留 (user_id=99 干扰行被其他测试也插过), "
-    "导致 other_left 实际 2 != 期望 1; 属测试相互污染, 严格隔离需要 fixture 重设, "
-    "暂标 xfail 不阻塞 round-1 (need_isolation_fix)",
-    strict=False,
-)
 def test_F_SCH_15_clear_all_immediate_db_clean(api_base, http, auth_headers, qa_db_path):
     """F-SCH-15: DELETE /interviews/clear-all — 立即返 200，DB 已清；后台清外部异步。"""
     # 先准备 3 条本用户的面试
@@ -776,11 +770,6 @@ def test_F_SCH_18_reschedule_guardrail_db_untouched(api_base, http, auth_headers
 
 @pytest.mark.api
 @pytest.mark.external_real
-@pytest.mark.xfail(
-    reason="见 round-1: 同 SCH-12b, DELETE 触发飞书日历真调, httpx ReadTimeout "
-    "(need_app_fix or env-only)",
-    strict=False,
-)
 def test_F_SCH_19_feishu_calendar_sync_on_delete(api_base, http, auth_headers, qa_db_path):
     """F-SCH-19 飞书日历同步：删除一场绑定了 feishu_event_id 的面试，应触发删除调用。
 

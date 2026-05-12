@@ -910,7 +910,6 @@ def test_F_IE_17_retention_purge_callable():
 
 
 @pytest.mark.api
-@pytest.mark.xfail(reason="见 round-5: SessionLocal/engine 走默认 recruitment.db 而非 qa_test.db,跨库测试隔离不稳;need_fixture_redesign", strict=False)
 def test_F_IE_17b_retention_purges_expired_row(qa_db_path):
     """F-IE-17: 给一个 retention_until 已过期的行,purge 应 soft-delete + 删文件.
 
@@ -981,7 +980,6 @@ def test_F_IE_18b_feishu_push_failure_only_logged(monkeypatch):
 # ============================================================================
 
 @pytest.mark.api
-@pytest.mark.xfail(reason="见 round-5: SessionLocal 走 recruitment.db 累积外键引用,DELETE FROM jobs 失败;need_fixture_redesign", strict=False)
 def test_F_IE_19_spawn_failure_marks_failed(qa_db_path, monkeypatch):
     """F-IE-19: _spawn_worker 抛异常 → job 标 failed + error_msg.
 
@@ -1025,7 +1023,6 @@ def test_F_IE_19_spawn_failure_marks_failed(qa_db_path, monkeypatch):
 # ============================================================================
 
 @pytest.mark.api
-@pytest.mark.xfail(reason="见 round-5: SessionLocal 走 recruitment.db 累积外键引用,seed FK 失败;need_fixture_redesign", strict=False)
 def test_F_IE_20_audit_failure_no_rollback(qa_db_path, monkeypatch):
     """F-IE-20: reconcile 中单条 audit 失败不回滚业务 status 修改.
 

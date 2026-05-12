@@ -38,7 +38,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 # fixtures 接入
-from tests.qa_full.fixtures.db import qa_db_path, qa_db_url
+from tests.qa_full.fixtures.db import qa_db_path, qa_db_url, qa_engine_bound
 from tests.qa_full.fixtures.auth import auth_token, auth_headers, ensure_qa_user
 from tests.qa_full.fixtures.http import http
 from tests.qa_full.runners.budget_guard import BudgetGuard
