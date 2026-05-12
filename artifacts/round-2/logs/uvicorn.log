@@ -1,0 +1,1679 @@
+INFO:     Started server process [5564]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8765 (Press CTRL+C to quit)
+INFO:     127.0.0.1:9370 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/9999999/ai-screening/preview HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "POST /api/ai-screening/1/cancel HTTP/1.1" 200 OK
+batch 1 failed: claude exit=1; stderr=
+INFO:     127.0.0.1:9371 - "POST /api/jobs/2/ai-screening/start HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/ai-screening/1/cancel HTTP/1.1" 200 OK
+batch 1 failed: claude exit=1; stderr=
+INFO:     127.0.0.1:9371 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/ai-screening/1/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/ai-screening/1/cancel HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/ai-screening/1/items HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "GET /api/ai-screening/1/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/ai-screening/1/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/auth/login HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:9371 - "POST /api/feishu/event HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/feishu/event HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/feishu/event HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/feishu/event HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/hitl/tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/hitl/tasks?stage=QA_only_stage_xx&status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/hitl/tasks/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/hitl/tasks/99999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/4/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/5/approve HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/6/reject HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/7/reject HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/8/edit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/9/approve HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/9/reject HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/9/edit HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "POST /api/hitl/tasks/10/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/start HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/start HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/by-interview/80301 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/by-interview/80302 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/by-resume/88401 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/6/scorecard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/7/transcript HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/8/transcript HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/9/recording HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/10/recording HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/11/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/interview-eval/12/cancel HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/14/recording HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/interview-eval/0 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "OPTIONS /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/resumes/ HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:9371 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/health/detailed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/this/does/not/exist HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "GET /some/spa/route HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /assets/nonexistent.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates?status=typo_status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates?recruit_status=accepted HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates?status=collecting&recruit_status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates/2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates/999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "GET /api/intake/candidates/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/slots/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/slots/1 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9371 - "POST /api/intake/collect-chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/collect-chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/collect-chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/collect-chat HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/intake/collect-chat HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/intake/collect-chat HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/7/abandon HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/7/abandon HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/8/force-complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/9/mark-timed-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/9/mark-timed-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "PATCH /api/intake/candidates/10/status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:9371 - "PATCH /api/intake/candidates/10/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PATCH /api/intake/candidates/10/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "PATCH /api/intake/candidates/11/last-checked HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/12/reextract HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/999999/reextract HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/999999/ack-sent HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/13/ack-sent HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/outbox/claim HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/outbox/claim HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/outbox/6/ack HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/outbox/7/ack HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/outbox/999999/ack HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/16/force-complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PATCH /api/intake/candidates/16/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/17/abandon HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/18/mark-timed-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/intake/outbox/claim HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "GET /api/intake/autoscan/rank?limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "GET /api/intake/autoscan/rank?limit=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/autoscan/tick HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/autoscan/tick HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/autoscan/tick HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/intake/autoscan/tick HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/22/start-conversation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/intake/candidates/999999/start-conversation HTTP/1.1" 404 Not Found
+D:\miniconda3\Lib\site-packages\lark_oapi\ws\pb\google\__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__('pkg_resources').declare_namespace(__name__)
+[Lark] [2026-05-12 12:36:24,937] [INFO] connected to wss://msg-frontier.feishu.cn/ws/v2?fpid=493&aid=552564&device_id=7638859525973789631&access_key=a6dcaf562a37691ad6733e0985b543b0&service_id=33554678&ticket=9d7a7402-877f-4e5d-9822-766673ad609b [conn_id=7638859525973789631]
+INFO:     127.0.0.1:9371 - "POST /api/screening/jobs/parse-jd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9371 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9371 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9371 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 216 validation errors:
+    |   {'type': 'string_type', 'loc': ('response', 'items', 2, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 2, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 2, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 2, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 2, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 2, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 2, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 2, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 2, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 2, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 3, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 3, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 3, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 3, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 3, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 3, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 3, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 3, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 3, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 3, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 4, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 4, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 4, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 4, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 4, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 4, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 4, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 4, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 4, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 4, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 5, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 5, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 5, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 5, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 5, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 5, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 5, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 5, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 5, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 5, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 6, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 6, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 6, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 6, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 6, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 6, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 6, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 6, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 6, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 6, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 7, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 7, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 7, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 7, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 7, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 7, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 7, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 7, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 7, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 7, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 8, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 8, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 8, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 8, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 8, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 8, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 8, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 8, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 8, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 8, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 9, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 9, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 9, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 9, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 9, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 9, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 9, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 9, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 9, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 9, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 10, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 10, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 10, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 10, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 10, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 10, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 10, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 10, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 10, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 10, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 11, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 11, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 11, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 11, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 11, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 11, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 11, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 11, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 11, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 11, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 12, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 12, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 12, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 12, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 12, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 12, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 12, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 12, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 12, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 12, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 13, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 13, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 13, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 13, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 13, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 13, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 13, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 13, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 13, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 13, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 14, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 14, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 14, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 14, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 14, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 14, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 14, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 14, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 14, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 14, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 15, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 15, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 15, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 15, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 15, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 15, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 16, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 16, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 16, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 16, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 16, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 16, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 16, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 16, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 16, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 16, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 17, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 17, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 17, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 17, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 17, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 17, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 17, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 17, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 17, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 17, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 18, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 18, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 18, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 18, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 18, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 18, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 18, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 18, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 18, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 18, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 19, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 19, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 19, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 19, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 19, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 19, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 19, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 19, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 19, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 19, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 20, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 20, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 20, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 20, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 20, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 20, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 20, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 20, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 20, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 20, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 21, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 21, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 21, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 21, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 21, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 21, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 21, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 21, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 21, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 21, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 22, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 22, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 22, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 22, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 22, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 22, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 22, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 22, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 22, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 22, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 23, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 23, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 23, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'int_type', 'loc': ('response', 'items', 23, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 23, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 23, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 23, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 23, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 23, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'bool_type', 'loc': ('response', 'items', 23, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 216 validation errors:
+  {'type': 'string_type', 'loc': ('response', 'items', 2, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 2, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 2, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 2, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 2, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 2, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 2, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 2, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 2, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 2, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 3, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 3, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 3, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 3, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 3, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 3, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 3, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 3, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 3, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 3, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 4, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 4, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 4, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 4, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 4, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 4, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 4, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 4, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 4, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 4, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 5, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 5, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 5, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 5, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 5, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 5, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 5, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 5, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 5, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 5, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 6, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 6, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 6, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 6, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 6, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 6, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 6, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 6, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 6, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 6, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 7, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 7, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 7, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 7, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 7, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 7, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 7, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 7, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 7, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 7, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 8, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 8, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 8, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 8, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 8, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 8, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 8, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 8, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 8, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 8, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 9, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 9, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 9, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 9, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 9, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 9, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 9, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 9, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 9, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 9, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 10, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 10, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 10, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 10, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 10, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 10, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 10, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 10, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 10, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 10, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 11, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 11, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 11, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 11, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 11, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 11, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 11, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 11, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 11, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 11, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 12, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 12, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 12, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 12, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 12, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 12, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 12, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 12, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 12, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 12, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 13, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 13, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 13, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 13, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 13, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 13, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 13, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 13, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 13, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 13, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 14, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 14, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 14, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 14, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 14, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 14, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 14, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 14, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 14, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 14, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 15, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 15, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 15, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 15, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 15, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 15, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 16, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 16, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 16, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 16, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 16, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 16, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 16, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 16, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 16, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 16, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 17, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 17, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 17, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 17, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 17, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 17, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 17, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 17, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 17, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 17, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 18, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 18, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 18, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 18, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 18, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 18, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 18, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 18, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 18, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 18, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 19, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 19, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 19, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 19, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 19, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 19, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 19, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 19, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 19, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 19, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 20, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 20, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 20, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 20, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 20, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 20, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 20, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 20, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 20, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 20, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 21, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 21, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 21, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 21, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 21, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 21, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 21, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 21, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 21, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 21, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 22, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 22, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 22, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 22, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 22, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 22, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 22, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 22, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 22, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 22, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 23, 'department'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 23, 'education_min'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 23, 'work_years_min'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'int_type', 'loc': ('response', 'items', 23, 'work_years_max'), 'msg': 'Input should be a valid integer', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 23, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 23, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 23, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 23, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 23, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'bool_type', 'loc': ('response', 'items', 23, 'is_active'), 'msg': 'Input should be a valid boolean', 'input': None}
+
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90004 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90004 HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90004 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "PATCH /api/screening/jobs/90004 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90004 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90004 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90004 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90004 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90004/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90004 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90004/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "PUT /api/screening/jobs/90005/scoring-weights HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:9418 - "PUT /api/screening/jobs/90005/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "PUT /api/screening/jobs/90005/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005/scoring-weights HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+reconcile: swept 2 stale jobs
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/competency/extract HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/competency/manual HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "PUT /api/screening/jobs/90005/competency/save HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:9418 - "PUT /api/screening/jobs/90005/competency/save HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "POST /api/screening/jobs/90005/competency/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "GET /api/screening/jobs/90005/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9418 - "DELETE /api/screening/jobs/90005 HTTP/1.1" 204 No Content
+reconcile: swept 1 stale jobs
+INFO:     127.0.0.1:27526 - "GET /api/matching/passed-resumes/90007?action=passed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "GET /api/matching/passed-resumes/90007?action=rejected HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "GET /api/matching/passed-resumes/90007?action=undecided HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "GET /api/matching/passed-resumes/90007?action=invalid_xyz HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:27526 - "POST /api/matching/recompute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "POST /api/matching/recompute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "GET /api/matching/recompute/status/05b36fa0-2a06-4a3d-aff1-9d1b9214d3d3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "GET /api/matching/recompute/status/bf8479f0-4bec-42a0-a02c-1045eaa9b9ae HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27526 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "PATCH /api/matching/results/3/action HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27526 - "PATCH /api/matching/results/3/action HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:27526 - "PATCH /api/matching/results/9999999/action HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27526 - "POST /api/matching/score HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27544 - "POST /api/matching/score HTTP/1.1" 200 OK
+LLM complete attempt 1/3 failed: 
+INFO:     127.0.0.1:27544 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/meeting/auto-create?interview_id=82002 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:27544 - "POST /api/meeting/auto-create?interview_id=82004 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:27544 - "POST /api/notification/send HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/notification/logs?interview_id=82002 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "DELETE /api/notification/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/recruit/evaluate_and_record HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/recruit/evaluate_and_record HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:27544 - "POST /api/recruit/evaluate_and_record HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27544 - "POST /api/recruit/record-greet HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/recruit/record-greet HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/recruit/record-greet HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27544 - "GET /api/recruit/daily-usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/recruit/daily-usage HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:27544 - "PUT /api/recruit/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/recruit/daily-usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "PUT /api/recruit/daily-cap HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:27544 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "PUT /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "PUT /api/settings/scoring-weights HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:27544 - "PUT /api/settings/scoring-weights HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:27544 - "POST /api/ai/evaluate HTTP/1.1" 410 Gone
+INFO:     127.0.0.1:27544 - "POST /api/ai/evaluate/batch HTTP/1.1" 410 Gone
+INFO:     127.0.0.1:27544 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/batch HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/batch HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/batch HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+PDF parse error [data/resumes/20260512_123851_无文本_未知职位.pdf]: EOF marker not found
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/?keyword=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:27544 - "GET /api/resumes/?keyword=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/7 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "PATCH /api/resumes/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/1 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:27544 - "GET /api/resumes/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "GET /api/resumes/1/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "GET /api/resumes/1/qr HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/settings/storage-path HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/check-boss-ids HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/check-boss-ids HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:27544 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/8/ai-parse HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:27544 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "GET /api/resumes/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "GET /api/resumes/8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "PATCH /api/resumes/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27544 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/scheduling/interviewers HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:27544 - "POST /api/scheduling/interviewers HTTP/1.1" 201 Created
+INFO:     127.0.0.1:27544 - "POST /api/scheduling/interviewers HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:27544 - "POST /api/scheduling/interviewers HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:27544 - "GET /api/scheduling/interviewers HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 301, in app
+    |     raw_response = await run_endpoint_function(
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    |     return await run_in_threadpool(dependant.call, **values)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\concurrency.py", line 39, in run_in_threadpool
+    |     return await anyio.to_thread.run_sync(func, *args)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\anyio\to_thread.py", line 63, in run_sync
+    |     return await get_async_backend().run_sync_in_worker_thread(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 2518, in run_sync_in_worker_thread
+    |     return await future
+    |            ^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    |     result = context.run(func, *args)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\modules\scheduling\router.py", line 164, in list_interviewers
+    |     return InterviewerListResponse(total=len(rows), items=rows)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\pydantic\main.py", line 214, in __init__
+    |     validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    | pydantic_core._pydantic_core.ValidationError: 87 validation errors for InterviewerListResponse
+    | items.0.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.0.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.0.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.0.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.1.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.1.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.1.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.1.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.2.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.2.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.2.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.2.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.3.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.3.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.3.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.3.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.4.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.4.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.4.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.4.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.5.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.5.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.5.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.5.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.6.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.6.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.6.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.6.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.7.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.7.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.7.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.7.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.8.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.8.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.8.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.8.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.9.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.9.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.9.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.9.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.10.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.10.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.10.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.10.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.11.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.11.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.11.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.11.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.12.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.12.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.12.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.12.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.13.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.13.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.13.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.13.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.14.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.14.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.14.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.14.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.15.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.15.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.15.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.15.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.16.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.16.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.16.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.16.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.17.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.17.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.17.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.17.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.18.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.18.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.18.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.18.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.19.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.19.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.19.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.19.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.20.phone
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.20.email
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.20.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.20.feishu_user_id
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.21.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.22.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    | items.23.department
+    |   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    |     For further information visit https://errors.pydantic.dev/2.10/v/string_type
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\concurrency.py", line 39, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\anyio\to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\modules\scheduling\router.py", line 164, in list_interviewers
+    return InterviewerListResponse(total=len(rows), items=rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\pydantic\main.py", line 214, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 87 validation errors for InterviewerListResponse
+items.0.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.0.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.0.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.0.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.1.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.1.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.1.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.1.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.2.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.2.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.2.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.2.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.3.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.3.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.3.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.3.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.4.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.4.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.4.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.4.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.5.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.5.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.5.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.5.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.6.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.6.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.6.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.6.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.7.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.7.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.7.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.7.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.8.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.8.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.8.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.8.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.9.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.9.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.9.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.9.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.10.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.10.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.10.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.10.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.11.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.11.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.11.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.11.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.12.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.12.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.12.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.12.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.13.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.13.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.13.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.13.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.14.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.14.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.14.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.14.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.15.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.15.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.15.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.15.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.16.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.16.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.16.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.16.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.17.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.17.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.17.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.17.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.18.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.18.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.18.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.18.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.19.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.19.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.19.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.19.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.20.phone
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.20.email
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.20.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.20.feishu_user_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.21.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.22.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+items.23.department
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.10/v/string_type
+INFO:     127.0.0.1:19479 - "PATCH /api/scheduling/interviewers/90007 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "DELETE /api/scheduling/interviewers/90008 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:19479 - "DELETE /api/scheduling/interviewers/90008 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/availability HTTP/1.1" 201 Created
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/availability HTTP/1.1" 201 Created
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/availability/90008 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/availability/90009 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/match-slots HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/interviewers/90011/freebusy?days=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/interviewers/90012/freebusy HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/interviews HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/interviews HTTP/1.1" 201 Created
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/interviews HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/interviews HTTP/1.1" 201 Created
+INFO:     127.0.0.1:19479 - "POST /api/scheduling/interviews HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/interviews HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/interviews/4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19479 - "GET /api/scheduling/interviews/5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:19479 - "PATCH /api/scheduling/interviews/6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56177 - "DELETE /api/scheduling/interviews/8 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:56177 - "POST /api/scheduling/interviews/8/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56177 - "DELETE /api/scheduling/interviews/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56177 - "POST /api/scheduling/interviews/13/ask-time HTTP/1.1" 400 Bad Request
+Meeting creation failed: Page.goto: Target page, context or browser has been closed
+Call log:
+  - navigating to "https://meeting.tencent.com/user-center/user-meeting-list/schedule", waiting until "load"
+
+删除日程失败: invalid request parameters. check details for more info.
+Tencent Meeting: waiting for login...
+删除日程失败: event not found
+INFO:     127.0.0.1:5071 - "DELETE /api/scheduling/interviews/15 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:5071 - "PATCH /api/scheduling/interviews/15 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/scheduling/interviews/15/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "PATCH /api/scheduling/interviews/16 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/scheduling/interviews/16/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills?search=Python-52c83f9f HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills?category=language&limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills?pending=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "PUT /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "PUT /api/skills/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills/17/merge HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:5071 - "POST /api/skills/17/merge HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/skills/17 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5071 - "GET /api/skills/18 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "DELETE /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "DELETE /api/skills/17 HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:5071 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "DELETE /api/skills/18 HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:5071 - "DELETE /api/skills/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5071 - "POST /api/skills/auto-classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/health HTTP/1.1" 200 OK
