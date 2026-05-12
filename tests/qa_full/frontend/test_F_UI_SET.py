@@ -54,20 +54,25 @@ def test_F_UI_SET_02_weights_tab(page, frontend_base, artifacts_dir):
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
 def test_F_UI_SET_03_save_disabled_when_not_100(page, frontend_base, artifacts_dir):
-    """总和 ≠ 100 时保存按钮 disabled。"""
+    """总和 ≠ 100 时保存按钮 disabled。
+
+    el-input-number 用 fill 修改不会触发 change 事件 (Vue v-model + 控件内部 input 转换);
+    需通过点击增量按钮或直接 dispatchEvent('change').
+    """
     page.goto(f"{frontend_base}/settings")
     page.wait_for_load_state("networkidle", timeout=15000)
     page.locator(".el-tabs__item:has-text('评分权重')").first.click()
+    page.wait_for_timeout(600)
+    # 通过点击 increase 按钮多次抬高第一维 (默认 35 → 75 让总 > 100)
+    increase_btns = page.locator(".weight-input .el-input-number__increase")
+    if increase_btns.count() > 0:
+        for _ in range(8):  # 35 + 8*5 = 75
+            try:
+                increase_btns.first.click(timeout=1000)
+            except Exception:
+                break
+            page.wait_for_timeout(50)
     page.wait_for_timeout(400)
-    # 改第一项为很大值 → 总和 > 100
-    inputs = page.locator(".weight-input input")
-    if inputs.count() > 0:
-        first = inputs.first
-        first.click()
-        first.fill("")
-        first.type("80")
-        first.press("Tab")
-    page.wait_for_timeout(300)
     shot = shoot(page, artifacts_dir, "F-UI-SET-03")
     res = verify_screenshot(
         shot,

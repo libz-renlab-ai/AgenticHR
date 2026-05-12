@@ -104,19 +104,24 @@ def test_F_UI_LOGIN_03_register_form(page, frontend_base, artifacts_dir):
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
 def test_F_UI_LOGIN_04_enter_submits(page, frontend_base, artifacts_dir):
-    """焦点在输入框时按 Enter 触发 submit(等价点击登录按钮)。"""
+    """焦点在输入框时按 Enter 触发 submit (等价点击登录按钮);
+    短密码先进 username 校验返 '请输入用户名' (Vue 顺序: 用户名 → 密码 → 长度).
+    """
     page.goto(f"{frontend_base}/login")
     page.wait_for_load_state("networkidle", timeout=15000)
+    # 先填用户名再填短密码, 这样按 Enter 才能命中 '密码至少6位' 校验
+    user_input = page.locator(".form-item").nth(0).locator("input")
+    user_input.fill("qa_user")
     pwd_input = page.locator(".form-item").nth(1).locator("input")
-    pwd_input.fill("123")  # 短密码,触发校验失败方便观察
+    pwd_input.fill("123")  # 短密码,触发 '密码至少6位'
     pwd_input.press("Enter")
     page.wait_for_timeout(300)
     shot = shoot(page, artifacts_dir, "F-UI-LOGIN-04")
     res = verify_screenshot(
         shot,
         test_id="F-UI-LOGIN-04",
-        feature_desc="密码框焦点 Enter 触发 submit(因短密码触发校验,显示错误消息)",
-        expected_visible=["请输入用户名", "招聘助手"],
+        feature_desc="密码框焦点按 Enter 触发表单提交; 因密码 < 6 位显示错误 '密码至少6位'",
+        expected_visible=["招聘助手", "密码至少6位"],
         expected_absent=["登录成功"],
         artifacts_dir=artifacts_dir,
     )

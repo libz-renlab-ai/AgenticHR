@@ -13,9 +13,12 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_interviews
 
 
-def _goto_interviews(page, frontend_base):
+def _goto_interviews(page, frontend_base, qa_db_path=None):
+    if qa_db_path is not None:
+        seed_for_interviews(qa_db_path)
     page.goto(f"{frontend_base}/interviews")
     page.wait_for_load_state("networkidle", timeout=15000)
 
@@ -25,6 +28,7 @@ def _open_new_dialog(page):
     page.click("button:has-text('新建面试')", timeout=5000)
     # 等待 el-dialog 渲染 (header 含 '新建面试')
     page.wait_for_selector(".el-dialog__title:has-text('新建面试')", timeout=5000)
+    page.wait_for_timeout(600)
 
 
 @pytest.mark.ui
@@ -44,8 +48,8 @@ def test_F_UI_INV_01_cards_grouped(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_02_card_header(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_02_card_header(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-INV-02")
     res = verify_screenshot(
         shot, "F-UI-INV-02",
@@ -59,8 +63,8 @@ def test_F_UI_INV_02_card_header(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_03_candidate_2x2_block(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_03_candidate_2x2_block(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-INV-03")
     res = verify_screenshot(
         shot, "F-UI-INV-03",
@@ -74,8 +78,8 @@ def test_F_UI_INV_03_candidate_2x2_block(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_04_action_group_scheduled(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_04_action_group_scheduled(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-INV-04")
     res = verify_screenshot(
         shot, "F-UI-INV-04",
@@ -89,8 +93,8 @@ def test_F_UI_INV_04_action_group_scheduled(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_05_action_group_completed(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_05_action_group_completed(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-INV-05")
     res = verify_screenshot(
         shot, "F-UI-INV-05",
@@ -104,8 +108,8 @@ def test_F_UI_INV_05_action_group_completed(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_06_dialog_job_select_filterable(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_06_dialog_job_select_filterable(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     try:
         _open_new_dialog(page)
     except Exception:
@@ -123,8 +127,8 @@ def test_F_UI_INV_06_dialog_job_select_filterable(page, frontend_base, artifacts
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_07_candidate_select_by_job(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_07_candidate_select_by_job(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     try:
         _open_new_dialog(page)
     except Exception:
@@ -142,8 +146,8 @@ def test_F_UI_INV_07_candidate_select_by_job(page, frontend_base, artifacts_dir)
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_08_interviewer_select_filterable(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_08_interviewer_select_filterable(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     try:
         _open_new_dialog(page)
     except Exception:
@@ -180,8 +184,8 @@ def test_F_UI_INV_09_calendar_5days(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INV_10_clear_all_confirm(page, frontend_base, artifacts_dir):
-    _goto_interviews(page, frontend_base)
+def test_F_UI_INV_10_clear_all_confirm(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_interviews(page, frontend_base, qa_db_path)
     # 点击 '清空全部' 弹出 prompt 二次确认对话框
     try:
         page.click("button:has-text('清空全部')", timeout=5000)

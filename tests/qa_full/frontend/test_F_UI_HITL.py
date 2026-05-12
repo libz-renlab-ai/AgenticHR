@@ -9,6 +9,7 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_hitl_skill_classify
 
 
 @pytest.mark.ui
@@ -75,25 +76,27 @@ def test_F_UI_HITL_03_competency_review_table(page, frontend_base, artifacts_dir
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_HITL_04_classify_dialog_required(page, frontend_base, artifacts_dir):
-    """技能归类弹窗必选分类 — 分类未选时确认按钮 disabled。
+def test_F_UI_HITL_04_classify_dialog_required(page, frontend_base, artifacts_dir, qa_db_path):
+    """技能归类弹窗必选分类 — 分类未选时确认按钮 disabled.
 
-    无 pending 技能行时无法触发弹窗,改为验证页面状态正常(空态 + 表格存在)。
+    先灌一条 pending 的 hitl_tasks(entity_type=skill),让 '归类' 按钮渲染.
     """
+    seed_for_hitl_skill_classify(qa_db_path)
     page.goto(f"{frontend_base}/hitl")
     page.wait_for_load_state("networkidle", timeout=15000)
     page.wait_for_timeout(500)
-    # 尝试找 '归类' 按钮;有则点击,无则截当前页(空态)
+    # 切换 类型筛选 = 新技能 (避免 default 筛掉)
     classify_btn = page.locator("button:has-text('归类')")
     if classify_btn.count() > 0:
         classify_btn.first.click()
+        page.wait_for_selector(".el-dialog__title:has-text('技能归类')", timeout=5000)
         page.wait_for_timeout(500)
     shot = shoot(page, artifacts_dir, "F-UI-HITL-04")
     res = verify_screenshot(
         shot,
         test_id="F-UI-HITL-04",
-        feature_desc="技能归类弹窗(若有 pending 技能行): 必选分类下拉,未选时确认按钮 disabled;无数据时为空态,无错误",
-        expected_visible=["类型", "状态"],
+        feature_desc="技能归类弹窗: 必选分类下拉(请选择分类), 未选时 '确认归类' 按钮 disabled",
+        expected_visible=["技能归类", "分类", "确认归类"],
         expected_absent=["加载审核队列失败", "401", "Failed"],
         artifacts_dir=artifacts_dir,
     )

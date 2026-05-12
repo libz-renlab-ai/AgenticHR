@@ -12,16 +12,23 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_intake
 
 
-def _goto_intake_and_expand(page, frontend_base):
+def _goto_intake_and_expand(page, frontend_base, qa_db_path=None):
+    if qa_db_path is not None:
+        seed_for_intake(qa_db_path, n=1)
     page.goto(f"{frontend_base}/intake")
     page.wait_for_load_state("networkidle", timeout=15000)
+    try:
+        page.wait_for_selector(".el-table__row", timeout=8000)
+    except Exception:
+        pass
     # 尝试展开第一行 (有数据时)
     try:
         page.click(".el-table__expand-icon", timeout=5000)
         # 给 SlotsPanel 一点时间挂载并自加载
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(2000)
     except Exception:
         # 没数据 / 没展开图标也不阻塞,继续截图让 verifier 看空态
         pass
@@ -29,8 +36,8 @@ def _goto_intake_and_expand(page, frontend_base):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_SLT_01_hard_table(page, frontend_base, artifacts_dir):
-    _goto_intake_and_expand(page, frontend_base)
+def test_F_UI_SLT_01_hard_table(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_intake_and_expand(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-SLT-01")
     res = verify_screenshot(
         shot, "F-UI-SLT-01",
@@ -44,8 +51,8 @@ def test_F_UI_SLT_01_hard_table(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_SLT_02_pdf_section(page, frontend_base, artifacts_dir):
-    _goto_intake_and_expand(page, frontend_base)
+def test_F_UI_SLT_02_pdf_section(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_intake_and_expand(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-SLT-02")
     res = verify_screenshot(
         shot, "F-UI-SLT-02",
@@ -59,8 +66,8 @@ def test_F_UI_SLT_02_pdf_section(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_SLT_03_soft_qa_table(page, frontend_base, artifacts_dir):
-    _goto_intake_and_expand(page, frontend_base)
+def test_F_UI_SLT_03_soft_qa_table(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_intake_and_expand(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-SLT-03")
     res = verify_screenshot(
         shot, "F-UI-SLT-03",
@@ -80,7 +87,7 @@ def test_F_UI_SLT_04_terminal_slot_immutable(page, frontend_base, artifacts_dir,
     思路: 不一定需要真改 DB,只截图展示即可,关键是 verifier 看到 SlotsPanel 仍可见。
     409 行为属于后端; 这里只验证手填 input 的存在。
     """
-    _goto_intake_and_expand(page, frontend_base)
+    _goto_intake_and_expand(page, frontend_base, qa_db_path)
     # 尝试点击 '填写' 或 '修改' 按钮以触发 input
     try:
         page.click("button:has-text('填写'), button:has-text('修改')", timeout=3000)

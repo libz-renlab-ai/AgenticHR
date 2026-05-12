@@ -9,16 +9,24 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_resumes
 
 
 # ---------- 公共工具 ----------
 
-def _goto_resumes(page, frontend_base):
-    """打开简历库页面并等列表 networkidle。"""
+def _goto_resumes(page, frontend_base, qa_db_path=None, n: int = 0):
+    """打开简历库页面并等列表 networkidle.
+
+    可选灌 n 条简历; 若不灌, '展开行' 类测试会 skip.
+    """
+    if qa_db_path is not None and n > 0:
+        seed_for_resumes(qa_db_path, n=n)
     page.goto(f"{frontend_base}/#/resumes")
     page.wait_for_load_state("networkidle", timeout=15000)
-    # 顶部工具栏出现即可视为页面就绪
-    page.wait_for_selector("text=简历库", timeout=10000)
+    # 等顶部工具栏渲染 — h2 含 '简历库' (不是 alert title 的 '简历库语义')
+    page.wait_for_selector(".toolbar h2", timeout=10000)
+    # 等输入框 / 上传按钮渲染
+    page.wait_for_selector("input[placeholder*='搜索']", timeout=10000)
 
 
 def _expand_first_row(page):

@@ -6,9 +6,12 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_notifications
 
 
-def _goto_notifications(page, frontend_base):
+def _goto_notifications(page, frontend_base, qa_db_path=None, n: int = 0):
+    if qa_db_path is not None and n > 0:
+        seed_for_notifications(qa_db_path, n=n)
     page.goto(f"{frontend_base}/notifications")
     page.wait_for_load_state("networkidle", timeout=15000)
 
@@ -30,8 +33,8 @@ def test_F_UI_NOT_01_table_columns(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_NOT_02_status_tag_colors(page, frontend_base, artifacts_dir):
-    _goto_notifications(page, frontend_base)
+def test_F_UI_NOT_02_status_tag_colors(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_notifications(page, frontend_base, qa_db_path, n=6)
     shot = shoot(page, artifacts_dir, "F-UI-NOT-02")
     res = verify_screenshot(
         shot, "F-UI-NOT-02",
@@ -86,8 +89,9 @@ def test_F_UI_NOT_04_clear_all_prompt(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_NOT_05_pagination_20(page, frontend_base, artifacts_dir):
-    _goto_notifications(page, frontend_base)
+def test_F_UI_NOT_05_pagination_20(page, frontend_base, artifacts_dir, qa_db_path):
+    # > 20 条触发分页器渲染
+    _goto_notifications(page, frontend_base, qa_db_path, n=25)
     shot = shoot(page, artifacts_dir, "F-UI-NOT-05")
     res = verify_screenshot(
         shot, "F-UI-NOT-05",

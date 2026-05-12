@@ -7,6 +7,7 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_intake
 
 
 @pytest.mark.ui
@@ -119,15 +120,20 @@ def test_F_UI_INT_06_inline_status_dropdown(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INT_07_action_buttons(page, frontend_base, artifacts_dir):
+def test_F_UI_INT_07_action_buttons(page, frontend_base, artifacts_dir, qa_db_path):
+    seed_for_intake(qa_db_path, n=2)
     page.goto(f"{frontend_base}/intake")
     page.wait_for_load_state("networkidle", timeout=15000)
+    try:
+        page.wait_for_selector(".el-table__row", timeout=8000)
+    except Exception:
+        pass
     shot = shoot(page, artifacts_dir, "F-UI-INT-07")
     res = verify_screenshot(
         shot,
         test_id="F-UI-INT-07",
         feature_desc="Intake 操作按钮 (开始沟通/重抽/标完成/放弃/删除)",
-        expected_visible=["操作"],
+        expected_visible=["操作", "姓名"],
         expected_absent=["错误", "401", "500"],
         artifacts_dir=artifacts_dir,
     )
@@ -136,21 +142,26 @@ def test_F_UI_INT_07_action_buttons(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_INT_08_expand_slots_panel(page, frontend_base, artifacts_dir):
+def test_F_UI_INT_08_expand_slots_panel(page, frontend_base, artifacts_dir, qa_db_path):
+    seed_for_intake(qa_db_path, n=1)
     page.goto(f"{frontend_base}/intake")
     page.wait_for_load_state("networkidle", timeout=15000)
-    # 尝试展开第一行 (若有数据)
+    try:
+        page.wait_for_selector(".el-table__row", timeout=8000)
+    except Exception:
+        pass
+    # 展开第一行
     try:
         expander = page.locator("td.el-table__expand-column .el-table__expand-icon").first
-        expander.click(timeout=3000)
-        page.wait_for_timeout(600)
+        expander.click(timeout=5000)
+        page.wait_for_timeout(1500)
     except Exception:
         pass
     shot = shoot(page, artifacts_dir, "F-UI-INT-08")
     res = verify_screenshot(
         shot,
         test_id="F-UI-INT-08",
-        feature_desc="Intake 展开行 SlotsPanel (见 21.17)",
+        feature_desc="Intake 展开行 SlotsPanel (见 21.17), 显示硬性信息/PDF/软性问答",
         expected_visible=["姓名"],
         expected_absent=["错误", "401", "500"],
         artifacts_dir=artifacts_dir,

@@ -9,15 +9,26 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import seed_for_competency
 
 
 # ---------- 公共工具 ----------
 
-def _goto_jobs(page, frontend_base):
-    """打开岗位管理页并等表格 networkidle。"""
+def _goto_jobs(page, frontend_base, qa_db_path=None):
+    """打开岗位管理页并等表格 networkidle.
+
+    如传入 qa_db_path 先灌一条岗位, 让表格非空 (列出 '能力模型' tag 之类).
+    """
+    if qa_db_path is not None:
+        seed_for_competency(qa_db_path)
     page.goto(f"{frontend_base}/#/jobs")
     page.wait_for_load_state("networkidle", timeout=15000)
     page.wait_for_selector("text=岗位管理", timeout=10000)
+    # 等表格首行渲染 (有数据时), 没数据则继续
+    try:
+        page.wait_for_selector(".el-table__row", timeout=5000)
+    except Exception:
+        pass
 
 
 def _open_first_job_edit(page):
@@ -41,8 +52,8 @@ def _switch_tab(page, label: str):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_JOB_01_table_columns(page, frontend_base, artifacts_dir):
-    _goto_jobs(page, frontend_base)
+def test_F_UI_JOB_01_table_columns(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_jobs(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-JOB-01")
     res = verify_screenshot(
         shot, test_id="F-UI-JOB-01",
@@ -58,10 +69,10 @@ def test_F_UI_JOB_01_table_columns(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_JOB_02_competency_status_tag(page, frontend_base, artifacts_dir):
-    _goto_jobs(page, frontend_base)
+def test_F_UI_JOB_02_competency_status_tag(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_jobs(page, frontend_base, qa_db_path)
     # 表格里"能力模型"列的 el-tag 必须出现一种文案
-    page.wait_for_selector(".el-table .el-tag", timeout=8000)
+    page.wait_for_selector(".el-table .el-tag", timeout=10000)
     shot = shoot(page, artifacts_dir, "F-UI-JOB-02")
     res = verify_screenshot(
         shot, test_id="F-UI-JOB-02",
@@ -78,8 +89,9 @@ def test_F_UI_JOB_02_competency_status_tag(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_JOB_03_new_dialog_parse_jd(page, frontend_base, artifacts_dir):
-    _goto_jobs(page, frontend_base)
+def test_F_UI_JOB_03_new_dialog_parse_jd(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_jobs(page, frontend_base, qa_db_path)
+    page.wait_for_selector("button:has-text('新建岗位')", timeout=15000)
     page.click("button:has-text('新建岗位')")
     page.wait_for_selector(".el-dialog__title:has-text('新建岗位')", timeout=8000)
     # parseStep === 'input' — 应见 JD 文本框 + "解析 JD" 按钮
@@ -103,8 +115,9 @@ def test_F_UI_JOB_03_new_dialog_parse_jd(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_JOB_04_basic_form(page, frontend_base, artifacts_dir):
-    _goto_jobs(page, frontend_base)
+def test_F_UI_JOB_04_basic_form(page, frontend_base, artifacts_dir, qa_db_path):
+    _goto_jobs(page, frontend_base, qa_db_path)
+    page.wait_for_selector("button:has-text('新建岗位')", timeout=15000)
     page.click("button:has-text('新建岗位')")
     page.wait_for_selector(".el-dialog__title:has-text('新建岗位')", timeout=8000)
     # 跳到 review (手动填写)
