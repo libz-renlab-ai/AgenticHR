@@ -1,0 +1,443 @@
+INFO:     Started server process [25036]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8765 (Press CTRL+C to quit)
+INFO:     127.0.0.1:40737 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/9999999/ai-screening/preview HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40741 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "POST /api/ai-screening/1/cancel HTTP/1.1" 200 OK
+batch 1 failed: claude exit=1; stderr=
+INFO:     127.0.0.1:40741 - "POST /api/jobs/2/ai-screening/start HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40741 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/ai-screening/1/cancel HTTP/1.1" 200 OK
+batch 1 failed: claude exit=1; stderr=
+INFO:     127.0.0.1:40741 - "POST /api/jobs/1/ai-screening/start HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/ai-screening/1/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/ai-screening/1/cancel HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/current HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/ai-screening/1/items HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "GET /api/ai-screening/1/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/ai-screening/1/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/jobs/1/ai-screening/preview HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40741 - "POST /api/auth/register HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40741 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/auth/login HTTP/1.1" 429 Too Many Requests
+INFO:     127.0.0.1:40741 - "POST /api/feishu/event HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/feishu/event HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/feishu/event HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/feishu/event HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/hitl/tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/hitl/tasks?stage=QA_only_stage_xx&status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/hitl/tasks/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/hitl/tasks/99999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/4/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/5/approve HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/6/reject HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/7/reject HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/8/edit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/9/approve HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/9/reject HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/9/edit HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "POST /api/hitl/tasks/10/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/start HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/start HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/start HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/by-interview/80301 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/by-interview/80302 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/by-resume/88401 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/6/scorecard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/7/transcript HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/8/transcript HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/9/recording HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/10/recording HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/11/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/interview-eval/12/cancel HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/14/recording HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/interview-eval/0 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "OPTIONS /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/resumes/ HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40741 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/health/detailed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/this/does/not/exist HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "GET /some/spa/route HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /assets/nonexistent.js HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates?status=typo_status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates?recruit_status=accepted HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates?status=collecting&recruit_status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40741 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40741 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates/2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates/999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40741 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40741 - "GET /api/intake/candidates/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "PUT /api/intake/slots/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40741 - "PUT /api/intake/slots/1 HTTP/1.1" 409 Conflict
+D:\miniconda3\Lib\site-packages\lark_oapi\ws\pb\google\__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__('pkg_resources').declare_namespace(__name__)
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/collect-chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/collect-chat HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/intake/collect-chat HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/intake/collect-chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/collect-chat HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/7/abandon HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/7/abandon HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/8/force-complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/9/mark-timed-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/9/mark-timed-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PATCH /api/intake/candidates/10/status HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "PATCH /api/intake/candidates/10/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PATCH /api/intake/candidates/10/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PATCH /api/intake/candidates/11/last-checked HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/12/reextract HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/999999/reextract HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/999999/ack-sent HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/13/ack-sent HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/outbox/claim HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/outbox/claim HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/outbox/5/ack HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/outbox/6/ack HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/outbox/999999/ack HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/16/force-complete HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PATCH /api/intake/candidates/16/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/17/abandon HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/18/mark-timed-out HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/intake/outbox/claim HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/intake/autoscan/rank?limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/intake/autoscan/rank?limit=999 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/autoscan/tick HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/autoscan/tick HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/autoscan/tick HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/intake/autoscan/tick HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/22/start-conversation HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/intake/candidates/999999/start-conversation HTTP/1.1" 404 Not Found
+[Lark] [2026-05-12 15:14:01,738] [INFO] connected to wss://msg-frontier.feishu.cn/ws/v2?fpid=493&aid=552564&device_id=7638900107887250388&access_key=437eeb99a9ba0bd4f0baab45b88ed92b&service_id=33554678&ticket=eec83a77-0216-4f92-a96e-53b541ed56e8 [conn_id=7638900107887250388]
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/parse-jd HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs?active_only=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90003 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002 HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PATCH /api/screening/jobs/90002 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/screen HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PUT /api/screening/jobs/90002/scoring-weights HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "PUT /api/screening/jobs/90002/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PUT /api/screening/jobs/90002/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002/scoring-weights HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/competency/extract HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/competency/manual HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PUT /api/screening/jobs/90002/competency/save HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PUT /api/screening/jobs/90002/competency/save HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/screening/jobs/90002/competency/approve HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/screening/jobs/90002/competency HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/screening/jobs/90002 HTTP/1.1" 204 No Content
+reconcile: swept 1 stale jobs
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/results?job_id=90003&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/passed-resumes/90004?action=passed HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/passed-resumes/90004?action=rejected HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/passed-resumes/90004?action=undecided HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/passed-resumes/90004?action=invalid_xyz HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "POST /api/matching/recompute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/recompute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/recompute/status/050bfbf9-939c-4dc8-b181-7a82319eff97 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/recompute/status/ae998e2c-e4a0-46f9-8369-7f140faf6fc3 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PATCH /api/matching/results/1/action HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PATCH /api/matching/results/1/action HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "PATCH /api/matching/results/9999999/action HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/matching/results?job_id=90009&page=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/recompute HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/matching/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/meeting/auto-create?interview_id=82002 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:40779 - "POST /api/meeting/auto-create?interview_id=82004 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "POST /api/notification/send HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/notification/logs?interview_id=82002 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/notification/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/recruit/evaluate_and_record HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/recruit/evaluate_and_record HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40779 - "POST /api/recruit/evaluate_and_record HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/recruit/record-greet HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/recruit/record-greet HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/recruit/record-greet HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "GET /api/recruit/daily-usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/recruit/daily-usage HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40779 - "PUT /api/recruit/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/recruit/daily-usage HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/recruit/daily-cap HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/settings/scoring-weights HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "PUT /api/settings/scoring-weights HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:40779 - "POST /api/ai/evaluate HTTP/1.1" 410 Gone
+INFO:     127.0.0.1:40779 - "POST /api/ai/evaluate/batch HTTP/1.1" 410 Gone
+INFO:     127.0.0.1:40779 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/batch HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/batch HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/batch HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+PDF parse error [data/resumes/20260512_151724_无文本_未知职位.pdf]: EOF marker not found
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/?keyword=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "GET /api/resumes/?keyword=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/22 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PATCH /api/resumes/22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/22 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "GET /api/resumes/22 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/resumes/22/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/resumes/22/qr HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/settings/storage-path HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/check-boss-ids HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/check-boss-ids HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ai-parse-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/23/ai-parse HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/ HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/resumes/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/ai-parse-status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/resumes/23 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "PATCH /api/resumes/22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/resumes/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/resumes/upload HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviewers HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviewers HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviewers HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviewers HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PATCH /api/scheduling/interviewers/90008 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/scheduling/interviewers/90009 HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "DELETE /api/scheduling/interviewers/90009 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/availability HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/availability HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/availability/90009 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/availability/90010 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/match-slots HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/interviewers/90012/freebusy?days=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/interviewers/90013/freebusy HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews HTTP/1.1" 201 Created
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/interviews HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/interviews/4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/scheduling/interviews/5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "PATCH /api/scheduling/interviews/6 HTTP/1.1" 200 OK
+LLM complete attempt 1/3 failed: 
+删除日程失败: invalid request parameters. check details for more info.
+添加参会人失败: The request you send is not a valid {open_id} or not exists, and the example value is {ou_da5****************dfe}. Invalid ids: [ou_sch12b_1778570256] . Please see field_violations for details and refer to API documentation to correct accordingly and resubmit
+INFO:     127.0.0.1:40779 - "PATCH /api/scheduling/interviews/7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/scheduling/interviews/8 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews/8/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/scheduling/interviews/clear-all HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews/13/ask-time HTTP/1.1" 400 Bad Request
+Cancel meeting failed: BrowserType.launch_persistent_context: Target page, context or browser has been closed
+Browser logs:
+
+<launching> C:\Users\Zionjuer\AppData\Local\ms-playwright\chromium-1208\chrome-win64\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=D:\0jingtong\AgenticHR\data\meeting_browser_main --remote-debugging-pipe about:blank
+<launched> pid=26404
+Call log:
+  - <launching> C:\Users\Zionjuer\AppData\Local\ms-playwright\chromium-1208\chrome-win64\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=D:\0jingtong\AgenticHR\data\meeting_browser_main --remote-debugging-pipe about:blank
+  - <launched> pid=26404
+  - [pid=26404] <gracefully close start>
+  - [pid=26404] <kill>
+  - [pid=26404] <will force kill>
+  - [pid=26404] taskkill stderr: ERROR: The process "26404" not found.
+  - [pid=26404] <process did exit: exitCode=21, signal=null>
+  - [pid=26404] starting temporary directories cleanup
+  - [pid=26404] finished temporary directories cleanup
+  - [pid=26404] <gracefully close end>
+
+INFO:     127.0.0.1:40779 - "PATCH /api/scheduling/interviews/14 HTTP/1.1" 200 OK
+删除日程失败: event not found
+INFO:     127.0.0.1:40779 - "DELETE /api/scheduling/interviews/15 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:40779 - "PATCH /api/scheduling/interviews/15 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews/15/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PATCH /api/scheduling/interviews/16 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/scheduling/interviews/16/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills?search=Python-eaa5309b HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills?category=language&limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills?pending=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "PUT /api/skills/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills/17/merge HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:40779 - "POST /api/skills/17/merge HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/skills/17 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "GET /api/skills/18 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/skills/17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/skills/17 HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "POST /api/skills HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "DELETE /api/skills/18 HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:40779 - "DELETE /api/skills/9999999 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:40779 - "POST /api/skills/auto-classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40779 - "GET /api/health HTTP/1.1" 200 OK

@@ -17,29 +17,42 @@ import pytest
 
 from tests.qa_full.fixtures.browser import shoot
 from tests.qa_full.runners.verifier import verify_screenshot
+from tests.qa_full.frontend._seeds import (
+    seed_for_competency,
+    seed_for_skills,
+    seed_for_ai_screening,
+    seed_for_resumes,
+    seed_for_interviews,
+)
 
 
 # =================== 21.13 CompetencyEditor (/jobs 编辑岗位 → 能力模型 Tab) ===================
 
-def _open_jobs_first_competency(page, frontend_base):
-    """goto /jobs → 点首行编辑 → 切到 '能力模型' Tab。"""
+def _open_jobs_first_competency(page, frontend_base, qa_db_path):
+    """先灌 job + competency_model, 再 goto /jobs → 点首行编辑 → 切到 '能力模型' Tab。"""
+    seed_for_competency(qa_db_path)
     page.goto(f"{frontend_base}/jobs")
     page.wait_for_load_state("networkidle", timeout=15000)
+    # 等表格首行渲染
+    try:
+        page.wait_for_selector(".el-table__row", timeout=8000)
+    except Exception:
+        pass
     # 第一行的 编辑 按钮 (table-column 操作内)
     try:
-        page.click("button:has-text('编辑')", timeout=5000)
+        page.click(".el-table__row button:has-text('编辑')", timeout=5000)
         page.wait_for_selector(".el-dialog", timeout=5000)
         # 切到能力模型 Tab
         page.click(".el-tabs__item:has-text('能力模型')", timeout=5000)
-        page.wait_for_timeout(800)
+        page.wait_for_timeout(1500)
     except Exception:
         pass
 
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_CMP_01_status_badge(page, frontend_base, artifacts_dir):
-    _open_jobs_first_competency(page, frontend_base)
+def test_F_UI_CMP_01_status_badge(page, frontend_base, artifacts_dir, qa_db_path):
+    _open_jobs_first_competency(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-CMP-01")
     res = verify_screenshot(
         shot, "F-UI-CMP-01",
@@ -53,8 +66,8 @@ def test_F_UI_CMP_01_status_badge(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_CMP_02_jd_collapse(page, frontend_base, artifacts_dir):
-    _open_jobs_first_competency(page, frontend_base)
+def test_F_UI_CMP_02_jd_collapse(page, frontend_base, artifacts_dir, qa_db_path):
+    _open_jobs_first_competency(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-CMP-02")
     res = verify_screenshot(
         shot, "F-UI-CMP-02",
@@ -68,8 +81,8 @@ def test_F_UI_CMP_02_jd_collapse(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_CMP_03_stats(page, frontend_base, artifacts_dir):
-    _open_jobs_first_competency(page, frontend_base)
+def test_F_UI_CMP_03_stats(page, frontend_base, artifacts_dir, qa_db_path):
+    _open_jobs_first_competency(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-CMP-03")
     res = verify_screenshot(
         shot, "F-UI-CMP-03",
@@ -83,8 +96,8 @@ def test_F_UI_CMP_03_stats(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_CMP_04_hard_skills_grid(page, frontend_base, artifacts_dir):
-    _open_jobs_first_competency(page, frontend_base)
+def test_F_UI_CMP_04_hard_skills_grid(page, frontend_base, artifacts_dir, qa_db_path):
+    _open_jobs_first_competency(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-CMP-04")
     res = verify_screenshot(
         shot, "F-UI-CMP-04",
@@ -98,8 +111,8 @@ def test_F_UI_CMP_04_hard_skills_grid(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_CMP_05_save_draft(page, frontend_base, artifacts_dir):
-    _open_jobs_first_competency(page, frontend_base)
+def test_F_UI_CMP_05_save_draft(page, frontend_base, artifacts_dir, qa_db_path):
+    _open_jobs_first_competency(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-CMP-05")
     res = verify_screenshot(
         shot, "F-UI-CMP-05",
@@ -113,8 +126,8 @@ def test_F_UI_CMP_05_save_draft(page, frontend_base, artifacts_dir):
 
 @pytest.mark.ui
 @pytest.mark.needs_screenshot
-def test_F_UI_CMP_06_approve_button(page, frontend_base, artifacts_dir):
-    _open_jobs_first_competency(page, frontend_base)
+def test_F_UI_CMP_06_approve_button(page, frontend_base, artifacts_dir, qa_db_path):
+    _open_jobs_first_competency(page, frontend_base, qa_db_path)
     shot = shoot(page, artifacts_dir, "F-UI-CMP-06")
     res = verify_screenshot(
         shot, "F-UI-CMP-06",

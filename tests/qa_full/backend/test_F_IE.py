@@ -764,11 +764,6 @@ def test_F_IE_12_startup_zombie_recovery_imports():
 
 
 @pytest.mark.api
-@pytest.mark.xfail(
-    reason="见 round-8: F-IE-12 metadata 已修, 但 sweep 阈值/时间逻辑使新插 stale 行未被扫到; "
-    "需精细 fixture 控制 last_heartbeat 与系统时钟; 留待后续",
-    strict=False,
-)
 def test_F_IE_12b_sweep_finds_stale_pending(qa_db_path):
     """F-IE-12: 给一个 last_heartbeat 极陈旧的 pending job, sweep 应标 failed."""
     from app.modules.interview_eval import reconcile
