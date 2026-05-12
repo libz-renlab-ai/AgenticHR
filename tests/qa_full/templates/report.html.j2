@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>QA Round {{ round_no }} 报告</title>
+<style>
+body { font-family: sans-serif; margin: 20px; }
+.passed { background: #efe; }
+.failed { background: #fee; }
+.skipped { background: #eee; color: #666; }
+.error { background: #fdd; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+td, th { border: 1px solid #ccc; padding: 6px; vertical-align: top; }
+img { max-width: 200px; max-height: 150px; }
+pre { white-space: pre-wrap; max-width: 600px; font-size: 11px; }
+.summary { font-size: 18px; padding: 10px; background: #f5f5f5; }
+</style></head><body>
+<h1>QA Round {{ round_no }}</h1>
+<div class="summary">
+Total: {{ total }} |
+<span style="color:green">Passed: {{ passed }}</span> |
+<span style="color:red">Failed: {{ failed }}</span> |
+<span style="color:gray">Skipped: {{ skipped }}</span>
+</div>
+<h2>Budget</h2>
+<pre>{{ budget }}</pre>
+<h2>Results</h2>
+<table>
+<tr><th>ID</th><th>Status</th><th>Screenshot</th><th>Reason</th></tr>
+{% for r in results %}
+<tr class="{{ r.status }}">
+  <td>{{ r.id }}</td>
+  <td>{{ r.status }}</td>
+  <td>{% if r.screenshot %}<a href="{{ r.screenshot }}"><img src="{{ r.screenshot }}"></a>{% endif %}</td>
+  <td><pre>{{ r.reason }}</pre></td>
+</tr>
+{% endfor %}
+</table>
+</body></html>

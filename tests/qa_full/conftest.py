@@ -68,7 +68,7 @@ def frontend_base(api_base, artifacts_dir):
 # Playwright 相关只在装了才接入
 try:
     from tests.qa_full.fixtures.browser import (
-        playwright_instance, browser, page,
+        playwright_instance, browser, page, shoot,
     )
 except ImportError:
     pass
