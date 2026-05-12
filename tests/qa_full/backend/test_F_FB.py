@@ -120,9 +120,12 @@ def test_F_FB_02_signature_forged_when_secret_set(api_base, http):
 # ============================================================================
 
 @pytest.mark.api
-def test_F_FB_03_status_anonymous(api_base, http):
-    """F-FB-03: GET /api/feishu/status 返 configured 字段。"""
-    r = http.get(f"{api_base}/api/feishu/status")
+def test_F_FB_03_status_anonymous(api_base, http, auth_headers):
+    """F-FB-03: GET /api/feishu/status 返 configured 字段。
+
+    注: 端点要求 JWT (status 不再匿名), 用 auth_headers。
+    """
+    r = http.get(f"{api_base}/api/feishu/status", headers=auth_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     assert "configured" in body
@@ -151,17 +154,19 @@ def test_F_FB_04_command_handler_user_isolation(qa_db_path):
         )
         # 清掉残留
         c.execute("DELETE FROM resumes WHERE user_id IN (1, ?)", (other_uid,))
-        # uid=1 一份, uid=999 五份
+        # uid=1 一份, uid=999 五份 — 补 NOT NULL: seniority/boss_id/greet_status/intake_status
         c.execute(
-            "INSERT INTO resumes (user_id, name, status, created_at, updated_at) "
-            "VALUES (1, 'qa_only_one', 'pending', ?, ?)",
+            "INSERT INTO resumes (user_id, name, status, seniority, boss_id, "
+            "greet_status, intake_status, created_at, updated_at) "
+            "VALUES (1, 'qa_only_one', 'pending', '', '', 'none', 'collecting', ?, ?)",
             (now_str, now_str),
         )
         for i in range(5):
             c.execute(
-                "INSERT INTO resumes (user_id, name, status, created_at, updated_at) "
-                "VALUES (?, ?, 'pending', ?, ?)",
-                (other_uid, f"other_{i}", now_str, now_str),
+                "INSERT INTO resumes (user_id, name, status, seniority, boss_id, "
+                "greet_status, intake_status, created_at, updated_at) "
+                "VALUES (?, ?, 'pending', '', ?, 'none', 'collecting', ?, ?)",
+                (other_uid, f"other_{i}", f"other_boss_{i}", now_str, now_str),
             )
         c.commit()
 

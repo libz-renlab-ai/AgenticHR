@@ -29,14 +29,19 @@ def _insert_resume_interviewer(qa_db_path, name="MEET候选人") -> tuple[int, i
     """插入测试用 resume + interviewer,返 (resume_id, interviewer_id)。"""
     with sqlite3.connect(qa_db_path) as c:
         cur = c.execute(
-            "INSERT INTO resumes (user_id, name, phone, email, status) "
-            "VALUES (1, ?, '13800000000', 'meet_test@example.com', 'passed')",
+            "INSERT INTO resumes (user_id, name, phone, email, status, "
+            "seniority, boss_id, greet_status, intake_status, "
+            "created_at, updated_at) "
+            "VALUES (1, ?, '13800000000', 'meet_test@example.com', 'passed', "
+            "'', '', 'none', 'collecting', datetime('now'), datetime('now'))",
             (name,),
         )
         resume_id = cur.lastrowid
         cur = c.execute(
-            "INSERT INTO interviewers (user_id, name, phone, feishu_user_id, email) "
-            "VALUES (1, 'MEET面试官', '13900000000', '', 'iv@example.com')"
+            "INSERT INTO interviewers (user_id, name, phone, feishu_user_id, "
+            "email, created_at) "
+            "VALUES (1, 'MEET面试官', '13900000000', '', 'iv@example.com', "
+            "datetime('now'))"
         )
         interviewer_id = cur.lastrowid
         c.commit()

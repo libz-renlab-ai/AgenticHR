@@ -47,15 +47,20 @@ def _seed_interview(
         cur = c.execute(
             "INSERT INTO resumes "
             "(user_id, name, phone, email, education, work_years, skills, "
-            " job_intention, pdf_path, status) "
+            " job_intention, pdf_path, status, "
+            " seniority, boss_id, greet_status, intake_status, "
+            " created_at, updated_at) "
             "VALUES (1, 'NOTI候选人', ?, ?, '本科', 3, 'Python,FastAPI', "
-            "'后端', ?, 'passed')",
+            "'后端', ?, 'passed', '', '', 'none', 'collecting', "
+            "datetime('now'), datetime('now'))",
             (candidate_phone, candidate_email, pdf_path),
         )
         resume_id = cur.lastrowid
         cur = c.execute(
-            "INSERT INTO interviewers (user_id, name, phone, feishu_user_id, email) "
-            "VALUES (1, 'NOTI面试官', '13900000001', ?, 'iv@example.com')",
+            "INSERT INTO interviewers (user_id, name, phone, feishu_user_id, "
+            "email, created_at) "
+            "VALUES (1, 'NOTI面试官', '13900000001', ?, 'iv@example.com', "
+            "datetime('now'))",
             (interviewer_feishu_id,),
         )
         interviewer_id = cur.lastrowid

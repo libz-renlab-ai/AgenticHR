@@ -65,8 +65,9 @@ def _seed_job(db_path: Path, *, job_id: int, user_id: int = 1) -> None:
         c.execute("DELETE FROM jobs WHERE id=?", (job_id,))
         c.execute(
             "INSERT INTO jobs (id, user_id, title, jd_text, competency_model, "
-            "competency_model_status, school_tier_min, created_at, updated_at) "
-            "VALUES (?, ?, ?, '', NULL, 'pending', '', ?, ?)",
+            "competency_model_status, school_tier_min, greet_threshold, "
+            "created_at, updated_at) "
+            "VALUES (?, ?, ?, '', NULL, 'pending', '', 60, ?, ?)",
             (job_id, user_id, "QA-HITL job", now_str, now_str),
         )
         c.commit()
@@ -77,10 +78,10 @@ def _seed_job(db_path: Path, *, job_id: int, user_id: int = 1) -> None:
 # ============================================================================
 
 @pytest.mark.api
-def test_F_HITL_01_list_basic(api_base, http, qa_db_path):
+def test_F_HITL_01_list_basic(api_base, http, auth_headers, qa_db_path):
     """F-HITL-01a: 列表端点返 items + total + pending 字段。"""
     _seed_hitl_task(qa_db_path, entity_id=9001)
-    r = http.get(f"{api_base}/api/hitl/tasks")
+    r = http.get(f"{api_base}/api/hitl/tasks", headers=auth_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     for k in ("items", "total", "pending"):
@@ -90,12 +91,13 @@ def test_F_HITL_01_list_basic(api_base, http, qa_db_path):
 
 
 @pytest.mark.api
-def test_F_HITL_01_list_filter_by_stage_status(api_base, http, qa_db_path):
+def test_F_HITL_01_list_filter_by_stage_status(api_base, http, auth_headers, qa_db_path):
     """F-HITL-01b: ?stage=&status= 过滤生效。"""
     _seed_hitl_task(qa_db_path, f_stage="QA_only_stage_xx", entity_id=9002)
     r = http.get(
         f"{api_base}/api/hitl/tasks",
         params={"stage": "QA_only_stage_xx", "status": "pending"},
+        headers=auth_headers,
     )
     assert r.status_code == 200, r.text
     items = r.json()["items"]
@@ -109,11 +111,11 @@ def test_F_HITL_01_list_filter_by_stage_status(api_base, http, qa_db_path):
 # ============================================================================
 
 @pytest.mark.api
-def test_F_HITL_02_get_includes_payload(api_base, http, qa_db_path):
+def test_F_HITL_02_get_includes_payload(api_base, http, auth_headers, qa_db_path):
     """F-HITL-02: GET /api/hitl/tasks/{id} 返完整 payload。"""
     payload = {"qa_marker": "F-HITL-02", "hard_skills": [{"name": "Go"}]}
     tid = _seed_hitl_task(qa_db_path, entity_id=9003, payload=payload)
-    r = http.get(f"{api_base}/api/hitl/tasks/{tid}")
+    r = http.get(f"{api_base}/api/hitl/tasks/{tid}", headers=auth_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["id"] == tid
@@ -122,9 +124,9 @@ def test_F_HITL_02_get_includes_payload(api_base, http, qa_db_path):
 
 
 @pytest.mark.api
-def test_F_HITL_02_get_404(api_base, http):
+def test_F_HITL_02_get_404(api_base, http, auth_headers):
     """F-HITL-02b: 不存在的 task → 404。"""
-    r = http.get(f"{api_base}/api/hitl/tasks/99999999")
+    r = http.get(f"{api_base}/api/hitl/tasks/99999999", headers=auth_headers)
     assert r.status_code == 404, r.text
 
 

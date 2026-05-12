@@ -65,7 +65,8 @@ def _seed_resume(db_path: Path, *, resume_id: int, user_id: int = 1,
         c.execute("DELETE FROM resumes WHERE id=?", (resume_id,))
         c.execute(
             "INSERT INTO resumes (id, user_id, name, boss_id, status, greet_status, "
-            "created_at, updated_at) VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)",
+            "seniority, intake_status, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, 'pending', ?, '', 'collecting', ?, ?)",
             (resume_id, user_id, "QA candidate", boss_id, greet_status,
              now_str, now_str),
         )
@@ -253,9 +254,11 @@ def test_F_REC_04_daily_cap_max_clamped(api_base, http, auth_headers):
 # ============================================================================
 
 @pytest.mark.api
-def test_F_SET_01_get_scoring_weights(api_base, http):
-    """F-SET-01: GET 返 5 维权重 (匿名也可读)。"""
-    r = http.get(f"{api_base}/api/settings/scoring-weights")
+def test_F_SET_01_get_scoring_weights(api_base, http, auth_headers):
+    """F-SET-01: GET 返 5 维权重 (实际端点要求 JWT, 用 auth_headers)。"""
+    r = http.get(
+        f"{api_base}/api/settings/scoring-weights", headers=auth_headers,
+    )
     assert r.status_code == 200, r.text
     body = r.json()
     for k in ("skill_match", "experience", "seniority", "education", "industry"):
@@ -351,9 +354,12 @@ def test_F_AIE_02_evaluate_batch_410_gone(api_base, http, auth_headers):
 # ============================================================================
 
 @pytest.mark.api
-def test_F_AIE_03_status(api_base, http):
-    """F-AIE-03: GET /api/ai/status 返 enabled/configured/provider/model。"""
-    r = http.get(f"{api_base}/api/ai/status")
+def test_F_AIE_03_status(api_base, http, auth_headers):
+    """F-AIE-03: GET /api/ai/status 返 enabled/configured/provider/model。
+
+    注: 端点要求 JWT, 用 auth_headers。
+    """
+    r = http.get(f"{api_base}/api/ai/status", headers=auth_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     for k in ("enabled", "configured", "provider", "model"):

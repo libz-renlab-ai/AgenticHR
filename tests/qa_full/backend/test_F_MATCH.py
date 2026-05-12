@@ -36,11 +36,12 @@ def _insert_resume(
         cur = c.execute(
             "INSERT INTO resumes (user_id, name, phone, education, bachelor_school, "
             "work_years, skills, work_experience, seniority, ai_parsed, status, "
-            "intake_status, created_at, updated_at) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))",
+            "intake_status, boss_id, greet_status, "
+            "created_at, updated_at) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))",
             (user_id, name, "13800000000", education, bachelor_school,
              work_years, skills, work_experience, seniority, "yes", "passed",
-             "completed"),
+             "completed", "", "none"),
         )
         c.commit()
         return cur.lastrowid
