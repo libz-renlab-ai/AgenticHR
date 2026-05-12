@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>QA Round 9 报告</title>
+<style>
+body { font-family: sans-serif; margin: 20px; }
+.passed { background: #efe; }
+.failed { background: #fee; }
+.skipped { background: #eee; color: #666; }
+.error { background: #fdd; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+td, th { border: 1px solid #ccc; padding: 6px; vertical-align: top; }
+img { max-width: 200px; max-height: 150px; }
+pre { white-space: pre-wrap; max-width: 600px; font-size: 11px; }
+.summary { font-size: 18px; padding: 10px; background: #f5f5f5; }
+</style></head><body>
+<h1>QA Round 9</h1>
+<div class="summary">
+Total: 100 |
+<span style="color:green">Passed: 42</span> |
+<span style="color:red">Failed: 42</span> |
+<span style="color:gray">Skipped: 16</span>
+</div>
+<h2>Budget</h2>
+<pre>{
+  &#34;asr_seconds&#34;: &#34;0/300&#34;,
+  &#34;llm_tokens&#34;: &#34;0/200000&#34;,
+  &#34;feishu_calls&#34;: &#34;0/100&#34;,
+  &#34;tencent_meeting_create&#34;: &#34;0/3&#34;,
+  &#34;boss_operations&#34;: &#34;0/0&#34;
+}</pre>
+<h2>Results</h2>
+<table>
+<tr><th>ID</th><th>Status</th><th>Screenshot</th><th>Reason</th></tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_CMP_01_status_badge</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 表格暂无数据，无法验证CompetencyEditor状态徽章（待审/已通过/已驳回/未生成）的显示效果
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_CMP_02_jd_collapse</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 页面显示岗位管理列表而非CompetencyEditor，未见JD折叠区和编辑/查看切换按钮
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_CMP_03_stats</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示岗位管理列表，未见 CompetencyEditor 统计卡；缺少硬技能数、软素质数、年经验、学历的统计卡组件
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_CMP_04_hard_skills_grid</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 页面显示岗位管理列表无数据，未见CompetencyEditor硬技能网格
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_CMP_05_save_draft</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示岗位管理列表页，未见 CompetencyEditor 界面及期望的&#39;保存草稿&#39;按钮
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_CMP_06_approve_button</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 未见&#39;通过发布&#39;按钮，当前仅显示岗位列表而非CompetencyEditor编辑器
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_PCK_01_autocomplete</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 期望可见元素&#34;合并&#34;未在截图中找到，仅可见&#34;技能&#34;
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_AISP_01_idle_state</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示岗位管理页面，缺少期望的「候选」和「筛选」关键元素，非AiScreeningPanel界面
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_AISP_02_running_state</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: verifier 240s timeout
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_AISP_03_done_state</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: verifier 240s timeout
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_AISP_04_failed_state</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: verifier 240s timeout
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_ITB_01_items_table</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: verifier 240s timeout
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_AEL_01_resume_ai_eval_list</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: verifier 240s timeout
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_AEP_01_interview_eval_panel</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 未找到 AiInterviewEvalPanel 弹窗，当前显示面试安排空列表
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_GLB_01_axios_401_intercept</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 10000ms exceeded.</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_GLB_02_qr_pdf_blob_revoke</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_GLB_03_long_polling_timeout</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_GLB_04_dangerous_confirm</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_GLB_05_extracting_jobs_store</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_COMPONENTS.py::test_F_UI_GLB_06_hitl_state_store</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_DASH.py::test_F_UI_DASH_01_stats_cards</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_DASH.py::test_F_UI_DASH_02_system_health_card</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_DASH.py::test_F_UI_DASH_03_quick_start_six_steps</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_DASH.py::test_F_UI_DASH_04_quick_start_clickable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_HITL.py::test_F_UI_HITL_01_filters_type_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_HITL.py::test_F_UI_HITL_02_auto_classify_button</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_HITL.py::test_F_UI_HITL_03_competency_review_table</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_HITL.py::test_F_UI_HITL_04_classify_dialog_required</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 这是审核队列列表页而非技能归类弹窗，缺少必选分类下拉和确认按钮
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_01_total_switch</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_02_target_count</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_03_progress_bar</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_04_daily_cap</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_05_filter_search</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_06_inline_status_dropdown</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_07_action_buttons</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 表格无数据，操作按钮列存在但没有可操作的记录行，无法验证 Intake 操作按钮实际渲染
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INT.py::test_F_UI_INT_08_expand_slots_panel</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 表格无数据，未展开 Intake 行以显示 SlotsPanel
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_01_cards_grouped</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_02_card_header</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 页面无候选人卡片，期望的编辑/删除按钮未出现
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_03_candidate_2x2_block</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示面试安排空页面，未显示候选人信息2x2网格及学校/学历/手机/邮箱元素
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_04_action_group_scheduled</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 页面未显示任何面试卡片，看不到 scheduled 卡片底部操作组及其预期的 5 个操作按钮（腾讯会议、复制邀请、发送通知、AI 面评、取消）
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_05_action_group_completed</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 页面无任何卡片，未见 completed 状态卡片与 AI 面评按钮
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_06_dialog_job_select_filterable</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 未见新建面试弹窗，只显示面试安排列表页面，缺少期望元素：目标岗位和请选择岗位
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_07_candidate_select_by_job</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 新建面试弹窗未打开，期望的候选人和请先选择岗位元素不可见
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_08_interviewer_select_filterable</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示的是面试安排列表页面，未显示新建面试弹窗，缺少期望的面试官选项和搜索功能
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_09_calendar_5days</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_INV.py::test_F_UI_INV_10_clear_all_confirm</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 未见二次确认对话框，截图仅显示面试安排列表页，缺少清空确认弹窗
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_IVR.py::test_F_UI_IVR_01_table_columns</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_IVR.py::test_F_UI_IVR_02_create_form</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_IVR.py::test_F_UI_IVR_03_feishu_id_lookup_hint</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_IVR.py::test_F_UI_IVR_04_delete_conflict</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 表格显示暂无数据，无法验证删除操作及409友好提示，测试未能完整执行
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_01_table_columns</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示的是工作台首页而非岗位列表表格,缺少岗位名称/部门/最低学历/工作年限/必备技能/能力模型等期望列
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_02_competency_status_tag</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 8000ms exceeded.
+    Call log:
+      - waiting for locator(&#34;.el-table .el-tag&#34;) to be visible</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_03_new_dialog_parse_jd</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   playwright._impl._errors.TimeoutError: Page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator(&#34;button:has-text(&#39;新建岗位&#39;)&#34;)</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_04_basic_form</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   playwright._impl._errors.TimeoutError: Page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator(&#34;button:has-text(&#39;新建岗位&#39;)&#34;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_05_competency_tab</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_JOB.py&#39;, 135, &#39;Skipped: 无岗位可供编辑,无法验证能力模型 Tab&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_06_matching_tab</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_JOB.py&#39;, 159, &#39;Skipped: 无岗位可供编辑,无法验证匹配候选人 Tab&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_07_five_dim_tab</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_JOB.py&#39;, 186, &#39;Skipped: 无岗位可供编辑,无法验证五维筛选 Tab&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_08_ai_smart_tab</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_JOB.py&#39;, 211, &#39;Skipped: 无岗位可供编辑,无法验证 AI 智能筛选 Tab&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_09_weights_sum_100</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_JOB.py&#39;, 235, &#39;Skipped: 无岗位可供编辑,无法验证权重面板&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_JOB.py::test_F_UI_JOB_10_delete_job_confirm</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_JOB.py&#39;, 261, &#39;Skipped: 无岗位可供删除&#39;)</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_LOGIN.py::test_F_UI_LOGIN_01_auto_detect_init</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_LOGIN.py::test_F_UI_LOGIN_02_username_password_required</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_LOGIN.py::test_F_UI_LOGIN_03_register_form</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_LOGIN.py::test_F_UI_LOGIN_04_enter_submits</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 密码框显示有输入(***),但错误信息为&#39;请输入密码&#39;而非&#39;密码过短&#39;,不符合短密码校验的预期
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_LOGIN.py::test_F_UI_LOGIN_05_error_message_red</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_LOGIN.py::test_F_UI_LOGIN_06_success_hard_reload</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_NOT.py::test_F_UI_NOT_01_table_columns</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_NOT.py::test_F_UI_NOT_02_status_tag_colors</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 表格无数据，无法验证通知状态tag颜色规则
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_NOT.py::test_F_UI_NOT_03_view_dialog_pre</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_NOT.py::test_F_UI_NOT_04_clear_all_prompt</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_NOT.py::test_F_UI_NOT_05_pagination_20</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 表格暂无数据，无法验证分页器在&gt;20条记录时的显示
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_01_search_bar</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   playwright._impl._errors.TimeoutError: Locator.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator(&#34;input[placeholder*=&#39;搜索姓名&#39;]&#34;)</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_02_upload_pdf</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 缺上传按钮
+    assert 0 &gt;= 1
+     +  where 0 = count()
+     +    where count = &lt;Locator frame=&lt;Frame name= url=&#39;http://localhost:5174/#/resumes&#39;&gt; selector=&#34;button:has-text(&#39;上传PDF简历&#39;)&#34;&gt;.count</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_03_start_ai_parse</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 缺手动启动内容解析按钮
+    assert 0 &gt;= 1
+     +  where 0 = count()
+     +    where count = &lt;Locator frame=&lt;Frame name= url=&#39;http://localhost:5174/#/resumes&#39;&gt; selector=&#34;button:has-text(&#39;手动启动内容解析&#39;), button:has-text(&#39;后台内容解析中&#39;)&#34;&gt;.count</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_04_clear_all_confirm</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   playwright._impl._errors.TimeoutError: Page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator(&#34;button:has-text(&#39;清空全部&#39;)&#34;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_05_compact_row_expand</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 128, &#39;Skipped: 简历库为空,无法验证展开&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_06_detail_fields</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 150, &#39;Skipped: 简历库为空,无法验证详情字段&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_07_qr_code</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 171, &#39;Skipped: 简历库为空,无法验证二维码&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_08_status_buttons</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 194, &#39;Skipped: 简历库为空,无法验证状态按钮&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_09_view_pdf_button</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 215, &#39;Skipped: 简历库为空,无法验证查看 PDF 按钮&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_10_ai_score_single</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 237, &#39;Skipped: 简历库为空,无法验证 AI 评分按钮&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_11_delete_confirm</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 260, &#39;Skipped: 简历库为空,无法验证删除确认&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_12_ai_eval_dialog</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 290, &#39;Skipped: 简历库为空,无法验证 AI 面评弹窗&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_13_matching_table</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 322, &#39;Skipped: 简历库为空,无法验证对接岗位分数表&#39;)</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>frontend/test_F_UI_RES.py::test_F_UI_RES_14_phone_email_validation</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\frontend\\test_F_UI_RES.py&#39;, 352, &#39;Skipped: 简历库为空,无法验证手机校验&#39;)</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SET.py::test_F_UI_SET_01_ai_tab</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SET.py::test_F_UI_SET_02_weights_tab</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_SET.py::test_F_UI_SET_03_save_disabled_when_not_100</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 保存权重配置按钮应置灰disabled，但实际显示为蓝色启用状态
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SET.py::test_F_UI_SET_04_reset_to_defaults</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SET.py::test_F_UI_SET_05_boss_tab</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SET.py::test_F_UI_SET_06_feishu_tab</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SKL.py::test_F_UI_SKL_01_search_filter_pending</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SKL.py::test_F_UI_SKL_02_create_dialog</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SKL.py::test_F_UI_SKL_03_merge_dialog</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SKL.py::test_F_UI_SKL_04_batch_classify</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SKL.py::test_F_UI_SKL_05_delete_disabled</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_SLT.py::test_F_UI_SLT_01_hard_table</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示的是候选人列表页面，非 SlotsPanel 硬性信息表，缺少预期的字段/原话/来源等列
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_SLT.py::test_F_UI_SLT_02_pdf_section</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 缺少SlotsPanel PDF简历区及&#39;已收到/未收到&#39;标签，表格暂无数据
+    assert False</pre></td>
+</tr>
+
+<tr class="failed">
+  <td>frontend/test_F_UI_SLT.py::test_F_UI_SLT_03_soft_qa_table</td>
+  <td>failed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 截图显示的是候选人列表页面，未见软性问答面板，缺少期望的「问题」、「回答」等关键元素
+    assert False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>frontend/test_F_UI_SLT.py::test_F_UI_SLT_04_terminal_slot_immutable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+</table>
+</body></html>
