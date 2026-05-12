@@ -11,6 +11,7 @@ import time
 import uuid
 from datetime import datetime, timedelta, timezone
 
+import httpx
 import pytest
 
 
@@ -536,13 +537,11 @@ def test_F_SCH_12_patch_no_time_change(api_base, http, auth_headers, qa_db_path)
 
 @pytest.mark.api
 @pytest.mark.external_real
-@pytest.mark.xfail(
-    reason="见 round-1: 真调腾讯会议+飞书日历, 默认无凭证或网络受限时 httpx ReadTimeout; "
-    "需在含真凭证的环境中跑或额外加 monkeypatch (need_app_fix or env-only)",
-    strict=False,
-)
 def test_F_SCH_12b_patch_reschedule_pipeline(api_base, http, auth_headers, qa_db_path):
-    """F-SCH-12 改期流水线（6 步）：会真调腾讯会议网页 + 飞书日历，标 external_real。"""
+    """F-SCH-12 改期流水线（6 步）：会真调腾讯会议网页 + 飞书日历，标 external_real。
+
+    单点 timeout=120s 给外部足够时间; 仍超时则 skip (env-only)。
+    """
     resume_id = _seed_resume(qa_db_path, name="SCH12b改期候选")
     iv_id = _seed_interviewer(
         qa_db_path, name="SCH12b-IV", feishu_user_id=f"ou_sch12b_{int(time.time())}"
@@ -563,14 +562,18 @@ def test_F_SCH_12b_patch_reschedule_pipeline(api_base, http, auth_headers, qa_db
 
     new_start = datetime.now(timezone.utc) + timedelta(hours=72)
     new_end = new_start + timedelta(minutes=60)
-    r = http.patch(
-        f"{api_base}/api/scheduling/interviews/{iv_rec}",
-        json={
-            "start_time": new_start.isoformat(),
-            "end_time": new_end.isoformat(),
-        },
-        headers=auth_headers,
-    )
+    try:
+        r = http.patch(
+            f"{api_base}/api/scheduling/interviews/{iv_rec}",
+            json={
+                "start_time": new_start.isoformat(),
+                "end_time": new_end.isoformat(),
+            },
+            headers=auth_headers,
+            timeout=120,
+        )
+    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.PoolTimeout) as e:
+        pytest.skip(f"外部 API (腾讯会议/飞书) 超时: {e}")
     # 真调外部，可能失败：500（外部失败）或 200（成功）都算合法路径
     assert r.status_code in (200, 500), r.text
 
@@ -727,12 +730,11 @@ def test_F_SCH_17_promote_after_validation_BUG066(api_base, http, auth_headers, 
 
 @pytest.mark.api
 @pytest.mark.external_real
-@pytest.mark.xfail(
-    reason="见 round-1: 同 SCH-12b, 真调外部 httpx ReadTimeout (need_app_fix or env-only)",
-    strict=False,
-)
 def test_F_SCH_18_reschedule_guardrail_db_untouched(api_base, http, auth_headers, qa_db_path):
-    """F-SCH-18 改期护栏：新会议失败不动 DB（旧时间应保留），仅 notes 记录。"""
+    """F-SCH-18 改期护栏：新会议失败不动 DB（旧时间应保留），仅 notes 记录。
+
+    单点 timeout=120s 给外部足够时间; 仍超时则 skip (env-only)。
+    """
     resume_id = _seed_resume(qa_db_path, name="SCH18")
     iv_id = _seed_interviewer(qa_db_path, name="SCH18-IV")
     iv_rec = _seed_interview(
@@ -750,14 +752,18 @@ def test_F_SCH_18_reschedule_guardrail_db_untouched(api_base, http, auth_headers
         ).fetchone()[0]
 
     new_start = datetime.now(timezone.utc) + timedelta(hours=96)
-    r = http.patch(
-        f"{api_base}/api/scheduling/interviews/{iv_rec}",
-        json={
-            "start_time": new_start.isoformat(),
-            "end_time": (new_start + timedelta(minutes=60)).isoformat(),
-        },
-        headers=auth_headers,
-    )
+    try:
+        r = http.patch(
+            f"{api_base}/api/scheduling/interviews/{iv_rec}",
+            json={
+                "start_time": new_start.isoformat(),
+                "end_time": (new_start + timedelta(minutes=60)).isoformat(),
+            },
+            headers=auth_headers,
+            timeout=120,
+        )
+    except (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.PoolTimeout) as e:
+        pytest.skip(f"外部 API (腾讯会议/飞书) 超时: {e}")
     # 真调外部 → 极可能 500；护栏：500 时 DB.start_time 应保持原值
     assert r.status_code in (200, 500), r.text
     if r.status_code == 500:

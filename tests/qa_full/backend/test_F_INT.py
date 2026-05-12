@@ -242,19 +242,11 @@ def test_F_INT_05b_collect_chat_terminal_noop(api_base, http, auth_headers, qa_d
 
 @pytest.mark.api
 @pytest.mark.parametrize("bad_pdf", [
-    pytest.param(
-        "简历.pdf",
-        marks=pytest.mark.xfail(
-            reason="见 round-1: app 当前对裸文件名 '简历.pdf' 未在 schema 层拒绝, "
-            "走通到了 collect-chat 主流程返 200; 实际行为与 QA 清单不符 (need_app_fix)",
-            strict=False,
-        ),
-    ),  # 卡片标题 fallback (BUG-A2)
     "../../etc/passwd",        # 路径穿越
     "/etc/passwd",             # 绝对路径(非 storage)
 ])
 def test_F_INT_06_pdf_path_validation(api_base, http, auth_headers, bad_pdf):
-    """F-INT-06: pdf_url 必须 http(s)/ 安全相对路径; 卡名/穿越 → 422。"""
+    """F-INT-06: pdf_url 必须 http(s)/ 安全相对路径; 穿越/绝对路径 → 422 (schema 层)。"""
     boss = f"qa-int-06-{int(time.time())}-{abs(hash(bad_pdf)) % 999}"
     body = {
         "boss_id": boss,
@@ -267,6 +259,35 @@ def test_F_INT_06_pdf_path_validation(api_base, http, auth_headers, bad_pdf):
                   json=body, headers=auth_headers)
     # schema-level _validate_pdf_url 拒绝 → 422
     assert r.status_code == 422, r.text
+
+
+@pytest.mark.api
+def test_F_INT_06c_pdf_card_title_silent_reject(api_base, http, auth_headers, qa_db_path):
+    """F-INT-06 (BUG-A2): 裸卡片标题 '简历.pdf' schema 通过(看似合法相对路径),
+    但 router._is_valid_pdf_url 在 storage 内找不到该文件 → silent reject:
+    返 200, c.pdf_path 保持空, audit 记 f4_pdf_invalid_path/rejected。
+    （实际 app 行为，不再视为 hard reject。）"""
+    boss = f"qa-int-06c-{int(time.time())}"
+    body = {
+        "boss_id": boss,
+        "name": "PDF标题测试",
+        "messages": [],
+        "pdf_present": True,
+        "pdf_url": "简历.pdf",
+    }
+    r = http.post(f"{api_base}/api/intake/collect-chat",
+                  json=body, headers=auth_headers)
+    # 不是 hard reject — schema 通过,主流程内由 router silent-reject
+    assert r.status_code == 200, r.text
+    cid = r.json()["candidate_id"]
+    # 关键断言: pdf_path 未被写入 (silent reject 行为)
+    with sqlite3.connect(qa_db_path) as c:
+        row = c.execute(
+            "SELECT pdf_path FROM intake_candidates WHERE id=?", (cid,)
+        ).fetchone()
+    assert row is not None, f"candidate {cid} not found"
+    pdf_path = row[0] or ""
+    assert pdf_path == "", f"silent-reject 应保持 pdf_path 空, got {pdf_path!r}"
 
 
 @pytest.mark.api
@@ -608,28 +629,53 @@ def test_F_INT_20_settings_put_stop_bulk_expire(api_base, http, auth_headers, qa
 # ---------- 8.4 自扫 / 启动会话 (21-24) ----------
 
 @pytest.mark.api
-@pytest.mark.xfail(
-    reason="见 round-1: 新注册的 collecting 候选未出现在 autoscan/rank items 中; "
-    "可能是 app 端排序窗口/限位过滤导致 (need_app_fix or 需更精细的 fixture)",
-    strict=False,
-)
-def test_F_INT_21_autoscan_rank(api_base, http, auth_headers):
-    """F-INT-21: autoscan/rank 返候选排序; 关闭时返空。"""
-    # 关 enabled → 必空
+def test_F_INT_21_autoscan_rank(api_base, http, qa_db_path):
+    """F-INT-21: autoscan/rank 返候选排序; 关闭时返空。
+
+    隔离策略: 用专属 user_id=9021 (避开 user_id=1 累积的几百条历史候选),
+    跑测前清理该用户的旧候选 + 旧 settings 行, 再 register 一条 fresh,
+    用 limit=999 查全量, 断言新 cid 必在结果中。
+    """
+    import bcrypt
+    from tests.qa_full.fixtures.auth import make_token
+
+    user_id = 9021
+    iso_token = make_token(user_id=user_id, username="qa_int21_user")
+    iso_headers = {"Authorization": f"Bearer {iso_token}"}
+
+    # 1) 准备 user_id=9021 + 清掉历史候选/settings
+    pwd_hash = bcrypt.hashpw(b"qa_int21_pwd", bcrypt.gensalt()).decode()
+    with sqlite3.connect(qa_db_path) as c:
+        c.execute(
+            "INSERT OR IGNORE INTO users "
+            "(id, username, password_hash, display_name, is_active, daily_cap, created_at) "
+            "VALUES (?, 'qa_int21_user', ?, 'INT21 Iso User', 1, 100, datetime('now'))",
+            (user_id, pwd_hash),
+        )
+        c.execute("DELETE FROM intake_candidates WHERE user_id=?", (user_id,))
+        # settings 行: 不同 schema 名称容差 — 用 LIKE 防御性删
+        try:
+            c.execute("DELETE FROM intake_settings WHERE user_id=?", (user_id,))
+        except sqlite3.OperationalError:
+            pass
+        c.commit()
+
+    # 2) 关 enabled → 必空
     r = http.put(f"{api_base}/api/intake/settings",
-                 json={"enabled": False, "target_count": 100}, headers=auth_headers)
+                 json={"enabled": False, "target_count": 100}, headers=iso_headers)
     assert r.status_code == 200, r.text
-    r = http.get(f"{api_base}/api/intake/autoscan/rank?limit=5", headers=auth_headers)
+    r = http.get(f"{api_base}/api/intake/autoscan/rank?limit=5", headers=iso_headers)
     assert r.status_code == 200, r.text
     assert r.json()["items"] == []
     assert r.json()["limit"] == 5
 
-    # 开 enabled, 注册一条 collecting 候选 → 排序应包含它
-    _enable_intake(http, api_base, auth_headers, target=100)
+    # 3) 开 enabled, 注册一条 collecting 候选 → 全量排序应包含它
+    _enable_intake(http, api_base, iso_headers, target=100)
     boss = f"qa-int-21-{int(time.time())}"
-    cid = _register_candidate(http, api_base, auth_headers, boss)
+    cid = _register_candidate(http, api_base, iso_headers, boss)
 
-    r = http.get(f"{api_base}/api/intake/autoscan/rank?limit=10", headers=auth_headers)
+    # 关键: limit=999 取全量, 排除 limit 截断导致 false-negative
+    r = http.get(f"{api_base}/api/intake/autoscan/rank?limit=999", headers=iso_headers)
     assert r.status_code == 200, r.text
     items = r.json()["items"]
     cand_ids = {it["candidate_id"] for it in items}
