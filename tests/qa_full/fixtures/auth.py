@@ -29,14 +29,19 @@ def auth_headers(auth_token):
 
 @pytest.fixture(scope="session", autouse=True)
 def ensure_qa_user(qa_db_path):
-    """确保 user_id=1 的 qa_user 在 DB 中存在(JWT 鉴权后多数端点假设)。"""
+    """确保 user_id=1 的 qa_user 在 DB 中存在(JWT 鉴权后多数端点假设)。
+
+    注意: users.daily_cap 是 NOT NULL 无默认,必须显式给值,否则 IntegrityError
+    会被静默(INSERT OR IGNORE),后续所有依赖 user_id=1 的 FK 全失败。
+    """
     import sqlite3
     import bcrypt
     pwd_hash = bcrypt.hashpw(b"qa_pwd_2026", bcrypt.gensalt()).decode()
     with sqlite3.connect(qa_db_path) as c:
         c.execute(
-            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, is_active, created_at) "
-            "VALUES (1, 'qa_user', ?, 'QA Test User', 1, datetime('now'))",
+            "INSERT OR IGNORE INTO users "
+            "(id, username, password_hash, display_name, is_active, daily_cap, created_at) "
+            "VALUES (1, 'qa_user', ?, 'QA Test User', 1, 100, datetime('now'))",
             (pwd_hash,)
         )
         c.commit()
