@@ -291,10 +291,6 @@ def test_F_JOB_07_education_threshold(api_base, http, auth_headers, qa_db_path):
 
 
 @pytest.mark.api
-@pytest.mark.xfail(
-    reason="F-JOB-08: 服务端 hard screening 当前未实现 school_tier_min 校验",
-    strict=False,
-)
 def test_F_JOB_08_school_tier(api_base, http, auth_headers, qa_db_path):
     """F-JOB-08: 院校等级 不限/QS200/211/985 四档。"""
     job = _create_job(

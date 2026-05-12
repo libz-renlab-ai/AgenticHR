@@ -1,12 +1,31 @@
 """岗位管理与硬性条件筛选"""
 from sqlalchemy.orm import Session
 
+from app.modules.im_intake.school_tier import classify_school, meets_school_tier, tier_value
 from app.modules.screening.job_helpers import effective_education_min
 from app.modules.screening.models import Job
 from app.modules.screening.schemas import JobCreate, JobUpdate
 from app.modules.resume.models import Resume
 
 EDUCATION_LEVELS = {"大专": 1, "本科": 2, "硕士": 3, "博士": 4}
+
+# F-JOB-08: school_tier_min 取值 → 对外展示文案
+# DB 写法兼容: 历史 schema 用 "985_211" 表示 211 档(QA清单 4.2),
+# school_tier helper 内部 tier code 是 "211"; 这里把 DB 值翻译成 helper 的 tier code。
+_DB_TO_HELPER_TIER = {
+    "": "",
+    "QS200": "qs_top200",
+    "985_211": "211",
+    "211": "211",
+    "985": "985",
+}
+
+_TIER_DISPLAY = {
+    "": "不限",
+    "qs_top200": "QS200",
+    "211": "211/985",
+    "985": "985",
+}
 
 
 class ScreeningService:
@@ -74,6 +93,12 @@ class ScreeningService:
         # BUG-124: 学历门槛走统一 helper, 与 list_matched_for_job 同口径
         edu_req = effective_education_min(job)
 
+        # F-JOB-08 / BUG-141: school_tier_min 硬筛 (与 list_matched_for_job 同 helper)
+        # DB 字段允许 ''/'QS200'/'985_211'/'985', 翻译到 school_tier.py 的 tier code
+        # ('','qs_top200','211','985') 再用 meets_school_tier 比较.
+        tier_req_db = (getattr(job, "school_tier_min", "") or "").strip()
+        tier_req = _DB_TO_HELPER_TIER.get(tier_req_db, tier_req_db)
+
         if use_model:
             cm = job.competency_model
             exp = cm.get("experience") or {}
@@ -99,6 +124,19 @@ class ScreeningService:
                 if resume_level < min_level:
                     reject_reasons.append(
                         f"学历不符：要求{edu_req}，实际{resume.education or '未知'}"
+                    )
+
+            # F-JOB-08 / BUG-141: 院校等级硬筛
+            # tier_req 为空 → 不限, 不做校验; 否则 candidate tier 必须 >= 岗位 tier
+            if tier_req and tier_value(tier_req) > 0:
+                cand_school = (resume.bachelor_school or "").strip()
+                cand_tier = classify_school(cand_school)
+                if not meets_school_tier(cand_tier, tier_req):
+                    req_disp = _TIER_DISPLAY.get(tier_req, tier_req)
+                    actual_disp = _TIER_DISPLAY.get(cand_tier, "无")
+                    school_disp = cand_school or "未知"
+                    reject_reasons.append(
+                        f"院校等级不达标: 要求 {req_disp}, 实际 {actual_disp} ({school_disp})"
                     )
 
             # BUG-145: 历史脏数据 / 老 schema 可能让 work_years/expected_salary 为 NULL,
