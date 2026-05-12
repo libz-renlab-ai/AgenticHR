@@ -147,10 +147,27 @@ def test_F_SCH_01c_at_least_one_contact(api_base, http, auth_headers):
 
 
 @pytest.mark.api
-def test_F_SCH_02_list_interviewers_owner_only(api_base, http, auth_headers, qa_db_path):
-    """F-SCH-02: 列表仅返本用户 — 直接给 user_id=99 落一条作为干扰，验它不出现。"""
-    # 干扰行
+def test_F_SCH_02_list_interviewers_owner_only(api_base, http, qa_db_path):
+    """F-SCH-02: 列表仅返本用户 — 用临时 user_id=9002 隔离，避免之前测试在 uid=1 留 NULL 字段污染列表 schema 校验。"""
+    from tests.qa_full.fixtures.auth import make_token
+
+    iso_uid = 9002
+    iso_headers = {"Authorization": f"Bearer {make_token(user_id=iso_uid, username='qa_iso_sch02')}"}
+    # 准备 iso 用户 + 自己一条 + 干扰一条 (user_id=99)
     with sqlite3.connect(qa_db_path) as c:
+        c.execute(
+            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, "
+            "is_active, daily_cap, created_at) VALUES (?, 'qa_iso_sch02', 'x', 'ISO', 1, 100, datetime('now'))",
+            (iso_uid,),
+        )
+        # 清掉 iso 自己 + 干扰用户的残留
+        c.execute("DELETE FROM interviewers WHERE user_id IN (?, 99)", (iso_uid,))
+        c.execute(
+            "INSERT INTO interviewers (name, phone, email, department, feishu_user_id, "
+            "user_id, created_at) VALUES (?, ?, '', '', '', ?, datetime('now'))",
+            ("ISO_OWN_INTERVIEWER", _unique_phone(), iso_uid),
+        )
+        # 干扰行
         c.execute(
             "INSERT INTO interviewers (name, phone, email, department, feishu_user_id, "
             "user_id, created_at) VALUES (?, ?, '', '', '', 99, datetime('now'))",
@@ -158,12 +175,13 @@ def test_F_SCH_02_list_interviewers_owner_only(api_base, http, auth_headers, qa_
         )
         c.commit()
 
-    r = http.get(f"{api_base}/api/scheduling/interviewers", headers=auth_headers)
+    r = http.get(f"{api_base}/api/scheduling/interviewers", headers=iso_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     assert "items" in body and "total" in body
     names = [it["name"] for it in body["items"]]
     assert "OTHER_USER_INTERVIEWER" not in names, "他人面试官串入"
+    assert "ISO_OWN_INTERVIEWER" in names
 
 
 @pytest.mark.api

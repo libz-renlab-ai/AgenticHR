@@ -140,48 +140,49 @@ def test_F_FB_03_status_anonymous(api_base, http, auth_headers):
 def test_F_FB_04_command_handler_user_isolation(qa_db_path):
     """F-FB-04: CommandHandler(_dashboard) 必须按 user_id 过滤, 不返全库统计 (BUG-039)。
 
-    构造: user_id=1 (qa_user) 拥有 1 份 resume, user_id=999 拥有 5 份 resume。
-    user_id=1 查 dashboard → total_resumes=1 而非 6。
+    用临时隔离 user_id (9004 own=1 + 9999 干扰=5)。直接写到 SessionLocal 绑定的
+    DB(可能是 recruitment.db 或 qa_db_path)，确保读写同库。
     """
-    # 先在 DB 里造另一个 user 和 5 条 resumes
-    other_uid = 999
-    now_str = _ts(datetime.now(timezone.utc))
-    with sqlite3.connect(qa_db_path) as c:
-        c.execute(
-            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, "
-            "is_active, created_at) VALUES (?, 'other_qa', 'x', 'Other', 1, ?)",
-            (other_uid, now_str),
-        )
-        # 清掉残留
-        c.execute("DELETE FROM resumes WHERE user_id IN (1, ?)", (other_uid,))
-        # uid=1 一份, uid=999 五份 — 补 NOT NULL: seniority/boss_id/greet_status/intake_status
-        c.execute(
-            "INSERT INTO resumes (user_id, name, status, seniority, boss_id, "
-            "greet_status, intake_status, created_at, updated_at) "
-            "VALUES (1, 'qa_only_one', 'pending', '', '', 'none', 'collecting', ?, ?)",
-            (now_str, now_str),
-        )
-        for i in range(5):
-            c.execute(
-                "INSERT INTO resumes (user_id, name, status, seniority, boss_id, "
-                "greet_status, intake_status, created_at, updated_at) "
-                "VALUES (?, ?, 'pending', '', ?, 'none', 'collecting', ?, ?)",
-                (other_uid, f"other_{i}", f"other_boss_{i}", now_str, now_str),
-            )
-        c.commit()
-
-    # 直接 import CommandHandler 并构造 — 不通过 HTTP, WS 内部触发场景
     import os
     os.environ.setdefault("DATABASE_URL", f"sqlite:///{qa_db_path}")
-    from app.database import SessionLocal
+    from app.database import SessionLocal, engine
     from app.modules.feishu_bot.command_handler import CommandHandler
+    from sqlalchemy import text
+
+    own_uid = 9004
+    other_uid = 9999
+    now_str = _ts(datetime.now(timezone.utc))
+    # 直接通过 SessionLocal 绑定的 engine 写入,保证读写同库
+    with engine.begin() as conn:
+        conn.execute(text(
+            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, "
+            "is_active, daily_cap, created_at) VALUES (:id, :u, 'x', 'ISO', 1, 100, :now)"
+        ), {"id": own_uid, "u": "qa_iso_fb04", "now": now_str})
+        conn.execute(text(
+            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, "
+            "is_active, daily_cap, created_at) VALUES (:id, :u, 'x', 'Other', 1, 100, :now)"
+        ), {"id": other_uid, "u": "qa_iso_fb04_other", "now": now_str})
+        conn.execute(text(
+            "DELETE FROM resumes WHERE user_id IN (:a, :b)"
+        ), {"a": own_uid, "b": other_uid})
+        conn.execute(text(
+            "INSERT INTO resumes (user_id, name, status, seniority, boss_id, "
+            "greet_status, intake_status, created_at, updated_at) "
+            "VALUES (:uid, 'qa_only_one', 'pending', '', '', 'none', 'collecting', :now, :now)"
+        ), {"uid": own_uid, "now": now_str})
+        for i in range(5):
+            conn.execute(text(
+                "INSERT INTO resumes (user_id, name, status, seniority, boss_id, "
+                "greet_status, intake_status, created_at, updated_at) "
+                "VALUES (:uid, :name, 'pending', '', :boss, 'none', 'collecting', :now, :now)"
+            ), {"uid": other_uid, "name": f"other_{i}", "boss": f"other_boss_{i}", "now": now_str})
 
     db = SessionLocal()
     try:
-        handler_user1 = CommandHandler(db, user_id=1)
-        reply = handler_user1._dashboard()
-        # uid=1 只看到自己 1 份
-        assert "总简历数：1" in reply, f"BUG-039 回归: dashboard 应只返 uid=1 数据, 实际:\n{reply}"
+        handler_user = CommandHandler(db, user_id=own_uid)
+        reply = handler_user._dashboard()
+        # own_uid 只看到自己 1 份
+        assert "总简历数：1" in reply, f"BUG-039 回归: dashboard 应只返 uid={own_uid} 数据, 实际:\n{reply}"
 
         handler_no_uid = CommandHandler(db, user_id=None)
         reply_all = handler_no_uid._dashboard()

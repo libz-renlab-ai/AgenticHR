@@ -104,6 +104,7 @@ def test_F_MATCH_01_score_pair(api_base, http, auth_headers, qa_db_path):
             f"{api_base}/api/matching/score",
             headers=auth_headers,
             json={"resume_id": rid, "job_id": jid},
+            timeout=120,  # F2 评分可能调 LLM, 默认 10s 不够
         )
         assert r.status_code == 200, r.text
         body = r.json()
@@ -135,6 +136,7 @@ def test_F_MATCH_02_results_list_filters_dead(api_base, http, auth_headers, qa_d
                 f"{api_base}/api/matching/score",
                 headers=auth_headers,
                 json={"resume_id": rid, "job_id": jid},
+                timeout=120,  # F2 评分可能调 LLM
             )
             assert r.status_code == 200, r.text
 
@@ -320,6 +322,7 @@ def test_F_MATCH_08_hash_stale_detection(api_base, http, auth_headers, qa_db_pat
             f"{api_base}/api/matching/score",
             headers=auth_headers,
             json={"resume_id": rid, "job_id": jid},
+            timeout=120,  # F2 评分可能调 LLM
         )
         assert r.status_code == 200, r.text
         # 单 row 响应已含 stale 字段
@@ -381,6 +384,7 @@ def test_F_MATCH_09_cascade_purge_after_recompute(api_base, http, auth_headers, 
                 f"{api_base}/api/matching/score",
                 headers=auth_headers,
                 json={"resume_id": rid, "job_id": jid},
+                timeout=120,  # F2 评分可能调 LLM
             )
 
         # 触发 recompute → endpoint 内部会先 _purge_outside_hard_filter
@@ -388,6 +392,7 @@ def test_F_MATCH_09_cascade_purge_after_recompute(api_base, http, auth_headers, 
             f"{api_base}/api/matching/recompute",
             headers=auth_headers,
             json={"job_id": jid},
+            timeout=120,  # recompute 内部会重新打分
         )
         assert rp.status_code == 200, rp.text
 

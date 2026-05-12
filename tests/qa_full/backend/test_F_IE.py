@@ -157,6 +157,122 @@ def _insert_ie_job(
         return cur.lastrowid
 
 
+# ─── 通过 SQLAlchemy engine 写库的版本 ─────────────────────────────────────
+# 用于 17b/19/20 等"在测试进程内直接调 service/retention/reconcile"的场景:
+# 这些代码用 SessionLocal(绑 app.database.engine), 与 sqlite3.connect(qa_db_path)
+# 可能不是同一个文件; 必须通过 engine 写入才能保证读写同库。
+
+def _seed_ie_world_via_engine(
+    *,
+    interview_id: int,
+    user_id: int = 1,
+    job_competency_status: str = "approved",
+    meeting_id: str = "1234567890",
+    meeting_account: str = "main",
+) -> dict:
+    from sqlalchemy import text
+    from app.database import engine
+
+    job_id = 8000 + interview_id
+    resume_id = 8000 + interview_id
+    interviewer_id = 8000 + interview_id
+
+    competency_model = json.dumps({
+        "hard_skills": [{"name": "Python", "must_have": True}],
+        "assessment_dimensions": [
+            {"name": "技术深度", "description": "Python", "question_types": []},
+        ],
+    })
+    now_str = _ts(datetime.now(timezone.utc))
+    with engine.begin() as conn:
+        # 确保 user 存在
+        conn.execute(text(
+            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, "
+            "is_active, daily_cap, created_at) VALUES (:id, :u, 'x', 'IE', 1, 100, :now)"
+        ), {"id": user_id, "u": f"qa_ie_{user_id}", "now": now_str})
+        conn.execute(text("DELETE FROM jobs WHERE id=:id"), {"id": job_id})
+        conn.execute(text(
+            "INSERT INTO jobs (id, user_id, title, jd_text, "
+            "competency_model, competency_model_status, school_tier_min, "
+            "greet_threshold, created_at, updated_at) "
+            "VALUES (:id, :uid, :title, '', :cm, :cms, '', 60, :now, :now)"
+        ), {"id": job_id, "uid": user_id, "title": "QA-IE 岗位",
+            "cm": competency_model, "cms": job_competency_status, "now": now_str})
+        conn.execute(text("DELETE FROM resumes WHERE id=:id"), {"id": resume_id})
+        conn.execute(text(
+            "INSERT INTO resumes (id, user_id, name, phone, "
+            "seniority, boss_id, greet_status, intake_status, "
+            "created_at, updated_at) "
+            "VALUES (:id, :uid, :name, '13800000000', '', '', 'none', 'collecting', :now, :now)"
+        ), {"id": resume_id, "uid": user_id, "name": f"候选{interview_id}", "now": now_str})
+        conn.execute(text("DELETE FROM interviewers WHERE id=:id"), {"id": interviewer_id})
+        conn.execute(text(
+            "INSERT INTO interviewers (id, user_id, name, created_at) "
+            "VALUES (:id, :uid, :name, :now)"
+        ), {"id": interviewer_id, "uid": user_id, "name": f"面试官{interview_id}", "now": now_str})
+        conn.execute(text("DELETE FROM interviews WHERE id=:id"), {"id": interview_id})
+        conn.execute(text(
+            "INSERT INTO interviews (id, user_id, resume_id, interviewer_id, "
+            "job_id, start_time, end_time, meeting_id, meeting_account, status, "
+            "created_at, updated_at) VALUES (:id, :uid, :rid, :iwid, :jid, :now, :now, "
+            ":mid, :ma, 'scheduled', :now, :now)"
+        ), {"id": interview_id, "uid": user_id, "rid": resume_id, "iwid": interviewer_id,
+            "jid": job_id, "mid": meeting_id, "ma": meeting_account, "now": now_str})
+        conn.execute(text(
+            "DELETE FROM interview_eval_scorecards WHERE interview_id=:id"
+        ), {"id": interview_id})
+        conn.execute(text(
+            "DELETE FROM interview_eval_jobs WHERE interview_id=:id"
+        ), {"id": interview_id})
+    return {
+        "job_id": job_id, "resume_id": resume_id,
+        "interviewer_id": interviewer_id, "interview_id": interview_id,
+    }
+
+
+def _insert_ie_job_via_engine(
+    *,
+    interview_id: int,
+    user_id: int = 1,
+    status: str = "pending",
+    error_msg: str = "",
+    meeting_account: str = "main",
+    last_heartbeat: datetime | None = None,
+    cancel_requested: int = 0,
+    recording_path: str = "",
+    duration_sec: int = 0,
+    retention_days: int = 180,
+) -> int:
+    from sqlalchemy import text
+    from app.database import engine
+    now = datetime.now(timezone.utc)
+    retention_until = now + timedelta(days=retention_days)
+    hb = last_heartbeat if last_heartbeat is not None else now
+    with engine.begin() as conn:
+        result = conn.execute(text(
+            "INSERT INTO interview_eval_jobs (interview_id, user_id, status, "
+            "recording_path, recording_size, duration_sec, meeting_account, "
+            "asr_request_id, llm_model, prompt_version, error_msg, "
+            "cancel_requested, retention_until, last_heartbeat, "
+            "created_at, updated_at) VALUES "
+            "(:iv, :uid, :st, :rp, 0, :ds, :ma, '', '', '', :em, :cr, :ru, :hb, :now, :now)"
+        ), {"iv": interview_id, "uid": user_id, "st": status, "rp": recording_path,
+            "ds": duration_sec, "ma": meeting_account, "em": error_msg, "cr": cancel_requested,
+            "ru": _ts(retention_until), "hb": _ts(hb), "now": _ts(now)})
+        return result.lastrowid
+
+
+def _read_ie_job_via_engine(job_id: int) -> tuple | None:
+    from sqlalchemy import text
+    from app.database import engine
+    with engine.connect() as conn:
+        row = conn.execute(text(
+            "SELECT status, error_msg, deleted_at, recording_path "
+            "FROM interview_eval_jobs WHERE id=:id"
+        ), {"id": job_id}).fetchone()
+    return tuple(row) if row else None
+
+
 # ============================================================================
 # F-IE-01: 启动评价任务 — 5 道校验门
 # ============================================================================
@@ -287,8 +403,15 @@ def test_F_IE_03_by_interview_returns_latest(
     _seed_ie_world(qa_db_path, interview_id=iv)
     # 两条 job：第二条更新（id 更大）
     _insert_ie_job(qa_db_path, interview_id=iv, status="failed")
-    time.sleep(0.01)  # 确保 created_at 顺序
+    # _ts 截到秒, sleep 不够; 直接把 j2 的 created_at 改成 +5s 强制最新
     j2 = _insert_ie_job(qa_db_path, interview_id=iv, status="done")
+    later = _ts(datetime.now(timezone.utc) + timedelta(seconds=5))
+    with sqlite3.connect(qa_db_path) as c:
+        c.execute(
+            "UPDATE interview_eval_jobs SET created_at=?, updated_at=? WHERE id=?",
+            (later, later, j2),
+        )
+        c.commit()
     r = http.get(
         f"{api_base}/api/interview-eval/by-interview/{iv}",
         headers=auth_headers,
@@ -789,14 +912,18 @@ def test_F_IE_17_retention_purge_callable():
 
 @pytest.mark.api
 def test_F_IE_17b_retention_purges_expired_row(qa_db_path):
-    """F-IE-17: 给一个 retention_until 已过期的行,purge 应 soft-delete + 删文件."""
+    """F-IE-17: 给一个 retention_until 已过期的行,purge 应 soft-delete + 删文件.
+
+    retention.purge_expired() 走 SessionLocal(engine), 必须通过 engine 写库
+    才能保证读写同库。
+    """
     from app.modules.interview_eval import retention
 
     iv = 81701
-    _seed_ie_world(qa_db_path, interview_id=iv)
+    _seed_ie_world_via_engine(interview_id=iv)
     # 故意把 retention_until 设到过去
-    job_id = _insert_ie_job(
-        qa_db_path, interview_id=iv, status="done", retention_days=-1,
+    job_id = _insert_ie_job_via_engine(
+        interview_id=iv, status="done", retention_days=-1,
     )
     # 造 mp4 + transcript
     rec_dir = REPO_ROOT / "data" / "recordings"
@@ -814,14 +941,11 @@ def test_F_IE_17b_retention_purges_expired_row(qa_db_path):
     assert not mp4.exists()
     assert not ts.exists()
     # 验 deleted_at 已设
-    with sqlite3.connect(qa_db_path) as c:
-        row = c.execute(
-            "SELECT deleted_at, recording_path FROM interview_eval_jobs "
-            "WHERE id=?",
-            (job_id,),
-        ).fetchone()
-    assert row[0] is not None
-    assert row[1] == ""
+    row = _read_ie_job_via_engine(job_id)
+    assert row is not None
+    # row = (status, error_msg, deleted_at, recording_path)
+    assert row[2] is not None
+    assert row[3] == ""
 
 
 # ============================================================================
@@ -858,11 +982,16 @@ def test_F_IE_18b_feishu_push_failure_only_logged(monkeypatch):
 
 @pytest.mark.api
 def test_F_IE_19_spawn_failure_marks_failed(qa_db_path, monkeypatch):
-    """F-IE-19: _spawn_worker 抛异常 → job 标 failed + error_msg."""
+    """F-IE-19: _spawn_worker 抛异常 → job 标 failed + error_msg.
+
+    service.create_job 走 SessionLocal(engine), 必须通过 engine 写库。
+    """
     from app.modules.interview_eval import service
+    from sqlalchemy import text
+    from app.database import engine
 
     iv = 81901
-    _seed_ie_world(qa_db_path, interview_id=iv)
+    _seed_ie_world_via_engine(interview_id=iv)
 
     def boom(jid):
         raise RuntimeError("simulated spawn failure")
@@ -880,12 +1009,11 @@ def test_F_IE_19_spawn_failure_marks_failed(qa_db_path, monkeypatch):
     assert "spawn" in str(exc.value).lower() or "启动后台" in str(exc.value)
 
     # 验 DB 中存在该 job 行 status=failed + error_msg 含 [spawn]
-    with sqlite3.connect(qa_db_path) as c:
-        rows = c.execute(
+    with engine.connect() as conn:
+        rows = conn.execute(text(
             "SELECT status, error_msg FROM interview_eval_jobs WHERE "
-            "interview_id=? ORDER BY id DESC LIMIT 1",
-            (iv,),
-        ).fetchone()
+            "interview_id=:iv ORDER BY id DESC LIMIT 1"
+        ), {"iv": iv}).fetchone()
     assert rows is not None
     assert rows[0] == "failed"
     assert "[spawn]" in rows[1]
@@ -897,15 +1025,17 @@ def test_F_IE_19_spawn_failure_marks_failed(qa_db_path, monkeypatch):
 
 @pytest.mark.api
 def test_F_IE_20_audit_failure_no_rollback(qa_db_path, monkeypatch):
-    """F-IE-20: reconcile 中单条 audit 失败不回滚业务 status 修改."""
+    """F-IE-20: reconcile 中单条 audit 失败不回滚业务 status 修改.
+
+    reconcile.sweep_stale_jobs 走 SessionLocal(engine), 必须通过 engine 写库。
+    """
     from app.modules.interview_eval import reconcile
 
     iv = 82001
-    _seed_ie_world(qa_db_path, interview_id=iv)
+    _seed_ie_world_via_engine(interview_id=iv)
     old_hb = datetime.now(timezone.utc) - timedelta(hours=1)
-    job_id = _insert_ie_job(
-        qa_db_path, interview_id=iv, status="pending",
-        last_heartbeat=old_hb,
+    job_id = _insert_ie_job_via_engine(
+        interview_id=iv, status="pending", last_heartbeat=old_hb,
     )
 
     # 让 audit_record 抛错
@@ -917,11 +1047,8 @@ def test_F_IE_20_audit_failure_no_rollback(qa_db_path, monkeypatch):
     swept = reconcile.sweep_stale_jobs(threshold_seconds=60)
     # 业务 commit 应已落库，即便 audit 失败
     assert swept >= 1
-    with sqlite3.connect(qa_db_path) as c:
-        row = c.execute(
-            "SELECT status FROM interview_eval_jobs WHERE id=?",
-            (job_id,),
-        ).fetchone()
+    row = _read_ie_job_via_engine(job_id)
+    assert row is not None
     assert row[0] == "failed", "audit 抛错不应回滚 status 修改"
 
 

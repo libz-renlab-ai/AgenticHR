@@ -116,18 +116,36 @@ def test_F_JOB_02_create_job(api_base, http, auth_headers):
 
 
 @pytest.mark.api
-def test_F_JOB_03_list_jobs_user_isolation(api_base, http, auth_headers):
-    """F-JOB-03: 列表 user_id 隔离 + created_at desc。"""
-    j1 = _create_job(http, api_base, auth_headers, title="F-JOB-03-A")
-    j2 = _create_job(http, api_base, auth_headers, title="F-JOB-03-B")
+def test_F_JOB_03_list_jobs_user_isolation(api_base, http, qa_db_path):
+    """F-JOB-03: 列表 user_id 隔离 + created_at desc。
 
-    r = http.get(f"{api_base}/api/screening/jobs", headers=auth_headers)
+    用临时 user_id=9003 隔离，避免 uid=1 历史脏数据（NULL 字段）触发
+    JobListResponse 的 pydantic 校验 500。
+    """
+    from tests.qa_full.fixtures.auth import make_token
+
+    iso_uid = 9003
+    iso_headers = {"Authorization": f"Bearer {make_token(user_id=iso_uid, username='qa_iso_job03')}"}
+    with sqlite3.connect(qa_db_path) as c:
+        c.execute(
+            "INSERT OR IGNORE INTO users (id, username, password_hash, display_name, "
+            "is_active, daily_cap, created_at) VALUES (?, 'qa_iso_job03', 'x', 'ISO', 1, 100, datetime('now'))",
+            (iso_uid,),
+        )
+        # 清掉 iso 自己以前的残留 (重跑场景)
+        c.execute("DELETE FROM jobs WHERE user_id=?", (iso_uid,))
+        c.commit()
+
+    j1 = _create_job(http, api_base, iso_headers, title="F-JOB-03-A")
+    j2 = _create_job(http, api_base, iso_headers, title="F-JOB-03-B")
+
+    r = http.get(f"{api_base}/api/screening/jobs", headers=iso_headers)
     assert r.status_code == 200, r.text
     body = r.json()
     assert "items" in body and "total" in body
     ids = [x["id"] for x in body["items"]]
-    # 全部属于当前 user_id=1
-    assert all(x["user_id"] == 1 for x in body["items"])
+    # 全部属于当前 iso 用户
+    assert all(x["user_id"] == iso_uid for x in body["items"])
     # 我们刚创建的两条都在
     assert j1["id"] in ids and j2["id"] in ids
     # 后建的 j2 排在 j1 前面 (desc)
@@ -137,12 +155,12 @@ def test_F_JOB_03_list_jobs_user_isolation(api_base, http, auth_headers):
 
     # active_only filter 不报错
     r2 = http.get(
-        f"{api_base}/api/screening/jobs?active_only=true", headers=auth_headers
+        f"{api_base}/api/screening/jobs?active_only=true", headers=iso_headers
     )
     assert r2.status_code == 200
 
-    _delete_job(http, api_base, auth_headers, j1["id"])
-    _delete_job(http, api_base, auth_headers, j2["id"])
+    _delete_job(http, api_base, iso_headers, j1["id"])
+    _delete_job(http, api_base, iso_headers, j2["id"])
 
 
 @pytest.mark.api
