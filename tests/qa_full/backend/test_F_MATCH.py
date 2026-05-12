@@ -260,6 +260,7 @@ def test_F_MATCH_06_legacy_set_action(api_base, http, auth_headers, qa_db_path):
             f"{api_base}/api/matching/score",
             headers=auth_headers,
             json={"resume_id": rid, "job_id": jid},
+            timeout=180,
         )
         assert r.status_code == 200, r.text
         result_id = r.json()["id"]
@@ -425,13 +426,12 @@ def test_F_MATCH_10_evidence_llm_degrade(api_base, http, auth_headers, qa_db_pat
             f"{api_base}/api/matching/score",
             headers=auth_headers,
             json={"resume_id": rid, "job_id": jid},
+            timeout=180,  # F2 evidence LLM 可能较慢
         )
         assert r.status_code == 200, r.text
         body = r.json()
         ev = body.get("evidence", {})
-        # 不论是否走 LLM,evidence 至少应是 dict (降级也要有启发式条目)
         assert isinstance(ev, dict)
-        # build_deterministic_evidence 至少给出 5 维 key 之一
         assert any(k in ev for k in (
             "skill", "experience", "seniority", "education", "industry",
         )), f"启发式证据应至少含 5 维之一: {ev}"
@@ -451,10 +451,10 @@ def test_F_MATCH_11_derive_tags(api_base, http, auth_headers, qa_db_path):
             f"{api_base}/api/matching/score",
             headers=auth_headers,
             json={"resume_id": rid, "job_id": jid},
+            timeout=180,
         )
         assert r.status_code == 200, r.text
         body = r.json()
-        # tags 字段应存在且为 list
         assert "tags" in body and isinstance(body["tags"], list), body
     finally:
         _cleanup_match_rows(qa_db_path, jid)

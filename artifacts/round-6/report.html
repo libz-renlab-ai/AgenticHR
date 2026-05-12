@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>QA Round 6 报告</title>
+<style>
+body { font-family: sans-serif; margin: 20px; }
+.passed { background: #efe; }
+.failed { background: #fee; }
+.skipped { background: #eee; color: #666; }
+.error { background: #fdd; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+td, th { border: 1px solid #ccc; padding: 6px; vertical-align: top; }
+img { max-width: 200px; max-height: 150px; }
+pre { white-space: pre-wrap; max-width: 600px; font-size: 11px; }
+.summary { font-size: 18px; padding: 10px; background: #f5f5f5; }
+</style></head><body>
+<h1>QA Round 6</h1>
+<div class="summary">
+Total: 285 |
+<span style="color:green">Passed: 251</span> |
+<span style="color:red">Failed: 0</span> |
+<span style="color:gray">Skipped: 22</span>
+</div>
+<h2>Budget</h2>
+<pre>{
+  &#34;asr_seconds&#34;: &#34;0/300&#34;,
+  &#34;llm_tokens&#34;: &#34;0/200000&#34;,
+  &#34;feishu_calls&#34;: &#34;0/100&#34;,
+  &#34;tencent_meeting_create&#34;: &#34;0/3&#34;,
+  &#34;boss_operations&#34;: &#34;0/0&#34;
+}</pre>
+<h2>Results</h2>
+<table>
+<tr><th>ID</th><th>Status</th><th>Screenshot</th><th>Reason</th></tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_01_preview_eligible_count</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_02_start_validations</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_02b_start_cli_missing_503</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\backend\\test_F_AISCR.py&#39;, 276, &#39;Skipped: claude CLI 已可用,503 路径无法在不重启 server 情况下复现&#39;)</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_03_cli_path_locked_to_screening_job</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_04_cancel_sets_flag</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_05_current</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_06_items_not_finished_409</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_07_finalist_batch_no_negative</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_08_blank_pdf_excluded</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AISCR.py::test_F_AISCR_09_rejected_excluded</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_01_status_no_auth</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_02_first_admin_register</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_03_register_blocked_after_first</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_04_duplicate_username_in_first_register</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_05_length_validation[a-valid_pwd-username \u592a\u77ed&lt;2]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_05_length_validation[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-valid_pwd-username \u592a\u957f&gt;50]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_05_length_validation[ok_user-12345-password \u592a\u77ed&lt;6]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_05_length_validation[ok_user-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy-password \u592a\u957f&gt;100]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_07_me_with_valid_token</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_07b_me_invalid_token</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_08_inactive_user_login_rejected</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_09_expired_token_rejected</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_AUTH.py::test_F_AUTH_06_zlast_login_rate_limit</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_01_greet_no_adapter</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_01_greet_unauth</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_02_collect_no_adapter</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_02_collect_unauth</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_03_status</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_03_status_unauth</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_04_multi_tenant_unauth_blocks_all</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_BOSS.py::test_F_BOSS_05_anti_detection</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_FB.py::test_F_FB_01_event_challenge</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_FB.py::test_F_FB_01_event_message_ok</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_FB.py::test_F_FB_02_signature_valid_local</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_FB.py::test_F_FB_02_signature_forged_when_secret_set</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_FB.py::test_F_FB_03_status_anonymous</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_FB.py::test_F_FB_04_command_handler_user_isolation</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_FB.py::test_F_FB_05_ws_auto_save_reply</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_FB.py::test_F_FB_06_card_callback_available</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_01_list_basic</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_01_list_filter_by_stage_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_02_get_includes_payload</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_02_get_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_03_approve_basic</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_03_approve_unauth</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_HITL.py::test_F_HITL_03_approve_callback_failure_rollback</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_04_reject_note_required</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_04_reject_with_note</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_05_edit_marks_edited</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_HITL.py::test_F_HITL_05_edit_callback_failure_rollback</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_06_terminal_state_409</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_HITL.py::test_F_HITL_07_competency_approve_hook_updates_job</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_01a_start_interview_not_found</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_01b_start_competency_not_approved</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_01c_start_no_meeting_id</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_01d_start_account_not_in_pool</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_01e_start_active_job_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_02_get_job_detail</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_02b_get_job_not_found</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_03_by_interview_returns_latest</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_03b_by_interview_no_job</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_04_by_resume_returns_scorecards</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_05_get_scorecard_with_files</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_06_get_transcript</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_06b_get_transcript_missing</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_07_get_recording</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_07b_get_recording_missing</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_08_cancel_pending_job</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_08b_cancel_terminal_job_rejected</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_09_status_machine_check_constraint</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_IE.py::test_F_IE_10_heartbeat_self_heal</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_11_reconcile_period_min_10s</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xpassed">
+  <td>backend/test_F_IE.py::test_F_IE_12_startup_zombie_recovery_imports</td>
+  <td>xpassed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_IE.py::test_F_IE_12b_sweep_finds_stale_pending</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   assert 0 &gt;= 1</pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_IE.py::test_F_IE_13_llm_retry_strategy</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_14_llm_markdown_strip</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_IE.py::test_F_IE_15_llm_config_fail_fast</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_16_recording_path_priority</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_17_retention_purge_callable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_IE.py::test_F_IE_17b_retention_purges_expired_row</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+    [SQL: DELETE FROM jobs WHERE id=?]
+    [parameters: (89701,)]
+    (Background </pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_18_feishu_push_callable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_IE.py::test_F_IE_18b_feishu_push_failure_only_logged</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_IE.py::test_F_IE_19_spawn_failure_marks_failed</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+    [SQL: DELETE FROM jobs WHERE id=?]
+    [parameters: (89901,)]
+    (Background </pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_IE.py::test_F_IE_20_audit_failure_no_rollback</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+E   sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) FOREIGN KEY constraint failed
+    [SQL: DELETE FROM jobs WHERE id=?]
+    [parameters: (90001,)]
+    (Background </pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_IE.py::test_F_IE_external_real_e2e_60s_recording</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_01_sqlite_auto_create</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_02_wal_mode</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_03_auto_migration</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_04_zombie_screening_cleanup</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_05_feishu_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_06_resume_worker_idempotent</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_07_interview_eval_router_mounted</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_08_cors_preflight</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_09_jwt_required</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_10_health_anonymous</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_11_health_detailed_authed</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_12_api_404_json</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_13_spa_fallback</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_INFRA.py::test_F_INFRA_14_assets_caching</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\backend\\test_F_INFRA.py&#39;, 147, &#39;Skipped: no dist or asset, status=404&#39;)</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_01_list_enum_validation</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_02_register_idempotent</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_03_get_detail_with_slots</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_03b_get_detail_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_04_slot_patch_terminal_blocked</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_05_collect_chat_llm_extract</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_05b_collect_chat_terminal_noop</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_INT.py::test_F_INT_06_pdf_path_validation[\u7b80\u5386.pdf]</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   AssertionError: {&#34;candidate_id&#34;:6,&#34;intake_status&#34;:&#34;collecting&#34;,&#34;next_action&#34;:{&#34;type&#34;:&#34;send_hard&#34;,&#34;text&#34;:&#34;您好PDF测试~\n想跟您先确认几个信息：\n1. 您好~请问您最快什么时候可以到岗呢？\n2. 方便告知您接下来五天哪些时段可以面试吗？\n3. 请问您实习能持续多久呢？&#34;,&#34;slot_keys&#34;:[&#34;arrival_date&#34;,&#34;free_slots&#34;,&#34;intern_duration&#34;]}}
+    assert 200 == 422
+     +  where 200 =</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_06_pdf_path_validation[../../etc/passwd]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_06_pdf_path_validation[/etc/passwd]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_06b_pdf_present_without_url_rejected</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_07_abandon_idempotent</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_08_force_complete</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_09_mark_timed_out</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_10_status_patch_terminal_promote</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_11_last_checked</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_12_reextract_no_messages_skip</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_12b_reextract_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_INT.py::test_F_INT_13_ack_sent_state_drift</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_13b_ack_sent_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_13c_ack_sent_not_delivered_noop</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_14_outbox_claim_when_running</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_15_outbox_ack_success_and_failed</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_16_outbox_expire_on_terminal[complete]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_16_outbox_expire_on_terminal[abandoned]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_16_outbox_expire_on_terminal[timed_out]</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_17_outbox_stale_row_age_expire</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_18_daily_cap_query</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_19_settings_get</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_20_settings_put_stop_bulk_expire</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_INT.py::test_F_INT_21_autoscan_rank</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   AssertionError: new candidate 21 not in rank items {1, 2, 4, 6, 11, 12, 13, 14, 19, 20}
+    assert 21 in {1, 2, 4, 6, 11, 12, ...}</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_22_autoscan_tick</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_22b_autoscan_tick_typed_validation</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_23_start_conversation_url_encode_inject_defense</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_23b_start_conversation_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_INT.py::test_F_INT_24_llm_ask_limit_config_present</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_01_parse_jd_llm</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_02_create_job</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_03_list_jobs_user_isolation</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_04_get_job_cross_user_403</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_05_update_jd_resets_competency</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_06_delete_with_pending_interview_409</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_07_education_threshold</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_JOB.py::test_F_JOB_08_school_tier</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   assert True is False</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_09_work_years_range</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_10_must_have_skills</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_11_no_global_status_mutation</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_12_screen_with_resume_ids_subset</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_13_get_scoring_weights</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_14_set_scoring_weights_sum_must_100</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_15_reset_scoring_weights</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_17_extract_competency_llm</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_18_get_competency</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_19_manual_competency</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_20_save_competency_draft</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_JOB.py::test_F_JOB_21_approve_competency</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_01_score_pair</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_02_results_list_filters_dead</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_03_passed_resumes_action_filter</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_04_recompute_background</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_05_recompute_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_06_legacy_set_action</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_07_unknown_resume_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_08_hash_stale_detection</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_09_cascade_purge_after_recompute</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_10_evidence_llm_degrade</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MATCH.py::test_F_MATCH_11_derive_tags</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_01_auto_create_real</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_02_all_busy_returns_409</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_03_exclude_self_when_rebuilding</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_04_multi_account_config_parsing</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_05_first_login_qr_capability_present</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_06_zombie_chrome_cleanup_capability</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_MEET.py::test_F_MEET_07_duplicate_dialog_handler_present</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_01_send_real_feishu</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\backend\\test_F_NOTI.py&#39;, 111, &#39;Skipped: 未配置 QA_FEISHU_TEST_OPEN_ID,跳过真实飞书发送&#39;)</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_02_candidate_email_template_has_meeting_info</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_03_interviewer_feishu_msg_has_summary</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_04_feishu_calendar_real</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\backend\\test_F_NOTI.py&#39;, 195, &#39;Skipped: 未配置 QA_FEISHU_TEST_OPEN_ID,跳过真实飞书日历&#39;)</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_05_pdf_path_must_be_under_storage</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_06_template_generated_even_when_external_off</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_07_list_logs_by_interview_desc</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_NOTI.py::test_F_NOTI_08_clear_all_only_current_user</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_01_evaluate_and_record_real_llm</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_01_evaluate_unauth</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_01_evaluate_job_not_found</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_02_record_greet_success</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_02_record_greet_failure</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_02_record_greet_resume_not_found</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_03_daily_usage_returns_used_cap_remaining</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_03_daily_usage_unauth</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_04_update_daily_cap</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_REC_04_daily_cap_max_clamped</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_SET_01_get_scoring_weights</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_SET_02_put_scoring_weights_sum_100</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_SET_02_put_scoring_weights_sum_not_100</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_SET_02_put_scoring_weights_unauth</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_AIE_01_evaluate_410_gone</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_AIE_02_evaluate_batch_410_gone</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_REC_SET.py::test_F_AIE_03_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_01_create_dedupe</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_02_batch_limit</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_03_pdf_upload</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_03b_image_pdf_rejected</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_04_path_traversal</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_05_clear_all_cascade</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_06_list_keyword_max_64</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_07_get_cross_user_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_08_patch_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_09_delete_cascade</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_10_pdf_download</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_11_qr_endpoint</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_12_storage_path</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_13_check_boss_ids</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_14_ai_parse_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_15_ai_parse_all_idempotent</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_16_ai_parse_single_no_input</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_17_ai_parse_status_shape_stable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_18_dedupe_priority_phone_over_email</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_19_field_overwrite_non_empty_only</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_20_screening_does_not_change_resume_status</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_21_promote_cross_user_fk_blocked</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_RES.py::test_F_RES_22_surrogate_boss_id_sha256</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_01_create_interviewer_lookup_open_id</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_01b_create_interviewer_with_feishu_id</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_01c_at_least_one_contact</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_02_list_interviewers_owner_only</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_03_update_interviewer</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_04_delete_interviewer_blocked_when_pending</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_05_add_availability_stackable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_06_get_availability_full</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_07_match_slots_30min_step</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_08_freebusy_real_feishu</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_08b_freebusy_no_feishu_id</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_09_create_interview_past_time_400</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_09b_parallel_pending_409_BUG079</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_09c_time_conflict_same_interviewer_409</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_10_list_interviews_enriched_paged</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_11_get_single_interview_enriched</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_11b_get_other_user_404</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_12_patch_no_time_change</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_SCH.py::test_F_SCH_12b_patch_reschedule_pipeline</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   httpcore.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+E   httpx.ReadTimeout: timed out</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_13_delete_interview_204</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_14_cancel_post_endpoint</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_SCH.py::test_F_SCH_15_clear_all_immediate_db_clean</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   AssertionError: 他人面试不应被清
+    assert 2 == 1</pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_16_ask_time_no_feishu_400</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="skipped">
+  <td>backend/test_F_SCH.py::test_F_SCH_17_promote_after_validation_BUG066</td>
+  <td>skipped</td>
+  <td></td>
+  <td><pre>(&#39;D:\\0jingtong\\AgenticHR\\tests\\qa_full\\backend\\test_F_SCH.py&#39;, 704, &#39;Skipped: intake_candidates 表结构不匹配: table intake_candidates has no column named source_user_id&#39;)</pre></td>
+</tr>
+
+<tr class="xfailed">
+  <td>backend/test_F_SCH.py::test_F_SCH_18_reschedule_guardrail_db_untouched</td>
+  <td>xfailed</td>
+  <td></td>
+  <td><pre>E   httpcore.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+E   httpx.ReadTimeout: timed out</pre></td>
+</tr>
+
+<tr class="xpassed">
+  <td>backend/test_F_SCH.py::test_F_SCH_19_feishu_calendar_sync_on_delete</td>
+  <td>xpassed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_20_status_machine_transitions</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SCH.py::test_F_SCH_21_notes_audit_chain</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_01_list_search_category_pending</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_02_categories</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_03_get_one_no_embedding</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_04_create_conflict</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_05_update_invalidates_cache</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_06_merge</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_07_delete_constraints</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_08_auto_classify_llm</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_09_pack_unpack_roundtrip</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_10_cosine_zero_vector</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_F_SKILL.py::test_F_SKILL_11_find_nearest</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>backend/test_smoke.py::test_health_endpoint</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>migrations/test_F_DB.py::test_F_DB_alembic_head_marker</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>migrations/test_F_DB.py::test_F_DB_key_tables_present</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>migrations/test_F_DB.py::test_F_DB_round_trip</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>migrations/test_F_DB.py::test_F_DB_baseline_is_noop</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>scripts_runtime/test_F_OPS.py::test_F_OPS_06_check_db</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>scripts_runtime/test_F_OPS.py::test_F_OPS_07_gen_token</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>scripts_runtime/test_F_OPS.py::test_F_OPS_01_cleanup_pdf_dryrun</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>scripts_runtime/test_F_OPS.py::test_F_OPS_05_check_decision_backfill</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>scripts_runtime/test_F_OPS.py::test_F_OPS_other_scripts_importable</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>scripts_runtime/test_F_OPS.py::test_F_OPS_08_test_school_only_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_01_launcher_module</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_02_default_env_template_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_04_dev_bat_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_06_build_py_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_07_build_release_py_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_08_pyinstaller_spec_exists</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>launcher/test_F_RUN.py::test_F_RUN_other_root_scripts</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_01_pre_commit_hook</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_02_post_merge_hook</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_03_scan_cursor</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_05_compile_to_claude_md</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_06_knowledge_db</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_07_shared_claude_md</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+<tr class="passed">
+  <td>teamagent/test_F_TA.py::test_F_TA_other_files_present</td>
+  <td>passed</td>
+  <td></td>
+  <td><pre></pre></td>
+</tr>
+
+</table>
+</body></html>
