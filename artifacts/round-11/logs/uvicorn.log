@@ -1,0 +1,2116 @@
+INFO:     Started server process [25208]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8765 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54939 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31445 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31446 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31447 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+D:\miniconda3\Lib\site-packages\lark_oapi\ws\pb\google\__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  __import__('pkg_resources').declare_namespace(__name__)
+[Lark] [2026-05-12 15:31:32,755] [INFO] connected to wss://msg-frontier.feishu.cn/ws/v2?fpid=493&aid=552564&device_id=7638904643336145894&access_key=e6faaf2f74bfcf0ab82f36d7743b02da&service_id=33554678&ticket=b2ddb4a4-cacf-4eea-bb08-10b26bdd86f0 [conn_id=7638904643336145894]
+INFO:     127.0.0.1:23799 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23800 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46949 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46950 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46951 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:3481 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3482 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31318 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31319 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31320 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:30615 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30616 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30617 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:12079 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12080 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23055 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23056 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23057 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:48727 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48728 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3915 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3916 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3917 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:38786 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38787 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3156 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3157 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3159 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3160 - "GET /api/skills?limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38134 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38135 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38136 - "GET /api/resumes/?page=1&page_size=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31748 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31749 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31752 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31750 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31751 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31753 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1860 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37040 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37041 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37043 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37044 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37042 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37045 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5865 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7003 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7004 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7006 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7007 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7005 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7008 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12456 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18351 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18352 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18353 - "GET /api/notification/logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39674 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39675 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39676 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:46082 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46083 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20042 - "GET /api/resumes/?page=1&page_size=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45267 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45268 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45269 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45271 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45272 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45270 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5776 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7192 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7193 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7196 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7195 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7194 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7197 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46437 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58743 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58744 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58747 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58746 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58745 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58748 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29634 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20632 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20633 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20635 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20636 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20634 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20637 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34566 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5686 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5687 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5690 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5688 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5689 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5691 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2388 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3076 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3077 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:21368 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1876 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54295 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54296 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54298 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54297 - "GET /api/hitl/tasks?status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55634 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55635 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55636 - "GET /api/hitl/tasks?status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55637 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3545 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3546 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3548 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3547 - "GET /api/hitl/tasks?status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1875 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1876 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1877 - "GET /api/hitl/tasks?status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1878 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38811 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38812 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38814 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38813 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38815 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4251 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4252 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4254 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4253 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4255 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16782 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16783 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4615 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4616 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55372 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55373 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55375 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55374 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55376 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55967 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55968 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57596 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57597 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49792 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49793 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14464 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14465 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36159 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36160 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36162 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36161 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36163 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58912 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58913 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13540 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13541 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55281 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55282 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59620 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59621 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56106 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56107 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9853 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9854 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7946 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7947 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7948 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7949 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7950 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14001 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14002 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51940 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51941 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1863 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1864 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9199 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9200 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49229 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49230 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38734 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38735 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53605 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53606 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38880 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38881 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22237 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22238 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22240 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22239 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22241 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5187 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5188 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48751 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48752 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42860 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42861 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7341 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7342 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7344 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7345 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7343 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48845 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48846 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48848 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48847 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48849 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48850 - "GET /api/intake/candidates/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50202 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50203 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15450 - "GET /api/resumes/?page=1&page_size=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15449 - "GET /api/scheduling/interviews HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15451 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15452 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:29461 - "GET /api/scheduling/interviews HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27024 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27025 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46434 - "GET /api/resumes/?page=1&page_size=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46433 - "GET /api/scheduling/interviews HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46435 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46436 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:46437 - "GET /api/resumes/?page=1&page_size=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46438 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6354 - "GET /api/screening/jobs HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+  + Exception Group Traceback (most recent call last):
+  |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 76, in collapse_excgroups
+  |     yield
+  |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 186, in __call__
+  |     async with anyio.create_task_group() as task_group:
+  |   File "D:\miniconda3\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    |     result = await app(  # type: ignore[func-returns-value]
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    |     return await self.app(scope, receive, send)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    |     await super().__call__(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    |     await self.app(scope, receive, _send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    |     with collapse_excgroups():
+    |   File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    |     self.gen.throw(value)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    |     response = await self.dispatch_func(request, call_next)
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    |     return await call_next(request)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    |     raise app_exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    |     await self.app(scope, receive_or_disconnect, send_no_error)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    |     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    |     await self.middleware_stack(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    |     await route.handle(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    |     await self.app(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    |     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    |     raise exc
+    |   File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    |     await app(scope, receive, sender)
+    |   File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    |     response = await f(request)
+    |                ^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    |     content = await serialize_response(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    |     raise ResponseValidationError(
+    | fastapi.exceptions.ResponseValidationError: 5 validation errors:
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+    |   {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+    | 
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\miniconda3\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 187, in __call__
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 185, in __call__
+    with collapse_excgroups():
+  File "D:\miniconda3\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "D:\miniconda3\Lib\site-packages\starlette\_utils.py", line 82, in collapse_excgroups
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 187, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\0jingtong\AgenticHR\app\main.py", line 240, in auth_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 163, in call_next
+    raise app_exc
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\base.py", line 149, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 715, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 735, in app
+    await route.handle(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\miniconda3\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\miniconda3\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 327, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\miniconda3\Lib\site-packages\fastapi\routing.py", line 176, in serialize_response
+    raise ResponseValidationError(
+fastapi.exceptions.ResponseValidationError: 5 validation errors:
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_min'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'float_type', 'loc': ('response', 'items', 0, 'salary_max'), 'msg': 'Input should be a valid number', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'required_skills'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'soft_requirements'), 'msg': 'Input should be a valid string', 'input': None}
+  {'type': 'string_type', 'loc': ('response', 'items', 0, 'greeting_templates'), 'msg': 'Input should be a valid string', 'input': None}
+
+INFO:     127.0.0.1:17444 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17445 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17446 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33599 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33600 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33601 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6923 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6924 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6925 - "GET /api/scheduling/interviewers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34106 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34107 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34108 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34109 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34110 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34111 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55622 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43851 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43852 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43853 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43855 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43854 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43856 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53498 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37927 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37928 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37930 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37931 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37929 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37932 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52078 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33279 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33280 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33283 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33281 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33282 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33284 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20949 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10949 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10950 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10953 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10952 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10951 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10954 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15215 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17525 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17526 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17529 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17528 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17527 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17530 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14826 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33645 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33646 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33648 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33649 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33647 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33650 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54103 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5066 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5067 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5070 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5071 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5069 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5068 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34571 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50091 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50092 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50093 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50094 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50095 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50096 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18567 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40148 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40149 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40151 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40150 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40152 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40153 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4285 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4276 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4277 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4278 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53898 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53899 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53900 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2618 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2619 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37551 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37552 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37553 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4410 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4411 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4412 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3057 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3058 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3059 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3060 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:48020 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48021 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48022 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48023 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19928 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19929 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25386 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13070 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25387 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25388 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3662 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19315 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19316 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19317 - "GET /api/notification/logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57358 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57359 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57360 - "GET /api/notification/logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2050 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2051 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2052 - "GET /api/notification/logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27114 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27115 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27116 - "GET /api/notification/logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53464 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53465 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53466 - "GET /api/notification/logs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34450 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34451 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46430 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46431 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46433 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46432 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46434 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46435 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:41219 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32897 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32898 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32900 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32901 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32899 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32902 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25284 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3514 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3515 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3518 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3517 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3516 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3519 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30781 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5618 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5619 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5621 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5620 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5622 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5623 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3066 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40923 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40924 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40926 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40927 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40925 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40928 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47377 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35148 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35149 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35152 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35153 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35151 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35150 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43459 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32142 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32143 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32146 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32145 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32144 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32147 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47171 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7272 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7273 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7275 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7276 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7274 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7277 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2487 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35663 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35664 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35667 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35666 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35665 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35668 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3678 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26919 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26920 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26922 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26923 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26921 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26924 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7326 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47905 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47906 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47910 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47908 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47909 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47907 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15053 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13756 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13757 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13760 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13759 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13761 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13758 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48763 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29342 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29343 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29345 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29344 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29346 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29347 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29013 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28043 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28044 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28046 - "GET /api/intake/candidates?recruit_status=passed&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28047 - "GET /api/intake/candidates?recruit_status=rejected&page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28045 - "GET /api/intake/candidates?page=1&size=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28048 - "GET /api/scheduling/interviews?status=scheduled HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1212 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17302 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17303 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17304 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17305 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17306 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17307 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44694 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44695 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44696 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44697 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44698 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44699 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25121 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25122 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1914 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1915 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38545 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38546 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59599 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59600 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30167 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:30168 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42620 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42621 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42622 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42623 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42624 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42625 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5192 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5193 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45061 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45062 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45063 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45064 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45065 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45066 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27987 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27988 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34466 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34467 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19239 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:19240 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2453 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2454 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45502 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:45503 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4891 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4892 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29656 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29657 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34174 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34175 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34176 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34177 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34178 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34179 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27562 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27563 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4680 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4681 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55998 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55999 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22225 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22226 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13843 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13844 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23772 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:23773 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31493 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31494 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47201 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47202 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52619 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52620 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52621 - "GET /api/ai/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52622 - "GET /api/settings/scoring-weights HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52623 - "GET /api/boss/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52624 - "GET /api/feishu/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2425 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2426 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22889 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22890 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48594 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48595 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48596 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48597 - "GET /api/skills?limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34584 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34585 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34586 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34587 - "GET /api/skills?limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26518 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:26519 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35084 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:35085 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5474 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5475 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33744 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33745 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5127 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5128 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5129 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5130 - "GET /api/skills?limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6274 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6275 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51493 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51494 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6508 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6509 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18842 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18843 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6371 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6372 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:24513 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:24514 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48830 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48831 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43848 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43849 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58923 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58924 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58925 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58926 - "GET /api/skills?limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7313 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7314 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:21377 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:21378 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32296 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32297 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55833 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55834 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34551 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53590 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7240 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7241 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32320 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32321 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53390 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53391 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4215 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4216 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4217 - "GET /api/skills/categories HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4218 - "GET /api/skills?limit=200 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47132 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:47133 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31424 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31425 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12901 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12902 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16287 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16288 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:24135 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:24136 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32251 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32252 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25314 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25313 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28367 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:28368 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18582 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18583 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18585 - "GET /api/intake/daily-cap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18586 - "GET /api/intake/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18584 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:18587 - "GET /api/intake/candidates/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55807 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55808 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:31353 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:31354 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:31355 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57896 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:57895 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:36933 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:36932 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2141 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:2140 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10488 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:10487 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14088 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14089 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:29249 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:29250 - "GET /api/intake/daily-cap HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:29251 - "GET /api/intake/settings HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:59463 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59464 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:59465 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12186 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:12185 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16880 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:16881 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:48482 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48483 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:48484 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7137 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7138 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:18485 - "GET /api/intake/candidates?page=1&size=20 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:18486 - "GET /api/intake/daily-cap HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:18487 - "GET /api/intake/settings HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:4860 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4861 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:4862 - "GET /api/auth/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:24787 - "GET /api/hitl/tasks?status=pending&limit=1 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:24786 - "GET /api/health HTTP/1.1" 200 OK
