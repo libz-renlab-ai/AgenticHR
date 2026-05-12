@@ -58,19 +58,25 @@ def uvicorn_running(db_url: str, log_path: Path):
 def vite_running(log_path: Path):
     log_path.parent.mkdir(parents=True, exist_ok=True)
     log_file = open(log_path, "w", encoding="utf-8")
-    cmd = ["pnpm", "--filter", "frontend", "dev", "--port", str(QA_FRONTEND_PORT)]
+    # 直接调 frontend/node_modules/.bin/vite 绕过 pnpm 包装路径问题
+    vite_bin = REPO_ROOT / "frontend" / "node_modules" / ".bin" / "vite.cmd"
+    cmd = [str(vite_bin), "--port", str(QA_FRONTEND_PORT)]
+    env = os.environ.copy()
+    env["VITE_PROXY_TARGET"] = QA_BASE  # 让前端 axios /api 代理指向 QA uvicorn
     proc = subprocess.Popen(
         cmd,
-        cwd=str(REPO_ROOT),
+        cwd=str(REPO_ROOT / "frontend"),
         stdout=log_file,
         stderr=subprocess.STDOUT,
+        env=env,
         shell=(os.name == "nt"),
     )
     try:
+        # vite 默认只 listen localhost,不是 127.0.0.1 (Windows 行为差异)
         with httpx.Client(trust_env=False, timeout=2) as cli:
             for i in range(120):
                 try:
-                    r = cli.get(f"http://127.0.0.1:{QA_FRONTEND_PORT}")
+                    r = cli.get(f"http://localhost:{QA_FRONTEND_PORT}")
                     if r.status_code == 200:
                         break
                 except httpx.HTTPError:
@@ -78,7 +84,7 @@ def vite_running(log_path: Path):
                 time.sleep(1)
             else:
                 raise RuntimeError(f"vite 120s 内未起来; 日志: {log_path}")
-        yield f"http://127.0.0.1:{QA_FRONTEND_PORT}"
+        yield f"http://localhost:{QA_FRONTEND_PORT}"
     finally:
         proc.terminate()
         try:

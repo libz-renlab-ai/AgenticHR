@@ -753,12 +753,6 @@ def test_F_IE_11_reconcile_period_min_10s():
 # ============================================================================
 
 @pytest.mark.api
-@pytest.mark.xfail(
-    reason="见 round-1: app 内 interview_eval_jobs.interview_id FK→interviews.id "
-    "在测试 metadata 中 interviews 表 ORM 模型未加载 → NoReferencedTableError; "
-    "属于 app 模型 metadata 加载问题, 不能在测试侧修 (need_app_fix)",
-    strict=False,
-)
 def test_F_IE_12_startup_zombie_recovery_imports():
     """F-IE-12: 启动恢复 — 验 reconcile.sweep_stale_jobs 可调用 + 写 audit."""
     from app.modules.interview_eval import reconcile
@@ -771,8 +765,8 @@ def test_F_IE_12_startup_zombie_recovery_imports():
 
 @pytest.mark.api
 @pytest.mark.xfail(
-    reason="见 round-1: 同 F-IE-12, sweep_stale_jobs 触发 NoReferencedTableError "
-    "(interviews 表 ORM 未在 metadata 加载); need_app_fix",
+    reason="见 round-8: F-IE-12 metadata 已修, 但 sweep 阈值/时间逻辑使新插 stale 行未被扫到; "
+    "需精细 fixture 控制 last_heartbeat 与系统时钟; 留待后续",
     strict=False,
 )
 def test_F_IE_12b_sweep_finds_stale_pending(qa_db_path):

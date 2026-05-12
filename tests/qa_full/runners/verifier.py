@@ -40,10 +40,15 @@ def verify_screenshot(
     log_dir = artifacts_dir / "verifier_calls"
     log_dir.mkdir(parents=True, exist_ok=True)
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        # 显式 utf-8 + errors='replace': claude CLI 输出 UTF-8,
+        # Windows 默认 GBK 解码会在中文字节上挂线程,导致 stdout=None
+        res = subprocess.run(
+            cmd, capture_output=True, timeout=240,
+            encoding="utf-8", errors="replace",
+        )
     except subprocess.TimeoutExpired:
-        (log_dir / f"{test_id}.timeout.txt").write_text("verifier timeout", encoding="utf-8")
-        return {"passed": False, "reason": "verifier 120s timeout", "raw": ""}
+        (log_dir / f"{test_id}.timeout.txt").write_text("verifier timeout 240s", encoding="utf-8")
+        return {"passed": False, "reason": "verifier 240s timeout", "raw": ""}
 
     raw = res.stdout
     (log_dir / f"{test_id}.txt").write_text(raw, encoding="utf-8", errors="replace")

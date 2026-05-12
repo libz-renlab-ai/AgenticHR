@@ -7,6 +7,10 @@ from sqlalchemy import (
 )
 
 from app.database import Base
+# 显式 import scheduling.models 确保 interviews 表在 metadata 中,
+# 避免 sweep_stale_jobs 等独立加载路径触发 NoReferencedTableError
+# (见 BUGS-qa-round-1.md F-IE-12)
+from app.modules.scheduling import models as _scheduling_models  # noqa: F401
 
 
 class InterviewEvalJob(Base):

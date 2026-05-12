@@ -13,7 +13,11 @@ def playwright_instance():
 
 @pytest.fixture(scope="session")
 def browser(playwright_instance):
-    b = playwright_instance.chromium.launch(headless=True)
+    b = playwright_instance.chromium.launch(
+        headless=True,
+        proxy={"server": "direct://"},  # browser 级绕代理
+        args=["--no-proxy-server", "--proxy-bypass-list=*"],
+    )
     yield b
     b.close()
 
@@ -23,7 +27,6 @@ def page(browser, auth_token):
     ctx = browser.new_context(
         viewport={"width": 1440, "height": 900},
         ignore_https_errors=True,
-        proxy={"server": "direct://"},  # 绕本地代理
     )
     # 注入 token 到 localStorage,前端走 axios 自动带上
     ctx.add_init_script(f"window.localStorage.setItem('token', '{auth_token}');")
