@@ -124,7 +124,11 @@ def _candidate_summary(c: IntakeCandidate, slots: list[IntakeSlot], job_title: s
     )
 
 
-_INTAKE_STATUS_ENUM = {"collecting", "complete", "abandoned", "timed_out", "pending_human"}
+# Source of truth for intake_status is schemas.IntakeStatus; derive the
+# filter enum from it so a new state added there can't silently break list().
+from typing import get_args as _get_args
+from app.modules.im_intake.schemas import IntakeStatus as _IntakeStatus
+_INTAKE_STATUS_ENUM = set(_get_args(_IntakeStatus))
 _RECRUIT_STATUS_ENUM = {"pending", "passed", "rejected"}
 
 

@@ -1,11 +1,57 @@
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
 
 PROMPT_PARSE = (Path(__file__).parent / "prompts" / "parse_v1.txt").read_text(encoding="utf-8")
+
+
+# Per-slot keyword whitelist used as a post-LLM sanity check.
+# Background: glm-4-flash sometimes hallucinates by assigning a greeting-only
+# message (e.g. "请问全栈工程师还在招吗？我很感兴趣") to free_slots, which then
+# silences the follow-up question. We require the LLM-picked quote to contain
+# at least one plausibly-related keyword before accepting it. Patterns are
+# regex strings checked with re.search (case-insensitive).
+_SLOT_KEYWORD_PATTERNS: dict[str, list[str]] = {
+    "arrival_date": [
+        r"到岗", r"入职", r"上岗", r"报到", r"立即", r"马上", r"随时",
+        r"今天", r"明天", r"后天", r"本周", r"下周", r"下下周",
+        r"周[一二三四五六日天]", r"星期[一二三四五六日天]",
+        r"\d+\s*月", r"\d+\s*号", r"\d+\s*日", r"\d+\s*天",
+        r"现在", r"目前", r"随时可", r"可以来", r"能来", r"过来",
+        r"\d{1,2}[./-]\d{1,2}", r"假期", r"答辩", r"毕业",
+    ],
+    "intern_duration": [
+        r"实习", r"个月", r"半年", r"\d+\s*月", r"\d+\s*周",
+        r"长期", r"短期", r"持续", r"周期", r"做多久", r"干多久",
+        r"\d+\s*年", r"\d+\s*天", r"一直", r"至少", r"最多",
+        r"出勤", r"五天", r"每周", r"全职", r"兼职",
+    ],
+    # free_slots 要求"时间锚"——周X / 上午晚上 / 数字+点 / 面试/约时间/有空/没空
+    # 等。故意不把单独的"可以/不行/方便"加入,否则会误判"希望可以进一步沟通"
+    # 这种纯礼貌话术(2026-05-13 马婧 case)。
+    "free_slots": [
+        r"面试", r"约时间", r"约面", r"时段", r"空闲", r"有空", r"没空",
+        r"上午", r"下午", r"晚上", r"中午", r"早上", r"傍晚",
+        r"周[一二三四五六日天]", r"星期[一二三四五六日天]",
+        r"\d{1,2}\s*[点:：]", r"\d{1,2}\s*-\s*\d{1,2}",
+        r"今天", r"明天", r"后天", r"本周", r"下周",
+        r"\d{1,2}[./-]\d{1,2}", r"出勤",
+    ],
+}
+
+
+def _quote_matches_slot(slot_key: str, quote: str) -> bool:
+    """Return True if `quote` contains at least one keyword indicating it is
+    plausibly an answer for `slot_key`. Returns True for unknown slot keys
+    (e.g. soft_q_*) to avoid over-filtering."""
+    patterns = _SLOT_KEYWORD_PATTERNS.get(slot_key)
+    if not patterns:
+        return True
+    return any(re.search(p, quote, flags=re.IGNORECASE) for p in patterns)
 
 
 class LLMLike(Protocol):
@@ -100,6 +146,17 @@ class SlotFiller:
                     if text and text not in quotes:
                         quotes.append(text)
                 if not quotes:
+                    continue
+                # Sanity check: drop LLM picks whose quote text contains no
+                # keyword plausibly related to this slot — defends against
+                # the model harvesting greeting-only or off-topic messages
+                # into hard slots (2026-05-13 马婧 case).
+                quotes = [q for q in quotes if _quote_matches_slot(key, q)]
+                if not quotes:
+                    logger.info(
+                        "SlotFiller dropped LLM pick for %s: no slot-relevant keyword in any quote",
+                        key,
+                    )
                     continue
                 # Newline-joined so multi-line candidate utterances stay
                 # readable — '|' delimited squashes them and reads worse.

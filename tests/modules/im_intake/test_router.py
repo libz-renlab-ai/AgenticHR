@@ -18,6 +18,30 @@ def test_list_candidates_filters_by_status(client, db_session):
     assert all(c["intake_status"] == "collecting" for c in body["items"])
 
 
+@pytest.mark.parametrize(
+    "status",
+    ["collecting", "awaiting_reply", "pending_human", "complete", "abandoned", "timed_out"],
+)
+def test_list_candidates_accepts_all_intake_status_values(client, db_session, status):
+    """Regression for `/intake 等待回复` 标签 400：list endpoint must accept every
+    intake_status that service.py writes. Leaving `awaiting_reply` out of the
+    enum used to surface as `加载候选人列表失败` in the UI."""
+    db_session.add(IntakeCandidate(
+        user_id=1, name=f"u_{status}", boss_id=f"b_{status}",
+        intake_status=status, source="plugin",
+    ))
+    db_session.commit()
+    r = client.get(f"/api/intake/candidates?status={status}")
+    assert r.status_code == 200, r.text
+    items = r.json()["items"]
+    assert any(c["intake_status"] == status for c in items)
+
+
+def test_list_candidates_rejects_unknown_status(client):
+    r = client.get("/api/intake/candidates?status=not_a_real_status")
+    assert r.status_code == 400
+
+
 def test_get_candidate_detail_returns_slots(client, db_session):
     c = IntakeCandidate(user_id=1, name="c", boss_id="bc", intake_status="collecting", source="plugin")
     db_session.add(c)
