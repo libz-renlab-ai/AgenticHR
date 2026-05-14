@@ -95,3 +95,22 @@ def test_dimension_rejects_6_evidence():
             evidence=[{"start_ms": i * 100, "end_ms": i * 100 + 50,
                        "speaker": "candidate", "text": f"e{i}"} for i in range(6)],
         )
+
+
+# 2026-05-14: 放宽 evidence min_length 1→0（真实验收暴露弱 LLM 给空 evidence）
+def test_dimension_accepts_empty_evidence():
+    """一条维度缺引用不应让整张 scorecard 失败 —— score + reasoning 仍有价值。"""
+    from app.modules.interview_eval.schemas import DimensionScore
+    d = DimensionScore(
+        name="技术深度", score=6, reasoning="转写内容稀薄，无明确技术证据", evidence=[],
+    )
+    assert d.evidence == []
+
+
+def test_scorecard_output_accepts_dimension_with_empty_evidence():
+    from app.modules.interview_eval.schemas import ScorecardOutput
+    out = ScorecardOutput(
+        dimensions=[{"name": "技术深度", "score": 6, "reasoning": "内容稀薄", "evidence": []}],
+        hire_recommendation="hold", strengths=[], risks=[], followups=[],
+    )
+    assert out.dimensions[0].evidence == []

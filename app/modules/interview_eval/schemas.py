@@ -27,9 +27,11 @@ class DimensionScore(BaseModel):
     name: str
     score: int = Field(ge=1, le=10)
     reasoning: str = Field(max_length=400)
-    # IE-026: 放宽到 5（prompts.py 没明确限制证据数量，LLM 偶尔输出 4-5 个，
-    # 配合 IE-014 修复后会被判永久错误一次失败而非 retry，需要给 LLM 余量）
-    evidence: list[EvidenceSegment] = Field(min_length=1, max_length=5)
+    # IE-026: 放宽 max_length 到 5（prompts.py 没明确限制证据数量，LLM 偶尔输出 4-5 个）
+    # 2026-05-14: min_length 1→0 —— 真实验收发现弱模型（glm-4-flash）对内容稀薄的维度
+    # 会给空 evidence；一条维度缺引用不应让整张 scorecard 失败（score + reasoning 仍有
+    # 价值），否则 worker 会判永久错误整任务失败。
+    evidence: list[EvidenceSegment] = Field(min_length=0, max_length=5)
 
 
 class ScorecardOutput(BaseModel):
