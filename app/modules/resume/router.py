@@ -497,42 +497,9 @@ async def ai_parse_all_resumes(user_id: int = Depends(get_current_user_id)):
     return {"status": "started", "message": "AI 解析任务已在后台启动"}
 
 
-def _apply_parsed_fields(target, parsed: dict) -> None:
-    """把 AI 解析结果写到 target（Resume 或 IntakeCandidate）。
-    name/phone/email 仅在原值空/未知时填，避免覆盖人工编辑。
-    BUG-060 修复：seniority 改用 _s() 兼容 dict/list。"""
-    def _s(v):
-        return str(v) if isinstance(v, (dict, list)) else (v or "")
-
-    if parsed.get("name") and (not target.name or target.name == "未知"):
-        target.name = _s(parsed["name"])
-    if parsed.get("phone") and not target.phone:
-        target.phone = _s(parsed["phone"])
-    if parsed.get("email") and not target.email:
-        target.email = _s(parsed["email"])
-    if parsed.get("education"):
-        target.education = _s(parsed["education"])
-    if parsed.get("bachelor_school"):
-        target.bachelor_school = _s(parsed["bachelor_school"])
-    if parsed.get("master_school"):
-        target.master_school = _s(parsed["master_school"])
-    if parsed.get("phd_school"):
-        target.phd_school = _s(parsed["phd_school"])
-    if parsed.get("work_years"):
-        val = parsed["work_years"]
-        target.work_years = int(val) if isinstance(val, (int, float)) else 0
-    if parsed.get("skills"):
-        target.skills = _s(parsed["skills"])
-    if parsed.get("work_experience"):
-        target.work_experience = _s(parsed["work_experience"])
-    if parsed.get("project_experience"):
-        target.project_experience = _s(parsed["project_experience"])
-    if parsed.get("self_evaluation"):
-        target.self_evaluation = _s(parsed["self_evaluation"])
-    if parsed.get("job_intention") and not target.job_intention:
-        target.job_intention = _s(parsed["job_intention"])
-    target.seniority = _s(parsed.get("seniority")).strip()
-    target.ai_parsed = "yes"
+# _apply_parsed_fields 已迁入 _ai_parse_core (单条端点与批量 worker 的单一权威实现)。
+# 再导出供历史 import 路径 (tests/chaos/test_chaos_round3.py) 继续可用。
+from app.modules.resume._ai_parse_core import _apply_parsed_fields  # noqa: E402,F401
 
 
 @router.post("/{resume_id}/ai-parse", response_model=ResumeResponse)
@@ -542,7 +509,14 @@ async def ai_parse_single(
     service: ResumeService = Depends(get_resume_service),
     user_id: int = Depends(get_current_user_id),
 ):
-    """AI 解析单条简历。支持 Resume.id 与 IntakeCandidate.id 两种入参。"""
+    """AI 解析单条简历。支持 Resume.id 与 IntakeCandidate.id 两种入参。
+
+    解析核心 (vision/text 检测、字段落库、candidate→Resume promote、F2 锚点)
+    走 _ai_parse_core.ai_parse_target，与批量 worker 同一实现。本端点只负责
+    HTTP 策略层: 鉴权、前置校验、错误码映射、F2 触发派发。
+    """
+    import os
+
     from app.config import settings as cfg
     if not cfg.ai_enabled:
         raise HTTPException(status_code=400, detail="AI 功能未开启")
@@ -550,16 +524,11 @@ async def ai_parse_single(
     target = _resolve_owned_or_404(service, resume_id, user_id)
 
     from app.adapters.ai_provider import AIProvider
-    from app.modules.resume.pdf_parser import ai_parse_resume, ai_parse_resume_vision, is_image_pdf
-    from app.modules.im_intake.candidate_model import IntakeCandidate
-    from app.modules.resume.models import Resume as _R
-    import os
+    from app.modules.resume._ai_parse_core import ai_parse_target
 
     ai = AIProvider()
     if not ai.is_configured():
         raise HTTPException(status_code=400, detail="AI 未配置")
-
-    is_candidate = isinstance(target, IntakeCandidate)
 
     # BUG-085 修复：无 PDF 也无 raw_text 时返 400（用户无可解析输入），而非 500 通用错
     has_pdf = bool(target.pdf_path and os.path.exists(target.pdf_path))
@@ -567,57 +536,14 @@ async def ai_parse_single(
     if not has_pdf and not has_text:
         raise HTTPException(status_code=400, detail="没有 PDF 或聊天文本可解析")
 
-    parsed = {}
-    use_vision = False
-    if has_pdf:
-        if not target.raw_text or len(target.raw_text.strip()) < 50 or is_image_pdf(target.pdf_path):
-            use_vision = True
-
-    if use_vision:
-        parsed = await ai_parse_resume_vision(target.pdf_path, ai)
-        if parsed:
-            target.raw_text = f"[AI视觉解析] 姓名:{parsed.get('name','')} 技能:{parsed.get('skills','')} 经历:{parsed.get('work_experience','')}"
-    elif target.raw_text:
-        parsed = await ai_parse_resume(target.raw_text, ai)
-
-    if not parsed:
-        # BUG-061 修复：双入口一致都标 ai_parsed='failed'
-        target.ai_parsed = "failed"
-        service.db.commit()
+    # ai_parse_target 内部 commit，失败时已标 ai_parsed='failed' (BUG-061 双入口一致)。
+    status, score_resume_id = await ai_parse_target(target, ai, service.db)
+    if status != "yes":
         raise HTTPException(status_code=500, detail="AI 解析失败")
 
-    _apply_parsed_fields(target, parsed)
-
-    # candidate 入口：同步到 promoted Resume（matching 读 Resume 表）；未 promote 则强制 promote
-    promoted_resume = None
-    if is_candidate:
-        if not target.promoted_resume_id:
-            # BUG-059 修复：promote 失败不再静默吞，直接返回 500，避免 candidate.ai_parsed=yes
-            # 但 Resume 不存在的"假成功"。
-            try:
-                from app.modules.im_intake.promote import promote_to_resume
-                promoted_resume = promote_to_resume(service.db, target, user_id=user_id)
-            except Exception as _e:
-                import logging as _log
-                _log.getLogger(__name__).error(f"auto-promote failed: {_e}", exc_info=True)
-                service.db.rollback()
-                raise HTTPException(status_code=500, detail="解析完成但无法落库简历，请稍后重试")
-        else:
-            promoted_resume = service.db.query(_R).filter_by(id=target.promoted_resume_id).first()
-            # BUG-058 修复：跨用户 FK 腐化时不写他人 Resume
-            if promoted_resume is not None and promoted_resume.user_id != user_id:
-                promoted_resume = None
-        if promoted_resume is not None:
-            _apply_parsed_fields(promoted_resume, parsed)
-            if use_vision and target.raw_text:
-                promoted_resume.raw_text = target.raw_text
-
-    service.db.commit()
     service.db.refresh(target)
 
     # F2 T1 trigger: 用 Resume.id 评分（matching 表以 Resume 为外键基础）
-    score_resume_id = (promoted_resume.id if promoted_resume is not None else None) \
-        if is_candidate else target.id
     if score_resume_id:
         try:
             async def _t1_bg():

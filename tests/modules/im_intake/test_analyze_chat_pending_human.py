@@ -54,7 +54,10 @@ def _mk_candidate(db_session, name="张三", boss_id="bxLoop", chat_snapshot=Non
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    # asyncio.run() 每次起独立 loop 并收尾, 不依赖"当前 loop"全局状态。
+    # 旧写法 asyncio.get_event_loop() 在任何先跑过 asyncio.run() 的会话里会取到
+    # None 而抛 RuntimeError —— 让本文件能否通过取决于测试执行顺序。
+    return asyncio.run(coro)
 
 
 def _msgs(boss_id, n_candidate_replies):
