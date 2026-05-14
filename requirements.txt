@@ -18,3 +18,4 @@ pymupdf==1.27.2.2
 apscheduler>=3.10
 playwright==1.58.0
 tencentcloud-sdk-python>=3.0.1300  # F-interview-eval: 录音文件识别 ASR
+imageio-ffmpeg>=0.5.1  # F-interview-eval: 无 COS 模式抽音频，自带静态 ffmpeg 二进制

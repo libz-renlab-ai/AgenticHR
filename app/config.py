@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     tencent_cloud_secret_key: str = ""
     tencent_cloud_asr_region: str = "ap-shanghai"
     interview_eval_recording_retention_days: int = 180
+    # 无 COS 模式下 ASR 可处理的录像时长上限（秒）。audio_extract 在 16kbps 下
+    # 仍超 4.5MB 时拒绝；默认 1680s ≈ 28 分钟。
+    interview_eval_asr_max_duration_sec: int = Field(default=1680, ge=60)
     # 心跳自愈：worker 在每次 _set_status 时打心跳；超过 stale_threshold 无心跳→判死
     # IE-018/IE-019: 校验下界，防误配 0/负数误杀活跃 worker 或事件循环死转
     interview_eval_heartbeat_interval_seconds: int = Field(default=30, ge=5)

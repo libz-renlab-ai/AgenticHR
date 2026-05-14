@@ -33,3 +33,15 @@ def test_reconcile_period_rejects_negative():
 def test_heartbeat_interval_rejects_too_small():
     with pytest.raises(ValidationError):
         Settings(interview_eval_heartbeat_interval_seconds=0)
+
+
+def test_asr_max_duration_rejects_too_small():
+    with pytest.raises(ValidationError):
+        Settings(interview_eval_asr_max_duration_sec=59)
+
+
+def test_asr_max_duration_default_and_valid():
+    s = Settings()
+    assert s.interview_eval_asr_max_duration_sec == 1680
+    s2 = Settings(interview_eval_asr_max_duration_sec=600)
+    assert s2.interview_eval_asr_max_duration_sec == 600
