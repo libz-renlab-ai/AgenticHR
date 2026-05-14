@@ -463,7 +463,8 @@ async function downloadPdf(candidateInfo, expectedName, serverUrl, authToken = '
     // 5. 等待全新的 iframe 出现（之前的已删除，新出现的一定是当前候选人的）
     let iframe = null;
     const t0 = Date.now();
-    while (Date.now() - t0 < 10000) {
+    // 慢网下 PDF iframe 加载慢 — 给到 20s，与本文件其它网络等待量级一致
+    while (Date.now() - t0 < 20000) {
       await sleep(400);
       iframe = document.querySelector('.attachment-iframe, iframe[src*="pdf"], iframe[src*="wflow"]');
       if (iframe && (iframe.getAttribute('src') || '').length > 30) break;
@@ -494,14 +495,17 @@ async function downloadPdf(candidateInfo, expectedName, serverUrl, authToken = '
     await closeDialog();
     await sleep(400);
 
-    // 8. 下载
+    // 8. 下载 — BOSS直聘 卡顿时下载会失败/超时，重试 3 次再放弃
     const fullUrl = pdfUrl.startsWith('http') ? pdfUrl : `https://www.zhipin.com${pdfUrl}`;
-    const resp = await fetch(fullUrl, { credentials: 'include' });
-    if (!resp.ok) { log(`下载失败: ${resp.status}`); return { ok: false }; }
-
-    const blob = await resp.blob();
+    const blob = await intake_retry(async () => {
+      const resp = await fetch(fullUrl, { credentials: 'include' });
+      if (!resp.ok) { log(`下载失败: ${resp.status}`); return null; }
+      const b = await resp.blob();
+      if (b.size < 1024) { log(`文件太小 (${b.size} bytes)`); return null; }
+      return b;
+    }, { tries: 3, delayMs: 1000, label: 'PDF下载' });
+    if (!blob) { return { ok: false }; }
     log(`${blob.size} bytes`);
-    if (blob.size < 1024) { log('文件太小'); return { ok: false }; }
 
     // 9. 上传
     const form = new FormData();
@@ -1268,14 +1272,18 @@ async function intake_typeAndSendChatMessage(text) {
     input.dispatchEvent(new KeyboardEvent("keyup", opts));
   }
 
-  // Verify delivery by watching for new .item-myself message (not by input-cleared heuristic)
-  const deadline = Date.now() + 5000;
+  // Verify delivery by watching for new .item-myself message (not by input-cleared heuristic).
+  // 慢网下消息已发出、但新气泡要等服务端往返+渲染才出现，旧的 5s 窗口太短，
+  // 会把"发送成功但慢"误判为失败 —— 进而触发 outbox 重发 / 重复打扰候选人。
+  // 放宽到 20s，与本文件其它网络等待（聊天同步 12s、bridge 30s）量级一致。
+  const SEND_CONFIRM_MS = 20000;
+  const deadline = Date.now() + SEND_CONFIRM_MS;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 250));
     const afterSelf = document.querySelectorAll(".chat-message-list .message-item .item-myself").length;
     if (afterSelf > beforeSelf) return { ok: true };
   }
-  return { ok: false, reason: "5s 内未见新的 .item-myself 消息，发送可能失败" };
+  return { ok: false, reason: `${SEND_CONFIRM_MS / 1000}s 内未见新的 .item-myself 消息，发送可能失败` };
 }
 
 async function intake_clickRequestResumeButton() {
@@ -1398,6 +1406,28 @@ function intake_waitFor(predicate, timeoutMs) {
     };
     tick();
   });
+}
+
+// Retry an async network step a few times before giving up. BOSS直聘 lag
+// is bursty — a stalled virtual-list scroll or a slow chat-panel sync
+// usually succeeds on a second attempt. `fn(attempt)` should return a
+// truthy value on success, or throw / return falsy on a failed attempt.
+// Returns the first truthy result, or null once `tries` is exhausted —
+// never throws, so callers can treat null as "give up this candidate
+// this round" instead of crashing the whole Step2 loop.
+async function intake_retry(fn, opts) {
+  const { tries = 3, delayMs = 800, label = "" } = opts || {};
+  for (let attempt = 1; attempt <= tries; attempt++) {
+    try {
+      const result = await fn(attempt);
+      if (result) return result;
+    } catch (e) {
+      log(`[retry] ${label} 第${attempt}次失败: ${e?.message || e}`);
+    }
+    if (attempt < tries) await sleep(delayMs * attempt); // linear backoff
+  }
+  if (label) log(`[retry] ${label} ${tries} 次后放弃`);
+  return null;
 }
 
 // Scroll the geek-item virtual list until a row with the given data-id renders
@@ -1846,7 +1876,20 @@ async function step1_scanList() {
 
   // 切换到"全部"标签（含"全部联系人"变体）
   switchToTab("全部") || switchToTab("全部联系人");
-  await sleep(1200);
+  await sleep(800); // 给标签切换留一点过渡时间
+
+  // 等候选人列表真正渲染出来再扫描。慢网/页面未就绪时，Boss 列表可能
+  // 几秒后才出现首行 .geek-item。旧实现只 sleep 后直接读取，列表没加载
+  // 出来时 bridge 与 DOM 兜底都为空 → 误报"扫描 0 人"且 ok:true，
+  // 用户以为采集成功、实则一个候选人都没进系统。
+  // 改为条件等待：最多 15s 等首行出现，超时则明确返回失败而非假成功。
+  try {
+    await intake_waitFor(() => !!document.querySelector(".geek-item"), 15000);
+  } catch (_) {
+    intake_showToast("Step1: 候选人列表未加载，请确认 BOSS 消息页已打开后重试", "error");
+    log("[step1] 候选人列表 15s 内未渲染，放弃本次扫描");
+    return { ok: false, reason: "list_not_loaded" };
+  }
 
   const processed = new Set();
   let registered = 0, failed = 0;
@@ -1967,10 +2010,13 @@ async function step2_enrichCandidates() {
     const bossId = c.boss_id;
     if (!bossId) { skipped_missing++; continue; }
 
-    const geek = await _scrollToGeekItem(bossId);
+    // 慢网下虚拟列表滚动可能一次没到位 — 重试 3 次再判定"不在列表"
+    const geek = await intake_retry(() => _scrollToGeekItem(bossId), {
+      tries: 3, delayMs: 700, label: `滚动定位 ${bossId}`,
+    });
     if (!geek) {
       skipped_missing++;
-      log(`[step2] ${bossId} 不在列表`);
+      log(`[step2] ${bossId} 不在列表（重试 3 次仍未定位）`);
       _missCounts[bossId] = (_missCounts[bossId] || 0) + 1;
       chrome.storage.session.set({ intake_miss_counts: _missCounts }).catch(() => {});
       if (_missCounts[bossId] >= 3 && c.candidate_id) {
@@ -1983,9 +2029,9 @@ async function step2_enrichCandidates() {
       continue;
     }
 
-    // 点击切换到该候选人聊天
-    geek.click();
-    try {
+    // 点击切换到该候选人聊天 — 慢网下面板可能要点第二次才同步，重试 3 次
+    const synced = await intake_retry(async () => {
+      geek.click();
       // 等候选人面板同步：selected 匹配 + name-box 填充 + 至少1条消息渲染
       await intake_waitFor(() => {
         const sel = document.querySelector(".geek-item.selected");
@@ -1994,8 +2040,10 @@ async function step2_enrichCandidates() {
         const noData = !!document.querySelector(".conversation-no-data");
         return sel?.getAttribute("data-id") === bossId && !!nb && (msgs > 0 || noData);
       }, 12000);
-    } catch {
-      log(`[step2] ${bossId} 面板同步超时（含消息加载）`);
+      return true;
+    }, { tries: 3, delayMs: 800, label: `面板同步 ${bossId}` });
+    if (!synced) {
+      log(`[step2] ${bossId} 面板同步超时（重试 3 次仍失败）`);
       failed++;
       continue;
     }
@@ -2041,8 +2089,9 @@ async function step2_enrichCandidates() {
       if (dl?.ok && dl.data) realPdfPath = dl.data.pdf_path || null;
     }
 
-    let collectResp;
-    try {
+    // collect-chat 网络抖动重试 3 次。collect-chat 幂等：skip_outbox=true 不生成
+    // outbox 行，终态有 _TERMINAL_STATUSES 守卫，重跑 analyze_chat 抽取同样消息结果一致。
+    const collectResp = await intake_retry(async () => {
       const r = await fetch(`${serverUrl}/api/intake/collect-chat`, {
         method: "POST",
         headers,
@@ -2060,18 +2109,18 @@ async function step2_enrichCandidates() {
       });
       if (!r.ok) {
         log(`[step2] collect-chat HTTP ${r.status}`);
-        failed++;
-        continue;
+        return null; // 5xx / 抖动 → 重试
       }
-      collectResp = await r.json();
-      // Cache count only on success — prevents candidate being stuck if backend returns 500
-      _msgCounts[bossId] = candidateMsgCount;
-      chrome.storage.session.set({ intake_msg_counts: _msgCounts }).catch(() => {});
-    } catch (e) {
-      log(`[step2] collect-chat error: ${e?.message || e}`);
+      return await r.json();
+    }, { tries: 3, delayMs: 800, label: `collect-chat ${bossId}` });
+    if (!collectResp) {
+      log(`[step2] ${bossId} collect-chat 失败（重试 3 次）`);
       failed++;
       continue;
     }
+    // Cache count only on success — prevents candidate being stuck if backend returns 500
+    _msgCounts[bossId] = candidateMsgCount;
+    chrome.storage.session.set({ intake_msg_counts: _msgCounts }).catch(() => {});
 
     const candidateId = collectResp.candidate_id;
     const action = collectResp.next_action;
