@@ -1,5 +1,11 @@
 """ai_parse worker 单测 — Round 10 BUG-132/143/144/146 修复验证."""
+import asyncio
+
+from sqlalchemy.orm import sessionmaker
+
+from app.modules.im_intake.candidate_model import IntakeCandidate
 from app.modules.resume._ai_parse_worker import _coerce_work_years
+from app.modules.resume.models import Resume
 
 
 class TestBug143CoerceWorkYears:
@@ -43,3 +49,77 @@ class TestBug132NormalizeEducationFallback:
         assert normalize_education("中专") == ""
         assert normalize_education("高中") == ""
         assert normalize_education("大学") == ""  # 模糊词不取
+
+
+class TestDoParseAllCoversIntakeCandidates:
+    """根因回归: /resumes 页面列表来自 IntakeCandidate; 批量 worker 必须解析它们。
+
+    用户报告: 点'手动启动内容解析'后页面零效果 —— 旧 worker 只查 Resume 表。
+    """
+
+    def _setup_session(self, db_engine, monkeypatch):
+        """把 worker 内部的 SessionLocal 指向测试引擎, LLM 与 F2 触发打桩。"""
+        import app.modules.resume._ai_parse_worker as worker
+        import app.modules.matching.triggers as triggers
+
+        TestSession = sessionmaker(
+            bind=db_engine, autocommit=False, autoflush=False
+        )
+        monkeypatch.setattr(worker, "SessionLocal", TestSession)
+
+        async def _fake_parse(raw_text, ai_provider):
+            return {"name": "已解析", "skills": "Go, gRPC"}
+
+        monkeypatch.setattr(
+            "app.modules.resume.pdf_parser.ai_parse_resume", _fake_parse
+        )
+
+        async def _noop_trigger(db, resume_id):
+            return None
+
+        monkeypatch.setattr(triggers, "on_resume_parsed", _noop_trigger)
+
+    def test_processes_unparsed_intake_candidate(
+        self, db_session, db_engine, monkeypatch
+    ):
+        from app.modules.resume._ai_parse_worker import _do_parse_all
+
+        self._setup_session(db_engine, monkeypatch)
+        c = IntakeCandidate(
+            user_id=1, boss_id="bw1", name="未知",
+            raw_text="候选人简历原文原文原文", ai_parsed="no",
+            intake_status="complete", source="plugin",
+        )
+        db_session.add(c)
+        db_session.commit()
+        cid = c.id
+
+        asyncio.run(_do_parse_all(user_id=1))
+
+        db_session.expire_all()
+        refreshed = db_session.query(IntakeCandidate).filter_by(id=cid).first()
+        assert refreshed.ai_parsed == "yes", "批量 worker 应把 IntakeCandidate 解析为 yes"
+        assert refreshed.skills == "Go, gRPC"
+        # 应 promote 出 Resume 作 matching FK 锚点
+        assert refreshed.promoted_resume_id is not None
+
+    def test_skips_other_users_candidates(
+        self, db_session, db_engine, monkeypatch
+    ):
+        from app.modules.resume._ai_parse_worker import _do_parse_all
+
+        self._setup_session(db_engine, monkeypatch)
+        other = IntakeCandidate(
+            user_id=2, boss_id="bw2", name="他人",
+            raw_text="他人简历原文原文", ai_parsed="no",
+            intake_status="complete", source="plugin",
+        )
+        db_session.add(other)
+        db_session.commit()
+        oid = other.id
+
+        asyncio.run(_do_parse_all(user_id=1))
+
+        db_session.expire_all()
+        refreshed = db_session.query(IntakeCandidate).filter_by(id=oid).first()
+        assert refreshed.ai_parsed == "no", "worker 不应碰其他用户的候选人"
