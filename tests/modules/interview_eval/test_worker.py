@@ -35,6 +35,22 @@ def setup_tables():
     yield
 
 
+@pytest.fixture(autouse=True)
+def _path_b_unavailable_by_default(monkeypatch):
+    """默认让 Path B 不可用 → 现存测试走 Path A（monkeypatched _download_recording/_transcribe）。
+
+    需要测 Path B 的用例自行覆盖 worker._scrape_transcript。
+    """
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.tencent_meeting_recording import TranscriptUnavailable
+
+    def _unavailable(interview):
+        raise TranscriptUnavailable("test default: Path B disabled")
+
+    monkeypatch.setattr(worker, "_scrape_transcript", _unavailable)
+    yield
+
+
 def _make_pending_job(db, *, job_id_hint=None, interview_id=2001):
     from app.modules.interview_eval.models import InterviewEvalJob
     from app.modules.scheduling.models import Interview
@@ -199,6 +215,97 @@ def test_worker_terminate_active_handle(monkeypatch):
     from app.modules.interview_eval import worker
     # 不真跑，仅验 API 存在
     assert callable(worker.terminate_active)
+
+
+def test_worker_path_b_scrape_success(monkeypatch, tmp_path):
+    """Path B 成功：用 scrape 的转写稿，不调 _download_recording。"""
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob, InterviewEvalScorecard
+
+    download_called = {"n": 0}
+
+    def _spy_download(iv, dest):
+        download_called["n"] += 1
+        return (str(dest), 1, 1)
+
+    monkeypatch.setattr(worker, "_scrape_transcript", lambda iv: [
+        {"start_ms": 0, "end_ms": 1000, "speaker": "interviewer", "text": "请自我介绍"},
+        {"start_ms": 1100, "end_ms": 3000, "speaker": "candidate", "text": "我做后端三年"},
+    ])
+    monkeypatch.setattr(worker, "_download_recording", _spy_download)
+    monkeypatch.setattr(worker, "_score_with_llm", lambda iv, t: {
+        "dimensions": [
+            {"name": "技术深度", "score": 8, "reasoning": "ok",
+             "evidence": [{"start_ms": 1100, "end_ms": 3000, "speaker": "candidate", "text": "我做后端三年"}]},
+            {"name": "沟通能力", "score": 7, "reasoning": "ok",
+             "evidence": [{"start_ms": 0, "end_ms": 1000, "speaker": "interviewer", "text": "请自我介绍"}]},
+        ],
+        "hire_recommendation": "hire", "strengths": ["扎实"], "risks": [], "followups": [],
+    })
+    monkeypatch.setattr(worker, "_publish_feishu", MagicMock())
+    monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "TRANSCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "RECORDING_DIR", str(tmp_path))
+
+    db = SessionLocal()
+    try:
+        job_id = _make_pending_job(db, interview_id=2060)
+        worker.run(job_id)
+        job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
+        assert job.status == "done", f"got {job.status}: {job.error_msg}"
+        assert download_called["n"] == 0, "Path B 成功时不应调用 download"
+        assert (job.recording_path or "") == ""  # Path B 无 mp4
+        sc = db.query(InterviewEvalScorecard).filter_by(job_id=job_id).first()
+        assert sc is not None and len(sc.dimensions_json) == 2
+    finally:
+        db.close()
+
+
+def test_worker_path_b_falls_back_to_path_a(monkeypatch, tmp_path):
+    """Path B 抛 TranscriptUnavailable → 回退 Path A download + ASR。"""
+    from app.modules.interview_eval import worker
+    from app.modules.interview_eval.models import InterviewEvalJob
+    from app.modules.interview_eval.tencent_meeting_recording import TranscriptUnavailable
+
+    def _unavailable(iv):
+        raise TranscriptUnavailable("no 逐字稿")
+
+    download_called = {"n": 0}
+
+    def _spy_download(iv, dest):
+        download_called["n"] += 1
+        open(dest, "wb").write(b"\x00" * 100)
+        return (str(dest), 100, 60)
+
+    monkeypatch.setattr(worker, "_scrape_transcript", _unavailable)
+    monkeypatch.setattr(worker, "_download_recording", _spy_download)
+    monkeypatch.setattr(worker, "_transcribe", lambda mp4: [
+        {"start_ms": 0, "end_ms": 1000, "speaker": "candidate", "text": "兜底转写"},
+    ])
+    monkeypatch.setattr(worker, "_score_with_llm", lambda iv, t: {
+        "dimensions": [
+            {"name": "技术深度", "score": 6, "reasoning": "ok",
+             "evidence": [{"start_ms": 0, "end_ms": 1000, "speaker": "candidate", "text": "兜底转写"}]},
+            {"name": "沟通能力", "score": 6, "reasoning": "ok",
+             "evidence": [{"start_ms": 0, "end_ms": 1000, "speaker": "candidate", "text": "兜底转写"}]},
+        ],
+        "hire_recommendation": "hold", "strengths": [], "risks": [], "followups": [],
+    })
+    monkeypatch.setattr(worker, "_publish_feishu", MagicMock())
+    monkeypatch.setattr(worker, "_audit", lambda *a, **kw: None)
+    monkeypatch.setattr(worker, "TRANSCRIPT_DIR", str(tmp_path))
+    monkeypatch.setattr(worker, "RECORDING_DIR", str(tmp_path))
+
+    db = SessionLocal()
+    try:
+        job_id = _make_pending_job(db, interview_id=2061)
+        worker.run(job_id)
+        job = db.query(InterviewEvalJob).filter_by(id=job_id).first()
+        assert job.status == "done", f"got {job.status}: {job.error_msg}"
+        assert download_called["n"] == 1, "Path B 不可用时应回退调用 download"
+        assert job.recording_path  # Path A 有 mp4
+    finally:
+        db.close()
 
 
 # ===== Round 11 chaos QA 回归测试 =====

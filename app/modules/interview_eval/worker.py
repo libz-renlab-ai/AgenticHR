@@ -58,9 +58,49 @@ def _download_recording(interview, dest_path: str) -> tuple[str, int, int]:
 
 
 def _transcribe(mp4_path: str) -> list[dict[str, Any]]:
-    """返回 [{start_ms, end_ms, speaker, text}, ...]. Task 6 注入腾讯云 ASR."""
+    """Path A 兜底链路：mp4 → 腾讯云 ASR → [{start_ms, end_ms, speaker, text}, ...]."""
     from app.modules.interview_eval.tencent_asr import transcribe
     return transcribe(mp4_path)
+
+
+def _scrape_transcript(interview) -> list[dict[str, Any]]:
+    """Path B seam：scrape 腾讯会议播放页转写稿。无逐字稿时抛 TranscriptUnavailable。"""
+    from app.modules.interview_eval.tencent_meeting_recording import scrape_transcript
+    return scrape_transcript(interview)
+
+
+def _acquire_transcript(
+    interview, job_id: int
+) -> tuple[list[dict[str, Any]], str, int, int]:
+    """Path B（scrape 转写稿）主 + Path A（download mp4 + ASR）兜底。
+
+    返回 (transcript, recording_path, size_bytes, duration_sec)。
+    Path B 成功：recording_path="" / size=0 / duration=0（无 mp4）。
+    Path A 兜底：返回真实 mp4 路径 + 大小 + 时长。
+    """
+    from app.modules.interview_eval.tencent_meeting_recording import (
+        TranscriptUnavailable,
+    )
+    try:
+        transcript = _scrape_transcript(interview)
+        logger.info(
+            "job %d: transcript via Path B scrape, %d segments",
+            job_id, len(transcript),
+        )
+        return transcript, "", 0, 0
+    except TranscriptUnavailable as e:
+        logger.info(
+            "job %d: Path B unavailable (%s) — fallback to Path A", job_id, e
+        )
+    # Path A 兜底：下载 mp4 → ffmpeg 抽音频 → 腾讯云 ASR
+    dest = os.path.join(RECORDING_DIR, f"{job_id}.mp4")
+    recording_path, size, duration = _download_recording(interview, dest)
+    transcript = _transcribe(recording_path)
+    logger.info(
+        "job %d: transcript via Path A download+ASR, %d segments",
+        job_id, len(transcript),
+    )
+    return transcript, recording_path, size, duration
 
 
 def _chat_complete_sync(system: str, user: str, temperature: float = 0.2) -> str:
@@ -237,23 +277,20 @@ def run(job_id: int) -> None:
             _set_status(db, job_id, "failed", error_msg="interview 不存在")
             return
 
-        # ---- 1. download ----
-        current_step = "download"
-        _set_status(db, job_id, "downloading")
-        if _check_cancel(db, job_id): return
-        _audit("ieval_start", entity_id=job_id)
-        dest = os.path.join(RECORDING_DIR, f"{job_id}.mp4")
-        recording_path, size, duration = _download_recording(interview, dest)
-        _set_status(db, job_id, "downloading",
-                    recording_path=recording_path, recording_size=size,
-                    duration_sec=duration)
-        _audit("download_recording", entity_id=job_id, size=size, duration=duration)
-
-        # ---- 2. transcribe ----
+        # ---- 1. 获取转写稿（Path B scrape 主 + Path A download+ASR 兜底）----
         current_step = "transcribe"
         _set_status(db, job_id, "transcribing")
         if _check_cancel(db, job_id): return
-        transcript = _transcribe(recording_path)
+        _audit("ieval_start", entity_id=job_id)
+        transcript, recording_path, size, duration = _acquire_transcript(
+            interview, job_id
+        )
+        _set_status(db, job_id, "transcribing",
+                    recording_path=recording_path, recording_size=size,
+                    duration_sec=duration)
+        if recording_path:  # Path A 兜底被触发，留痕下载事件
+            _audit("download_recording", entity_id=job_id, size=size,
+                   duration=duration)
         transcript_path = os.path.join(TRANSCRIPT_DIR, f"{job_id}.json")
         with open(transcript_path, "w", encoding="utf-8") as f:
             json.dump(transcript, f, ensure_ascii=False, indent=2)
