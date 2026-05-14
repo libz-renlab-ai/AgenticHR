@@ -193,9 +193,32 @@ class IntakeService:
             from app.modules.im_intake.outbox_service import expire_pending_for_candidate
             expire_pending_for_candidate(self.db, candidate.id, reason="hard_slots_filled")
 
+        # ── 自愈：聊天记录才是"是否已发问"的真相源 ──────────────────────────
+        # 后端"已发问"的认知本来只靠扩展在确认发送成功后回调 ack-sent。但慢网下
+        # 发送确认会假失败、或弹窗中途关闭 → ack-sent 不落地 → asked_at 一直是
+        # None → decide_next_action 会立即重发同一条硬槽位问题（陈成功重复发问
+        # bug）。而问题本身就躺在聊天里：pack_hard() 的每条输出都带下面这个
+        # marker。看到它 = 我们问过了，与 ack 回调是否到达无关。
+        hr_asked_in_chat = any(
+            m.get("sender_id") == "self"
+            and "想跟您先确认几个信息" in (m.get("content") or "")
+            for m in merged_messages
+        )
+        if hr_asked_in_chat and not any(
+            slots_by[k].asked_at for k in HARD_SLOT_KEYS if k in slots_by
+        ):
+            heal_now = datetime.now(timezone.utc)
+            for k in HARD_SLOT_KEYS:
+                s = slots_by.get(k)
+                if s and not s.value:
+                    s.asked_at = heal_now
+                    s.ask_count = max(s.ask_count, 1)
+            self.db.commit()
+
         # BUG-B1 防循环：候选人已多次回复 + 之前问过 + SlotFiller 仍抽不到
         # → 多半是语义不清或 LLM 抽取盲区，再问也是空。转 pending_human 让 HR 介入。
-        # 阈值：candidate_msg_count ≥ 2 且 至少一个 hard slot ask_count > 0。
+        # 阈值：candidate_msg_count ≥ 2 且 之前问过（ask_count > 0 或聊天里有
+        # pack_hard 问题——后者覆盖 ack-sent 漏调导致 ask_count 没涨的情况）。
         still_unfilled = [k for k in HARD_SLOT_KEYS
                           if slots_by.get(k) and not slots_by[k].value]
         if still_unfilled:
@@ -203,7 +226,7 @@ class IntakeService:
                 1 for m in merged_messages
                 if m.get("sender_id") == candidate.boss_id
             )
-            already_asked_some = any(
+            already_asked_some = hr_asked_in_chat or any(
                 slots_by[k].ask_count > 0
                 for k in HARD_SLOT_KEYS if k in slots_by
             )

@@ -18,8 +18,18 @@
           <el-option label="已淘汰" value="rejected" />
           <el-option label="待筛选" value="pending" />
         </el-select>
-        <el-upload :show-file-list="false" accept=".pdf" :http-request="handleUpload">
-          <el-button type="primary">上传PDF简历</el-button>
+        <el-upload
+          ref="batchUploadRef"
+          :show-file-list="false"
+          accept=".pdf"
+          multiple
+          :auto-upload="false"
+          :on-change="onBatchChange"
+        >
+          <el-button type="primary" :disabled="batchUploading">
+            <el-icon v-if="batchUploading" class="is-loading" style="margin-right: 4px"><Loading /></el-icon>
+            {{ batchUploading ? `上传中 ${batchDone + batchFailed}/${batchTotal}` : '上传PDF简历（可多选）' }}
+          </el-button>
         </el-upload>
         <el-button
           type="warning"
@@ -260,6 +270,15 @@ const aiParseRunning = ref(false)
 const aiParseProgress = ref({ total: 0, completed: 0, failed: 0, current: '' })
 const expandedId = ref(null)  // 当前展开的简历 id（只允许一个）
 const currentMatching = ref([])
+
+// 批量上传状态
+const batchUploadRef = ref(null)
+const batchUploading = ref(false)
+const batchTotal = ref(0)
+const batchDone = ref(0)
+const batchFailed = ref(0)
+let pendingBatchFiles = []
+let batchDebounceTimer = null
 
 const visibleResumes = computed(() => resumes.value)
 
@@ -597,14 +616,48 @@ async function clearAll() {
   }
 }
 
-async function handleUpload({ file }) {
-  try {
-    await resumeApi.upload(file)
-    ElMessage.success('上传成功')
-    loadResumes()
-  } catch (e) {
-    ElMessage.error('上传失败')
+// el-upload 的 on-change 对每个选中文件各触发一次（auto-upload=false）。
+// 用 50ms debounce 把"一次多选"的 N 次回调收敛成一次批量上传。
+function onBatchChange(_file, fileList) {
+  if (batchUploading.value) return
+  pendingBatchFiles = fileList.filter(f => f.raw)
+  if (batchDebounceTimer) clearTimeout(batchDebounceTimer)
+  batchDebounceTimer = setTimeout(() => {
+    batchDebounceTimer = null
+    const files = pendingBatchFiles.slice()
+    pendingBatchFiles = []
+    if (files.length) runBatchUpload(files)
+  }, 50)
+}
+
+// 逐份顺序上传：进度清晰、不会同时打满后端、单份失败互不影响。
+async function runBatchUpload(files) {
+  batchUploading.value = true
+  batchTotal.value = files.length
+  batchDone.value = 0
+  batchFailed.value = 0
+  const failedNames = []
+  for (const f of files) {
+    try {
+      await resumeApi.upload(f.raw)
+      batchDone.value++
+    } catch (e) {
+      batchFailed.value++
+      failedNames.push(`${f.name}：${e.response?.data?.detail || e.message || '上传失败'}`)
+    }
   }
+  batchUploadRef.value?.clearFiles()
+  if (batchFailed.value === 0) {
+    ElMessage.success(`上传完成：${batchDone.value} 份全部成功`)
+  } else {
+    ElMessageBox.alert(
+      `成功 ${batchDone.value} 份，失败 ${batchFailed.value} 份。\n\n失败明细：\n${failedNames.join('\n')}`,
+      '批量上传结果',
+      { type: 'warning', confirmButtonText: '知道了' }
+    )
+  }
+  batchUploading.value = false
+  loadResumes()
 }
 
 onMounted(loadResumes)
