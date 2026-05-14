@@ -223,11 +223,72 @@ def scrape_transcript(interview) -> list[dict]:
             pass
 
 
-# ---------------- Path A：下载 mp4（兜底，Task 6 实现）----------------
+# ---------------- Path A：下载 mp4（兜底）----------------
+
+def _click_video_download(player) -> None:
+    """播放页：另存为 → 下载至本地 → 原视频文件。
+
+    调用方需把本函数包在 player.expect_download() 上下文里。
+
+    Raises:
+        RuntimeError: 未找到「另存为」/「下载至本地」；或「原视频文件」不可下载
+                      （转写记录类型 / 需腾讯会议付费版 —— DOM 上 display:none）
+    """
+    header = player.query_selector('.saveas-btn .met-dropdown__header')
+    if header is None:
+        raise RuntimeError("播放页未找到「另存为」按钮，DOM 结构可能已变")
+    header.click()
+    player.wait_for_timeout(1000)
+
+    submenu = player.query_selector('li.tea-list__submenu')  # 含「下载至本地」
+    if submenu is None:
+        raise RuntimeError("「另存为」下拉未找到「下载至本地」子菜单")
+    submenu.hover()
+    player.wait_for_timeout(800)
+
+    video_li = player.query_selector(
+        'li.tea-list__submenu .tea-dropdown-box li:has-text("原视频文件")'
+    )
+    if video_li is None or not video_li.is_visible():
+        raise RuntimeError(
+            "「原视频文件」下载不可用 —— 该录制可能是转写记录类型，"
+            "或下载原视频需腾讯会议付费版"
+        )
+    video_li.click()
+
 
 def download(interview, dest_path: str) -> tuple[str, int, int]:
-    """Path A 兜底：下载录制 mp4。返回 (path, size_bytes, duration_sec)。
+    """Path A 兜底：下载录制 mp4（另存为 → 下载至本地 → 原视频文件）。
 
-    Task 6 实现。
+    返回 (path, size_bytes, duration_sec)。duration 在播放页抓不到，填 0。
+
+    Raises:
+        RuntimeError: 登录态过期 / meeting_id 找不到 / 原视频文件不可下载 / 超 2GB
     """
-    raise NotImplementedError("Path A download — Task 6 实现")
+    ctx, player = _open_player_page(interview)
+    try:
+        with player.expect_download(timeout=DOWNLOAD_TIMEOUT_MS) as dl_info:
+            _click_video_download(player)
+        dl_info.value.save_as(dest_path)
+
+        size = os.path.getsize(dest_path)
+        if size > MAX_DOWNLOAD_BYTES:
+            try:
+                os.remove(dest_path)
+            except OSError:
+                pass
+            raise RuntimeError(
+                f"录像超过单文件上限 {MAX_DOWNLOAD_BYTES // (1024**3)}GB，"
+                "请缩短会议时长或调整 MAX_DOWNLOAD_BYTES"
+            )
+
+        logger.info(
+            "download: meeting_id=%s → %s (%d bytes)",
+            interview.meeting_id, dest_path, size,
+        )
+        return dest_path, size, 0
+    finally:
+        try:
+            ctx.close()
+        except Exception:
+            pass

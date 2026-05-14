@@ -118,3 +118,120 @@ def test_scrape_transcript_unavailable(monkeypatch):
     with pytest.raises(tmr.TranscriptUnavailable):
         tmr.scrape_transcript(_make_interview())
     fake_ctx.close.assert_called_once()
+
+
+# ---- Path A: download ----
+
+class _FakeDLInfo:
+    def __init__(self, download):
+        self.value = download
+
+
+class _FakeExpectDownload:
+    """模拟 page.expect_download() 上下文管理器。"""
+    def __init__(self, download):
+        self._info = _FakeDLInfo(download)
+
+    def __enter__(self):
+        return self._info
+
+    def __exit__(self, *a):
+        return False
+
+
+def test_download_happy_path(tmp_path, monkeypatch):
+    from app.modules.interview_eval import tencent_meeting_recording as tmr
+    dest = str(tmp_path / "rec.mp4")
+    fake_download = MagicMock()
+    fake_download.save_as = lambda p: open(p, "wb").write(b"\x00" * 4096)
+    fake_ctx = MagicMock()
+    fake_player = MagicMock()
+    fake_player.expect_download.return_value = _FakeExpectDownload(fake_download)
+    monkeypatch.setattr(tmr, "_open_player_page", lambda iv: (fake_ctx, fake_player))
+    monkeypatch.setattr(tmr, "_click_video_download", lambda player: None)
+
+    path, size, duration = tmr.download(_make_interview(), dest)
+    assert path == dest
+    assert size == 4096
+    assert duration == 0  # 播放页抓不到时长，填 0
+    fake_ctx.close.assert_called_once()
+
+
+def test_download_oversize_guard(tmp_path, monkeypatch):
+    from app.modules.interview_eval import tencent_meeting_recording as tmr
+    import os
+    monkeypatch.setattr(tmr, "MAX_DOWNLOAD_BYTES", 10)  # 人为压低
+    dest = str(tmp_path / "big.mp4")
+    fake_download = MagicMock()
+    fake_download.save_as = lambda p: open(p, "wb").write(b"\x00" * 1024)
+    fake_ctx = MagicMock()
+    fake_player = MagicMock()
+    fake_player.expect_download.return_value = _FakeExpectDownload(fake_download)
+    monkeypatch.setattr(tmr, "_open_player_page", lambda iv: (fake_ctx, fake_player))
+    monkeypatch.setattr(tmr, "_click_video_download", lambda player: None)
+
+    with pytest.raises(RuntimeError) as exc:
+        tmr.download(_make_interview(), dest)
+    assert "2GB" in str(exc.value) or "上限" in str(exc.value)
+    assert not os.path.exists(dest)  # 超限文件已删
+
+
+def test_download_login_expired(monkeypatch):
+    """_open_player_page 抛登录过期 → download 透传。"""
+    from app.modules.interview_eval import tencent_meeting_recording as tmr
+
+    def _raise(iv):
+        raise RuntimeError("账号 'main' 登录态过期，请重新扫码登录")
+
+    monkeypatch.setattr(tmr, "_open_player_page", _raise)
+    with pytest.raises(RuntimeError) as exc:
+        tmr.download(_make_interview(), "/tmp/x.mp4")
+    assert "登录" in str(exc.value)
+
+
+def test_click_video_download_unavailable():
+    """原视频文件 display:none / 不可见 → RuntimeError。"""
+    from app.modules.interview_eval import tencent_meeting_recording as tmr
+    player = MagicMock()
+    header = MagicMock()
+    submenu = MagicMock()
+    video_li = MagicMock()
+    video_li.is_visible.return_value = False  # display:none
+
+    def _qs(sel):
+        if "met-dropdown__header" in sel:
+            return header
+        if "tea-list__submenu" in sel and "原视频文件" not in sel:
+            return submenu
+        if "原视频文件" in sel:
+            return video_li
+        return None
+
+    player.query_selector.side_effect = _qs
+    with pytest.raises(RuntimeError) as exc:
+        tmr._click_video_download(player)
+    assert "原视频文件" in str(exc.value)
+
+
+def test_click_video_download_success():
+    """所有元素就位 → 依次点击，不抛异常。"""
+    from app.modules.interview_eval import tencent_meeting_recording as tmr
+    player = MagicMock()
+    header = MagicMock()
+    submenu = MagicMock()
+    video_li = MagicMock()
+    video_li.is_visible.return_value = True
+
+    def _qs(sel):
+        if "met-dropdown__header" in sel:
+            return header
+        if "tea-list__submenu" in sel and "原视频文件" not in sel:
+            return submenu
+        if "原视频文件" in sel:
+            return video_li
+        return None
+
+    player.query_selector.side_effect = _qs
+    tmr._click_video_download(player)  # 不应抛
+    header.click.assert_called_once()
+    video_li.click.assert_called_once()
