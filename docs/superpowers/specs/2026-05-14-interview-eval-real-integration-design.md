@@ -253,3 +253,37 @@ HR 点 [分析面试] → POST /api/interview-eval/start → worker.run(job_id):
 
 **作者**：Claude Opus 4.7 + AgenticHR maintainer
 **Brainstorm 决策记录**：2026-05-14 对话（R1-R10）
+
+---
+
+## REVISION 2026-05-14（实地投查后调整）— Path B 主 + Path A 兜底
+
+Task 4 实地抓腾讯会议录制页 DOM 时发现两个关键事实，触发架构调整：
+
+### 发现
+
+1. **腾讯会议播放页已自带 AI 转写稿** —— 点录制视频封面打开播放页（`meeting.tencent.com/ctw/...`），右侧「逐字稿」面板已有完整的「说话人 + `mm:ss` 时间戳 + 文本」结构化内容（DOM 容器 `.minutes-module-paragraph-box`），可直接 scrape。这正是 `tencent_asr.transcribe()` 要产出的东西。
+2. **但 AI 转写不是永久免费** —— 经查证（meeting.tencent.com 官方）：AI 转写属「AI 小助手」，免费版仅「免费限时体验」，完整/不限时需专业版+。即当前账号能 scrape 到转写稿是**体验期状态**，腾讯随时可能收回或限额。
+3. **mp4 下载路径**：录制列表行「导出」下载的是转写稿 `.docx`（非视频）；真正的 mp4 在播放页「另存为」下拉的「下载至本地」。
+
+### 决策 R11：Path B 主 + Path A 兜底
+
+| # | 决策项 | 选择 | 理由 |
+|---|---|---|---|
+| R11 | 转写稿获取策略 | **Path B（scrape 腾讯播放页转写稿）为主，Path A（mp4→ffmpeg→腾讯云 ASR）为兜底** | Path B 体验期内免费、快、无 5MB/COS 限制；但因非永久免费，需 Path A 作为体验期过/未开转写/DOM 变时的兜底。Path A 用的腾讯云 ASR 是付费但稳定的 API。用户 2026-05-14 拍板。 |
+
+### 对原设计的影响
+
+- **R8 作废**：worker 状态机不再「零改动」。新增 `_acquire_transcript(interview)` 编排：先 Path B `scrape_transcript()`，抛 `TranscriptUnavailable` 时回退 Path A `download()`+`transcribe()`。worker 的 download/transcribe 两步合并为一个 transcribe 步骤。
+- **Task 1-3 不浪费**：`audio_extract.py` + `tencent_asr.py` 接线 = Path A 兜底链路，保留。
+- **`tencent_meeting_recording.py`** 同时提供两个入口：
+  - `scrape_transcript(interview) -> list[dict]`（Path B）—— 打开播放页，scrape `.minutes-module-paragraph-box`，无转写稿时抛 `TranscriptUnavailable`
+  - `download(interview, dest) -> tuple[str,int,int]`（Path A 兜底）—— 播放页「另存为」→「下载至本地」接 mp4
+- **说话人映射**：Path B 的 scrape 拿到的是真实姓名（如「李博泽」），Path A 的 ASR 拿到的是 SpeakerId。两路都需归一到 `interviewer`/`candidate` —— 复用同款「按发言时长启发式」（发言少→interviewer）。
+- **mp4 与 UI 播放器**：Path B 成功时不下载 mp4，前端录像播放器显示「无录像」（可接受的取舍，scorecard + 转写稿是核心价值）；Path A 兜底触发时才有 mp4。
+- **改动文件清单**追加：`worker.py`（新增 `_acquire_transcript`，改 run() 的 download+transcribe 段）、`test_worker.py`（适配）。
+
+### Path B 不可用的判定（触发 Path A 兜底）
+
+`scrape_transcript()` 抛 `TranscriptUnavailable` 的情形：播放页无「逐字稿」面板 / `.minutes-module-paragraph-box` 0 条。
+硬错误（登录态过期等 `RuntimeError`）直接传播 —— 不触发兜底（因为 Path A 也需要登录，兜底也会失败）。

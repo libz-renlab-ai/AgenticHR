@@ -953,3 +953,70 @@ git commit -m "test(ie): F-interview-eval 真实端到端验收通过"
 **Placeholder scan：** Task 5 的 4 个 selector 辅助函数体标注 `[Task 4 findings 填实]` —— 这不是偷懒占位，是 spec R7 明确锁定的「先投查后实现」依赖；编排逻辑/错误处理/测试均已完整给出，执行时仅填 4 个 selector 字符串。其余无 TBD/TODO。
 
 **Type consistency：** `extract_audio(mp4_path, max_bytes, max_duration_sec)` 签名 Task 2/3 一致；`download(interview, dest_path) -> tuple[str,int,int]` 与 worker `_download_recording` 调用契约一致；辅助函数名 `_find_recording_row/_is_generating/_extract_duration/_click_download` 在 Task 5 实现与测试间一致。
+
+---
+
+## REVISION 2026-05-14 — Path B 主 + Path A 兜底（Task 4 投查后重排）
+
+见 spec REVISION 节（R11）。Task 1-3 已完成（不变，作为 Path A 兜底链路）。**Task 4-7 作废，重排为下列 Task 4-9。**
+
+### Task 4（已完成）：实地抓录制页 DOM —— 两路 findings
+
+投查产物在 `artifacts/ie-acceptance/`（record_page.png/html、rows_probe.json、export.json、player.json、saveas.json、transcript_probe.json 等）。关键 selector：
+
+- **录制列表行**：`tr[class*="recordListRow"]`；会议号文本在 `[class*="recordInfo"] span`，格式 `会议号：XXX XXX XXX`（带空格）
+- **进播放页**：点行内视频封面 `[class*="VideoCover_Video"]` → `ctx.expect_page()` 接新 tab，URL `meeting.tencent.com/ctw/...`
+- **Path B 转写稿**：播放页右侧「逐字稿」，条目容器 `.minutes-module-paragraph-box`（每条含说话人块 `.minutes-module-speaker` / 名+时间 `.minutes-module-name-time`）；实现时需再 1 次微探确认「名 / 时间 / 正文」子 selector
+- **Path A 下载**：播放页 `div.met-dropdown.saveas-btn`（「另存为」）→ 下拉「下载至本地」；`met-dropdown` 组件需 hover/click `.met-dropdown__header` 触发，实现时需再 1 次微探确认下拉项 selector
+- **不可用**：列表行「导出」下的是转写稿 `.docx`（非 mp4），弃用
+
+### Task 5：Path B —— `scrape_transcript()` + 微探子结构
+
+**Files:** Modify `app/modules/interview_eval/tencent_meeting_recording.py`；Test `tests/modules/interview_eval/test_tencent_meeting_recording.py`
+
+- [ ] 微探 1 次：确认转写稿条目内「说话人名 / mm:ss 时间 / 正文」子 selector（写 `scripts_tmp/inspect_transcript2.py`，投后删）
+- [ ] 写失败测试：`test_scrape_transcript_*` —— mock Playwright，验证：有转写稿→返回 `[{start_ms,end_ms,speaker,text}]`（speaker 归一 interviewer/candidate）；无逐字稿面板→抛 `TranscriptUnavailable`；登录过期→`RuntimeError`
+- [ ] 实现：
+  - `class TranscriptUnavailable(Exception)` —— Path B 不可用信号（触发兜底）
+  - `_open_player_page(interview) -> (ctx, page)` —— 列表页→按 meeting_id 找行→点封面→接新 tab→等播放页加载
+  - `scrape_transcript(interview) -> list[dict]` —— scrape `.minutes-module-paragraph-box`；每条解析说话人名+`mm:ss`→`start_ms`+正文；`mm:ss` 转 `start_ms`，`end_ms` 用下一条 start（末条 +一个估值）；说话人按发言时长启发式归一 `interviewer`/`candidate`；0 条 → 抛 `TranscriptUnavailable`；登录态过期 → `RuntimeError`
+- [ ] 跑测试绿 + 提交
+
+### Task 6：Path A 兜底 —— `download()` + 微探 saveas
+
+**Files:** Modify `tencent_meeting_recording.py`；Test 同上文件
+
+- [ ] 微探 1 次：确认「另存为」下拉触发方式 + 「下载至本地」exact selector（`scripts_tmp/inspect_saveas2.py`，投后删）
+- [ ] 写失败测试：`test_download_*` —— mock Playwright：登录过期→`RuntimeError`；meeting_id 找不到行→`RuntimeError`；`expect_download` 成功路径→返回 `(path,size,duration)`；>2GB 守卫
+- [ ] 实现 `download(interview, dest_path) -> tuple[str,int,int]`：复用 `_open_player_page`；播放页点「另存为」→「下载至本地」→ `page.expect_download()` 接住 `save_as(dest_path)`；2GB 守卫；duration 抓不到填 0
+- [ ] 跑测试绿 + 提交
+
+### Task 7：worker 混合编排 —— `_acquire_transcript()`
+
+**Files:** Modify `app/modules/interview_eval/worker.py`；Test `tests/modules/interview_eval/test_worker.py`
+
+- [ ] 读 `test_worker.py` 摸清现有状态机测试如何 mock `_download_recording`/`_transcribe`
+- [ ] 写失败测试：worker 在 Path B 成功时不调 download；Path B 抛 `TranscriptUnavailable` 时回退调 download+transcribe；其余状态机路径（cancel/failed）不回归
+- [ ] 实现：
+  - 新增 `_acquire_transcript(interview) -> (transcript, recording_path, size, duration)`：先 `tencent_meeting_recording.scrape_transcript()`；捕获 `TranscriptUnavailable` → 回退 `_download_recording()` + `_transcribe()`；Path B 成功返回 `(transcript, "", 0, 0)`
+  - 改 `run()`：原「download」+「transcribe」两段合并为一段 transcribe 步，调 `_acquire_transcript`；保留 `_audit("ieval_start")` / `_audit("asr_call", segments=...)` / `_set_status(..., recording_path/size/duration)` / 写 transcript json / `_check_cancel`
+  - 保留 `_download_recording`/`_transcribe` 两个 seam（`_acquire_transcript` 内部调用，测试可 monkeypatch）
+- [ ] 跑 `test_worker.py` + 全 `tests/modules/interview_eval/` 绿 + 提交
+
+### Task 8：全量回归
+
+- [ ] `python -m pytest tests/modules/interview_eval/ -v` 零回归
+- [ ] `python -m pytest tests/modules/ -q` 不低于基线（e42214f：742 passed）
+- [ ] `cd frontend; pnpm test; pnpm typecheck` 绿
+- [ ] 有回归→修根因重跑
+
+### Task 9：真实端到端验收
+
+前置：用户 `main` 账号有真实录制（已确认有 15 个，含「转写_面试-Jeason-李博泽」会议号 204 110 229）。
+
+- [ ] ASR 凭据冒烟（Path A 兜底链路验真，`scripts_tmp/smoke_asr.py`）—— 失败则停下找用户
+- [ ] 预置真实数据：在 `data/recruitment.db` 建 job（competency_model approved）+ resume + interview（真实 meeting_id，如 `204110229`）
+- [ ] 启后端，`POST /api/interview-eval/start`，轮询 job 走 `pending→transcribing→scoring→done`（Path B 命中，不下 mp4）
+- [ ] 验证 5 项证据：transcript json 有真实分段 + scorecard 有真实 LLM 结论 + audit_events 齐 + 前端 AI 面评 Tab 渲染正常 + （可选）单独验一次 Path A 兜底
+- [ ] 清理 `scripts_tmp/`、临时验收数据脚本；`git status` 无遗留垃圾
+- [ ] 写验收报告 `docs/superpowers/reports/2026-05-14-interview-eval-acceptance.md`
