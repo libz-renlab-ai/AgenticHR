@@ -57,6 +57,7 @@ def _open_player_page(interview):
         user_data_dir=data_dir, headless=False, timeout=60_000,
         accept_downloads=True,
     )
+    ctx._pw = p  # 存 playwright 实例，_close_player 用它完整清理（防 driver 进程泄漏）
     try:
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto(RECORD_LIST_URL, wait_until="networkidle", timeout=60_000)
@@ -92,11 +93,22 @@ def _open_player_page(interview):
         player.wait_for_timeout(5000)  # 逐字稿异步渲染
         return ctx, player
     except Exception:
-        try:
-            ctx.close()
-        except Exception:
-            pass
+        _close_player(ctx)
         raise
+
+
+def _close_player(ctx) -> None:
+    """关闭 browser context + 停 playwright 实例（防 driver 子进程泄漏）。"""
+    try:
+        ctx.close()
+    except Exception:
+        pass
+    try:
+        pw = getattr(ctx, "_pw", None)
+        if pw is not None:
+            pw.stop()
+    except Exception:
+        pass
 
 
 def _find_recording_row(page, meeting_id: str):
@@ -217,10 +229,7 @@ def scrape_transcript(interview) -> list[dict]:
         )
         return segments
     finally:
-        try:
-            ctx.close()
-        except Exception:
-            pass
+        _close_player(ctx)
 
 
 # ---------------- Path A：下载 mp4（兜底）----------------
@@ -288,7 +297,4 @@ def download(interview, dest_path: str) -> tuple[str, int, int]:
         )
         return dest_path, size, 0
     finally:
-        try:
-            ctx.close()
-        except Exception:
-            pass
+        _close_player(ctx)
