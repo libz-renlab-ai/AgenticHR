@@ -1,0 +1,104 @@
+{
+  "scorecard": {
+    "dimensions": [
+      {
+        "name": "技术深度",
+        "score": 3,
+        "reasoning": "候选人没有提供具体的技术细节，无法评估其对后端核心技术的掌握深度。",
+        "evidence": []
+      },
+      {
+        "name": "沟通表达",
+        "score": 4,
+        "reasoning": "候选人在开场时表达清晰，尽管存在一些口误和语速问题，但整体上能够流畅地介绍自己。",
+        "evidence": [
+          {
+            "start_ms": 35000,
+            "end_ms": 38000,
+            "speaker": "candidate",
+            "text": "可以听见各位老师，我来给大家汇报一下。"
+          },
+          {
+            "start_ms": 99000,
+            "end_ms": 129000,
+            "speaker": "candidate",
+            "text": "各位老师大家好，我是。"
+          },
+          {
+            "start_ms": 170000,
+            "end_ms": 342000,
+            "speaker": "candidate",
+            "text": "从这么几个地？"
+          }
+        ]
+      }
+    ],
+    "hire_recommendation": "hold",
+    "strengths": [
+      "候选人能够清晰地进行自我介绍，表达流畅。"
+    ],
+    "risks": [
+      "候选人缺乏具体的技术细节，无法评估其技术深度。",
+      "存在口误和语速问题，可能影响沟通效率。"
+    ],
+    "followups": [
+      "请详细描述您在Python、FastAPI和SQLAlchemy方面的具体应用经验。",
+      "能否举例说明您解决过的一个复杂的技术问题？"
+    ],
+    "llm_model": "glm-4-flash",
+    "prompt_version": "interview_eval_v1"
+  },
+  "transcript": {
+    "path": "data/transcripts/66.json",
+    "segments": 9,
+    "sample": [
+      {
+        "start_ms": 27000,
+        "end_ms": 35000,
+        "speaker": "candidate",
+        "text": "喂。你能听清吗？"
+      },
+      {
+        "start_ms": 35000,
+        "end_ms": 38000,
+        "speaker": "candidate",
+        "text": "可以听见各位老师，我来给大家汇报一下。"
+      },
+      {
+        "start_ms": 38000,
+        "end_ms": 92000,
+        "speaker": "candidate",
+        "text": "发展千万我来说。"
+      },
+      {
+        "start_ms": 92000,
+        "end_ms": 93000,
+        "speaker": "candidate",
+        "text": "好，各位老师！"
+      },
+      {
+        "start_ms": 93000,
+        "end_ms": 99000,
+        "speaker": "candidate",
+        "text": "各位老师。"
+      }
+    ]
+  },
+  "audit_events": [
+    "llm_call",
+    "pdf_uploaded",
+    "create",
+    "slot_fill",
+    "slot_fill",
+    "send_hard",
+    "asr_call",
+    "asr_call",
+    "failed_at_score",
+    "auto_complete",
+    "ieval_start",
+    "ieval_start",
+    "publish"
+  ],
+  "job_id": 66,
+  "final_status": "done"
+}

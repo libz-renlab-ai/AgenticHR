@@ -1,0 +1,68 @@
+{
+  "player_url": "https://meeting.tencent.com/ctw/KPWA5yjW7e",
+  "probe": {
+    "count": 9,
+    "firstItemLeaves": [
+      {
+        "tag": "SPAN",
+        "cls": "",
+        "text": "李博泽"
+      },
+      {
+        "tag": "DIV",
+        "cls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time",
+        "text": "00:27"
+      },
+      {
+        "tag": "SPAN",
+        "cls": "word-module_word__4lxC- minutes-module-word word-module_detail-page-style__Oq1v2",
+        "text": "喂。你能听清吗？"
+      }
+    ],
+    "firstItemHTML": "<div class=\"minutes-module-paragraph-box paragraph-module_paragraph-box__FPUA9\"><div class=\"paragraph-module_speaker__zNDfG minutes-module-speaker paragraph-module_detail-page-style__Lhz8l\"><div class=\"paragraph-module_name-time__Rm7zW minutes-module-name-time\"><div class=\"paragraph-module_speaker-avatar__DC4Ov minutes-module-speaker-avatar\" style=\"background-image: url(&quot;data:image/png;base64,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",
+    "first6Texts": [
+      {
+        "full": "李博泽00:27喂。你能听清吗？",
+        "speakerGuess": "李博泽00:27",
+        "speakerGuessCls": "paragraph-module_name-time__Rm7zW minutes-module-name-time",
+        "timeGuess": "00:27",
+        "timeGuessCls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time"
+      },
+      {
+        "full": "李博泽00:35可以听见各位老师，我来给大家汇报一下。",
+        "speakerGuess": "李博泽00:35",
+        "speakerGuessCls": "paragraph-module_name-time__Rm7zW minutes-module-name-time",
+        "timeGuess": "00:35",
+        "timeGuessCls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time"
+      },
+      {
+        "full": "李博泽00:38发展千万我来说。",
+        "speakerGuess": "李博泽00:38",
+        "speakerGuessCls": "paragraph-module_name-time__Rm7zW minutes-module-name-time",
+        "timeGuess": "00:38",
+        "timeGuessCls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time"
+      },
+      {
+        "full": "李博泽01:32好，各位老师！",
+        "speakerGuess": "李博泽01:32",
+        "speakerGuessCls": "paragraph-module_name-time__Rm7zW minutes-module-name-time",
+        "timeGuess": "01:32",
+        "timeGuessCls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time"
+      },
+      {
+        "full": "李博泽01:33各位老师。",
+        "speakerGuess": "李博泽01:33",
+        "speakerGuessCls": "paragraph-module_name-time__Rm7zW minutes-module-name-time",
+        "timeGuess": "01:33",
+        "timeGuessCls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time"
+      },
+      {
+        "full": "李博泽01:39各位老师大家好，我是。来自中国石油大学。",
+        "speakerGuess": "李博泽01:39",
+        "speakerGuessCls": "paragraph-module_name-time__Rm7zW minutes-module-name-time",
+        "timeGuess": "01:39",
+        "timeGuessCls": "paragraph-module_speaker-hover-active__hwkXw paragraph-module_p-start-time__QAWWl minutes-module-p-start-time"
+      }
+    ]
+  }
+}
