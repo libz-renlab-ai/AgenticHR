@@ -7,6 +7,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import os
 import time
 from collections import defaultdict
 from typing import Any
@@ -94,8 +95,11 @@ def _map_speakers(detail: list[dict]) -> dict[int, str]:
 def transcribe(mp4_path: str) -> list[dict[str, Any]]:
     """提交 → 轮询 → 返回结构化 [{start_ms, end_ms, speaker, text}].
 
+    无 COS 模式：先 extract_audio 抽音频压缩到 ≤4.5MB，再 base64 提交 ASR。
+
     Raises:
-        RuntimeError: 凭证未配置 / 鉴权失败 / 配额超限 / 识别失败 / 轮询超时
+        RuntimeError: 凭证未配置 / 鉴权失败 / 配额超限 / 识别失败 / 轮询超时 /
+                      录像过长（audio_extract 抛）
     """
     # IE-010: 凭证空时 fail-fast，避免 SDK 抛 AuthFailure 误导用户
     if not settings.tencent_cloud_secret_id or not settings.tencent_cloud_secret_key:
@@ -103,38 +107,48 @@ def transcribe(mp4_path: str) -> list[dict[str, Any]]:
             "腾讯云 ASR 凭证未配置：请在 .env 设置 "
             "TENCENT_CLOUD_SECRET_ID / TENCENT_CLOUD_SECRET_KEY"
         )
-    try:
-        client = _get_client()
-        submit_resp = _submit_task(client, mp4_path)
-        task_id = submit_resp["Data"]["TaskId"]
-    except TencentCloudSDKException as e:
-        if "AuthFailure" in str(e):
-            raise RuntimeError("腾讯云 ASR 鉴权失败，请检查 .env 凭证") from e
-        if "Quota" in str(e):
-            raise RuntimeError("腾讯云 ASR 配额超限") from e
-        raise RuntimeError(f"腾讯云 ASR 调用失败：{e}") from e
 
-    for _ in range(POLL_MAX_ATTEMPTS):
-        time.sleep(POLL_INTERVAL_S)
+    # 无 COS 模式：抽音频压缩绕开 base64 5MB 上限
+    from app.modules.interview_eval.audio_extract import extract_audio
+    audio_path = extract_audio(mp4_path)
+    try:
         try:
-            r = _query_task(client, task_id)
+            client = _get_client()
+            submit_resp = _submit_task(client, audio_path)
+            task_id = submit_resp["Data"]["TaskId"]
         except TencentCloudSDKException as e:
-            raise RuntimeError(f"ASR 查询失败：{e}") from e
-        status = r.get("Data", {}).get("Status", 0)
-        if status == 2:  # 成功
-            detail = r["Data"].get("ResultDetail", []) or []
-            speaker_map = _map_speakers(detail)
-            return [
-                {
-                    "start_ms": int(seg["StartMs"]),
-                    "end_ms": int(seg["EndMs"]),
-                    "speaker": speaker_map.get(seg.get("SpeakerId", 0), "candidate"),
-                    "text": seg.get("FinalSentence", ""),
-                }
-                for seg in detail
-            ]
-        if status == 3:  # 失败
-            raise RuntimeError(
-                f"ASR 识别失败：{r.get('Data', {}).get('ErrorMsg', '未知错误')}"
-            )
-    raise RuntimeError(f"ASR 轮询超时（{POLL_MAX_ATTEMPTS * POLL_INTERVAL_S}s）")
+            if "AuthFailure" in str(e):
+                raise RuntimeError("腾讯云 ASR 鉴权失败，请检查 .env 凭证") from e
+            if "Quota" in str(e):
+                raise RuntimeError("腾讯云 ASR 配额超限") from e
+            raise RuntimeError(f"腾讯云 ASR 调用失败：{e}") from e
+
+        for _ in range(POLL_MAX_ATTEMPTS):
+            time.sleep(POLL_INTERVAL_S)
+            try:
+                r = _query_task(client, task_id)
+            except TencentCloudSDKException as e:
+                raise RuntimeError(f"ASR 查询失败：{e}") from e
+            status = r.get("Data", {}).get("Status", 0)
+            if status == 2:  # 成功
+                detail = r["Data"].get("ResultDetail", []) or []
+                speaker_map = _map_speakers(detail)
+                return [
+                    {
+                        "start_ms": int(seg["StartMs"]),
+                        "end_ms": int(seg["EndMs"]),
+                        "speaker": speaker_map.get(seg.get("SpeakerId", 0), "candidate"),
+                        "text": seg.get("FinalSentence", ""),
+                    }
+                    for seg in detail
+                ]
+            if status == 3:  # 失败
+                raise RuntimeError(
+                    f"ASR 识别失败：{r.get('Data', {}).get('ErrorMsg', '未知错误')}"
+                )
+        raise RuntimeError(f"ASR 轮询超时（{POLL_MAX_ATTEMPTS * POLL_INTERVAL_S}s）")
+    finally:
+        try:
+            os.remove(audio_path)
+        except OSError:
+            pass

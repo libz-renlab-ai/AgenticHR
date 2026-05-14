@@ -1,24 +1,33 @@
 """mock 腾讯云 SDK；说话人映射启发式."""
+import os
 import pytest
 from unittest.mock import MagicMock, patch
 
 
 @pytest.fixture(autouse=True)
-def _no_sleep_no_real_client(monkeypatch):
-    """开发期凭证为空，credential.Credential('','') 会抛 InvalidCredential；
-    + 测试不真等 POLL_INTERVAL_S 秒。统一在 fixture 处理：
+def _no_sleep_no_real_client(monkeypatch, tmp_path):
+    """开发期凭证为空 + 不真等轮询 + 不跑真 ffmpeg 抽音频。
 
-    1. POLL_INTERVAL_S = 0 → time.sleep(0)，但仍走一次轮询路径
-    2. _get_client → MagicMock，避免 SDK 校验空凭证
-    3. transcribe 入口已加凭证 fail-fast (IE-010)，测试时灌测试凭证绕过
+    1. POLL_INTERVAL_S = 0
+    2. _get_client → MagicMock
+    3. 灌测试凭证绕过 IE-010 fail-fast
+    4. extract_audio → 返回独立的小临时 mp3（不跑真 ffmpeg）
     """
     from app.modules.interview_eval import tencent_asr
+    from app.modules.interview_eval import audio_extract
     from app.config import settings
 
     monkeypatch.setattr(tencent_asr, "POLL_INTERVAL_S", 0)
     monkeypatch.setattr(tencent_asr, "_get_client", lambda: MagicMock())
     monkeypatch.setattr(settings, "tencent_cloud_secret_id", "test-id")
     monkeypatch.setattr(settings, "tencent_cloud_secret_key", "test-key")
+
+    def _fake_extract(mp4_path, **kw):
+        p = tmp_path / "fake_audio.mp3"
+        p.write_bytes(b"\x00" * 512)
+        return str(p)
+
+    monkeypatch.setattr(audio_extract, "extract_audio", _fake_extract)
     yield
 
 
@@ -125,7 +134,8 @@ def test_transcribe_no_credentials_fail_fast(tmp_path, monkeypatch):
 
 
 def test_submit_task_oversize_mp4_rejected(tmp_path):
-    """IE-006: mp4 超过 5MB 上限时 _submit_task 抛 RuntimeError，避免发送过大请求被腾讯云拒绝."""
+    """IE-006: 文件超过 5MB 上限时 _submit_task 抛 RuntimeError（防御性边界，
+    现在 transcribe 已 extract_audio 压到 4.5MB 内，此校验作兜底）."""
     from app.modules.interview_eval import tencent_asr
     big_mp4 = tmp_path / "big.mp4"
     # 写 6MB 文件
@@ -134,3 +144,29 @@ def test_submit_task_oversize_mp4_rejected(tmp_path):
         tencent_asr._submit_task(MagicMock(), str(big_mp4))
     assert "5MB" in str(exc.value) or "上限" in str(exc.value)
     assert "COS" in str(exc.value) or "SourceType" in str(exc.value)
+
+
+def test_transcribe_extracts_audio_and_cleans_up(tmp_path, monkeypatch):
+    """transcribe 走 extract_audio，结束后删临时音频。"""
+    from app.modules.interview_eval import tencent_asr
+    from app.modules.interview_eval import audio_extract
+
+    created = []
+
+    def _fake_extract(mp4_path, **kw):
+        p = tmp_path / "audio_to_clean.mp3"
+        p.write_bytes(b"\x00" * 256)
+        created.append(str(p))
+        return str(p)
+
+    monkeypatch.setattr(audio_extract, "extract_audio", _fake_extract)
+
+    mp4 = tmp_path / "x.mp4"
+    mp4.write_bytes(b"\x00" * 1024)
+    with patch.object(tencent_asr, "_submit_task", return_value={"Data": {"TaskId": 1}}), \
+         patch.object(tencent_asr, "_query_task", return_value={
+             "Data": {"Status": 2, "ResultDetail": [
+                 {"StartMs": 0, "EndMs": 1000, "SpeakerId": 0, "FinalSentence": "hi"}]}}):
+        result = tencent_asr.transcribe(str(mp4))
+    assert len(result) == 1
+    assert not os.path.exists(created[0])  # 临时音频已清理
