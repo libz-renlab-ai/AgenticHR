@@ -1,6 +1,8 @@
 """F3 recruit_bot 请求 / 响应 Pydantic schemas."""
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from app.modules.recruit_bot.education_check import EducationFilter
 
 
 # 单 HR 单日打招呼上限绝对上界。业务侧默认 1000（`Settings.f3_default_daily_cap`），
@@ -35,11 +37,19 @@ class ScrapedCandidate(BaseModel):
 
 
 class RecruitEvaluateRequest(BaseModel):
-    """F3 核心端点请求体。携带 HR 当前选中的系统岗位 + 一张从 Boss 推荐页抓来的
-    ScrapedCandidate。后端据此跑 upsert+F2 打分+阈值判定，返回 RecruitDecision。"""
+    """F3 评估请求体。education_filter 必填；删旧 strategy 字段。"""
     job_id: int
     candidate: ScrapedCandidate
-    strategy: str | None = None  # 'school_only': 跳过 LLM 打分，仅按 985/211/双一流 决策
+    education_filter: EducationFilter
+
+    @model_validator(mode="after")
+    def _require_tags_when_required(self) -> "RecruitEvaluateRequest":
+        ef = self.education_filter
+        if ef.require_prestigious and not ef.prestigious_tags:
+            raise ValueError(
+                "require_prestigious=True 时 prestigious_tags 不可为空"
+            )
+        return self
 
 
 class RecruitDecision(BaseModel):
@@ -47,10 +57,8 @@ class RecruitDecision(BaseModel):
     decision: Literal[
         "should_greet",
         "skipped_already_greeted",
-        "rejected_low_score",
+        "rejected_low_education",
         "blocked_daily_cap",
-        "error_no_competency",
-        "error_scoring",
     ]
     resume_id: int | None = None
     score: int | None = None
