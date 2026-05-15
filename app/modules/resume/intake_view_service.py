@@ -162,6 +162,7 @@ def list_matched_for_job(
     user_id: int,
     job_id: int,
     action_filter: str | None = None,
+    strict: bool = False,
 ) -> list[dict[str, Any]]:
     """岗位匹配候选人: 简历库 ∩ 岗位学历门槛。
 
@@ -171,7 +172,15 @@ def list_matched_for_job(
       None       → 不过滤 (默认)
       'passed'   → 仅返 job_action='passed'
       'rejected' → 仅返 job_action='rejected'
-      'undecided'→ 仅返 job_action=None
+      'undecided'→ 仅返无决策行
+
+    spec 2026-05-15 Round 2: strict 参数控制是否按 candidate.job_id 过滤。
+      strict=False (默认): 旧行为 —— 所有过硬筛候选人,跨岗位混合
+      strict=True:         只返 candidate.job_id == job_id 的人,
+                           job_id=NULL 的"孤儿"候选人也不出现
+
+      服务层默认 False 是为了不破坏既有调用方;HTTP 路由层 (/passed-resumes)
+      默认走 strict=True (除非传 ?show_all=true),让用户面看到的是按岗位分。
     """
     job = db.query(Job).filter_by(id=job_id, user_id=user_id).first()
     if not job:
@@ -184,11 +193,14 @@ def list_matched_for_job(
 
     # spec 0429-D edge case 2: 已 abandoned/timed_out candidate 不应出现在岗位匹配列表
     # (即便决策表残留 passed 行, candidate 已诈尸 → 不可被约面)
-    candidates = (
+    base_q = (
         _complete_query(db, user_id)
         .filter(~IntakeCandidate.intake_status.in_(["abandoned", "timed_out"]))
-        .all()
     )
+    if strict:
+        # spec 2026-05-15 Round 2: 只返本岗位绑定的候选人;NULL 也排除
+        base_q = base_q.filter(IntakeCandidate.job_id == job_id)
+    candidates = base_q.all()
     matched = [
         c for c in candidates
         if meets_education(c.education or "", edu_min)

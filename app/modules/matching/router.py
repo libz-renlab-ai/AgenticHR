@@ -289,12 +289,15 @@ def set_action(result_id: int, body: _ActionBody, db: Session = Depends(get_db),
 def list_passed_for_job(
     job_id: int,
     action: Optional[str] = None,
+    show_all: bool = False,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
     """岗位匹配候选人: 四项齐全 ∩ 学历门槛 ∩ 院校等级门槛 (PR4)。
 
     spec 0429-D: 加 ?action=passed|rejected|undecided 过滤; 缺省返全部 (含 job_action 字段)。
+    spec 2026-05-15 Round 2: 默认 strict 模式(只返本岗位绑定的候选人);
+      传 ?show_all=true 退回旧行为,返所有过硬筛的(用于跨岗位 cross-fit / 调试)。
     """
     job = db.query(Job).filter_by(id=job_id).first()
     if not job or job.user_id != user_id:
@@ -304,6 +307,7 @@ def list_passed_for_job(
     from app.modules.resume.intake_view_service import list_matched_for_job
     return list_matched_for_job(
         db, user_id=user_id, job_id=job_id, action_filter=action,
+        strict=not show_all,
     )
 
 

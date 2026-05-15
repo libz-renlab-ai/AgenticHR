@@ -162,15 +162,84 @@ for cand in IntakeCandidate where job_id IS NULL and promoted_resume_id IS NOT N
 
 ## 范围 & 不在范围内
 
-**范围内**:
+**Round 1 范围内**:
 - `app/modules/recruit_bot/service.py` (写入)
 - `app/modules/im_intake/service.py` (回填) — 注意此文件在 `core/` 之外
 - `migrations/versions/0029_backfill_intake_job_id.py`
 - 上述对应的测试
 
-**不在范围内**:
+**Round 1 不在范围内**:
 - 任何 `core/*` 文件 (项目硬约束)
-- `list_matched_for_job` 读取行为
+- ~~`list_matched_for_job` 读取行为~~ → **Round 2 范围,见下**
 - 前端 Vue 文件
 - `match_job_title` 算法
 - 任何新增 schema / API endpoint
+
+---
+
+## Round 2 addendum (2026-05-15 同日)
+
+### 背景
+
+Round 1 让写入路径确定性产出 `IntakeCandidate.job_id`,但读取路径
+(`list_matched_for_job`,Jobs.vue "匹配候选人" Tab 直接调) 还是只按
+"四项齐全 + 学历 + 院校等级"硬筛,没用 `job_id` —— HR 点开产品经理岗位
+仍然会看到给开发岗招呼来的候选人。
+
+用户反馈:"我希望我点开岗位招聘时,每个岗位对应的岗位的投递人"。本轮把
+读取接上 Round 1 写入的字段。
+
+### 目标
+
+`list_matched_for_job` / `/api/matching/passed-resumes/{job_id}` 默认行为变为:
+**只返 `IntakeCandidate.job_id == job_id` 的候选人**。
+
+兼容性兜底:HTTP 端口加 `?show_all=true` query 参数,显式 opt-out 时退回
+旧行为(返所有过硬筛候选人)。这一开关用于:
+- 调试/数据排查
+- HR 想跨岗位 cross-fit 某候选人到另一岗位(暂时少见,但保留可能性)
+
+### 写入路径不动 — 读取层这一层独立
+
+`IntakeCandidate.job_id` 已由 Round 1 + migration 0029 填得相当干净。
+对仍为 NULL 的候选人(真正"孤儿"行,无 promote、无 MatchingResult),
+**严格模式不展示** —— 它们不属于任何岗位,展示反而会造成"这人是哪个岗位的?"
+的混乱。show_all=true 时仍可见。
+
+### API 变更
+
+`GET /api/matching/passed-resumes/{job_id}`:
+- 新增 query 参数 `show_all: bool = false`
+- `show_all=false` (默认):严格按 `IntakeCandidate.job_id == job_id`
+- `show_all=true`:旧行为,返所有过硬筛候选人
+
+### 服务函数变更
+
+```python
+def list_matched_for_job(
+    db, user_id, job_id, action_filter=None,
+    strict: bool = False,  # 新增, 默认 False 维持服务层兼容
+) -> list[dict]:
+    ...
+    if strict:
+        query = query.filter(IntakeCandidate.job_id == job_id)
+    ...
+```
+
+服务层默认 `strict=False` —— 现有调用方(测试/内部模块)行为不变;
+HTTP 路由层默认 `strict=True`(通过 `?show_all=false`) —— 用户面行为变为按岗位分。
+这种"服务默认宽松、入口默认严格"的分层让既有依赖不破坏,又给最终用户正确默认。
+
+### 不在范围内
+
+- 不动 `list_resume_library` (简历库本来就是 "所有四项齐全候选人" 的池子,
+  按岗位筛没意义)
+- 不改前端 Vue (后端默认行为变化即可,UI 不需要传 `?strict=` 也能 Just Work)
+- 不动 `_eligible_candidate_query` (AI 批量筛选,本来就按 MatchingResult.job_id 过滤)
+
+### 测试
+
+- 红测:新建两岗位、各两候选人 (job_id 正确绑定),默认调用只返自己的
+- 边界:`show_all=true` 兜底,返两岗位全部
+- 边界:job_id=NULL 的候选人在 strict 模式下不出现
+- 边界:`action_filter` 与 `strict` 正交可同时用
