@@ -74,8 +74,34 @@ class IntakeService:
             _audit_safe("f4_candidate_enter", "create", c.id,
                         {"boss_id": boss_id, "job_id": job_id, "name": name},
                         reviewer_id=self.user_id or None)
-        elif name and not c.name:
-            c.name = name; self.db.commit()
+        else:
+            # spec 2026-05-15: 命中已存在行时
+            #   - 非空 name 回填 (历史行为)
+            #   - 新增: job_id 为 NULL 且 job_intention 给了, 用 fuzzy match 兜底回填
+            #     (覆盖 F3 老路径建的 NULL 行;非 NULL 不动 — first-write wins)
+            dirty = False
+            if name and not c.name:
+                c.name = name
+                dirty = True
+            if c.job_id is None and job_intention:
+                jobs = self.db.query(Job).filter_by(user_id=self.user_id).all()
+                matched = match_job_title(
+                    job_intention,
+                    [{"id": j.id, "title": j.title} for j in jobs],
+                    threshold=0.7,
+                )
+                if matched:
+                    c.job_id = matched
+                    dirty = True
+                    _audit_safe(
+                        "f4_job_id_backfill", "fuzzy_match",
+                        c.id,
+                        {"boss_id": boss_id, "job_id": matched,
+                         "job_intention": job_intention},
+                        reviewer_id=self.user_id or None,
+                    )
+            if dirty:
+                self.db.commit()
         return c
 
     def ensure_slot_rows(self, candidate_id: int) -> dict[str, IntakeSlot]:
