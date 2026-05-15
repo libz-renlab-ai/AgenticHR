@@ -2,6 +2,17 @@
   <div class="ai-screening-panel" v-loading="loading">
     <!-- idle: 配置 -->
     <div v-if="status === 'idle'" class="config-block">
+    <!-- 重算状态：能力模型变更或 stale 检测后的可见反馈 -->
+    <el-alert
+      v-if="recomputing"
+      type="warning" :closable="false" show-icon
+      style="margin-bottom: 12px;"
+    >
+      <template #title>
+        {{ autoRecomputeReason || '正在重新打分…' }}
+        ({{ recomputeProgress.completed }} / {{ recomputeProgress.total }}{{ recomputeProgress.failed ? `，失败 ${recomputeProgress.failed}` : '' }})
+      </template>
+    </el-alert>
       <el-alert v-if="eligibleCount === 0" type="warning" :closable="false" show-icon>
         候选池为空。请先在「匹配候选人」Tab 跑硬筛, 让候选人通过硬门槛。
       </el-alert>
@@ -30,7 +41,7 @@
         <el-form-item>
           <el-button
             type="primary"
-            :disabled="eligibleCount === 0"
+            :disabled="eligibleCount === 0 || recomputing"
             @click="onStart"
             :loading="starting"
           >
@@ -38,6 +49,20 @@
           </el-button>
         </el-form-item>
       </el-form>
+      <div style="margin-top: 12px; text-align: right;">
+        <el-button
+          type="default"
+          size="small"
+          @click="triggerRecompute({ silent: false })"
+          :disabled="recomputing"
+          :loading="recomputing"
+        >
+          🔄 刷新打分
+        </el-button>
+        <span style="margin-left: 8px; color: #909399; font-size: 12px;">
+          能力模型改过或简历库变动后用
+        </span>
+      </div>
       <el-collapse v-if="lastFinishedItems.length" style="margin-top: 16px;">
         <el-collapse-item title="上一次筛选结果" name="last">
           <ItemsTable :items="lastFinishedItems" :show-actions="false" />
@@ -125,7 +150,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { aiScreeningApi, decisionApi } from '../api'
+import { aiScreeningApi, decisionApi, matchingApi } from '../api'
 import ItemsTable from './AiScreeningItemsTable.vue'
 
 const props = defineProps({
@@ -147,6 +172,11 @@ const errorMsg = ref('')
 const form = ref({ mode: 'count', threshold: 5 })
 const items = ref([])
 const lastFinishedItems = ref([])
+
+// 重算状态 (能力模型变更后的兜底)
+const recomputing = ref(false)
+const autoRecomputeReason = ref('')
+const recomputeProgress = ref({ total: 0, completed: 0, failed: 0 })
 
 let pollTimer = null
 
@@ -178,6 +208,58 @@ async function loadPreview() {
     }
   } catch (e) {
     console.error('preview failed', e)
+  }
+}
+
+async function triggerRecompute({ silent = false } = {}) {
+  recomputing.value = true
+  recomputeProgress.value = { total: 0, completed: 0, failed: 0 }
+  try {
+    const r = await matchingApi.recomputeJob(props.jobId)
+    const task_id = r.task_id
+    recomputeProgress.value.total = r.total || 0
+    while (true) {
+      await new Promise(res => setTimeout(res, 1500))
+      try {
+        const s = await matchingApi.recomputeStatus(task_id)
+        recomputeProgress.value = {
+          total: s.total,
+          completed: s.completed,
+          failed: s.failed,
+        }
+        if (!s.running) break
+      } catch (e) {
+        console.warn('recompute status poll failed', e)
+        break
+      }
+    }
+    if (!silent) {
+      ElMessage.success(
+        `刷新打分完成: ${recomputeProgress.value.completed} / ${recomputeProgress.value.total}` +
+        (recomputeProgress.value.failed ? `, 失败 ${recomputeProgress.value.failed}` : '')
+      )
+    }
+    await loadPreview()
+  } catch (e) {
+    if (!silent) ElMessage.error('刷新打分失败: ' + _friendlyErrorMsg(e, '刷新打分失败'))
+    console.warn('triggerRecompute failed', e)
+  } finally {
+    recomputing.value = false
+    autoRecomputeReason.value = ''
+  }
+}
+
+async function checkAndAutoRecompute() {
+  if (status.value !== 'idle') return
+  try {
+    const r = await matchingApi.listByJob(props.jobId, { page: 1, page_size: 100 })
+    const staleCount = (r.items || []).filter(it => it.stale).length
+    if (staleCount > 0) {
+      autoRecomputeReason.value = `检测到 ${staleCount} 份分数基于旧能力模型，正在自动刷新…`
+      await triggerRecompute({ silent: true })
+    }
+  } catch (e) {
+    console.warn('stale check failed', e)
   }
 }
 
@@ -363,8 +445,9 @@ function reset() {
   loadPreview()
 }
 
-onMounted(() => {
-  loadCurrent()
+onMounted(async () => {
+  await loadCurrent()
+  await checkAndAutoRecompute()
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', onVisibilityChange)
   }
