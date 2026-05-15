@@ -12,6 +12,7 @@ export const intakeApi = {
   deleteCandidate: (id) => api.delete(`/intake/candidates/${id}`),
   reextract: (id) => api.post(`/intake/candidates/${id}/reextract`),
   getDailyCap: () => api.get('/intake/daily-cap'),
+  batchClassify: () => api.post('/intake/candidates/batch-classify'),
 }
 
 export const listIntakeCandidates = intakeApi.listIntakeCandidates
@@ -24,5 +25,6 @@ export const startConversation = intakeApi.startConversation
 export const deleteCandidate = intakeApi.deleteCandidate
 export const reextract = intakeApi.reextract
 export const getDailyCap = intakeApi.getDailyCap
+export const batchClassify = intakeApi.batchClassify
 
 export default intakeApi

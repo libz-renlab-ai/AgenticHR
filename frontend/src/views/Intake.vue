@@ -64,7 +64,31 @@
         <el-button type="primary" size="default" style="margin-left: 12px" @click="reload">
           搜索
         </el-button>
+        <el-button
+          type="primary"
+          size="default"
+          style="margin-left: 12px"
+          @click="onAiClassify"
+          :loading="aiClassifying"
+          :disabled="unmatchedCount === 0"
+        >
+          🤖 AI 分类目标岗位({{ unmatchedCount }} 个未分配)
+        </el-button>
       </div>
+      <el-alert
+        v-if="lastClassifyResult"
+        type="success"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 12px;"
+      >
+        分类完成: 共 {{ lastClassifyResult.total }} 人 →
+        精确匹配 {{ lastClassifyResult.exact_matched }} 人,
+        AI 判断 {{ lastClassifyResult.llm_matched }} 人,
+        无匹配 {{ lastClassifyResult.no_match }} 人{{
+          lastClassifyResult.errors ? `, 失败 ${lastClassifyResult.errors} 人` : ''
+        }}
+      </el-alert>
 
       <el-table
         :data="filteredItems"
@@ -184,6 +208,7 @@ import {
   startConversation,
   reextract,
   getDailyCap,
+  batchClassify,
 } from '../api/intake'
 import { getIntakeSettings, updateIntakeSettings } from '../api/intakeSettings'
 import { resumeApi } from '../api'
@@ -211,6 +236,29 @@ const settings = ref({ enabled: false, target_count: 0, complete_count: 0, is_ru
 const settingsForm = ref({ target_count: 0 })
 const savingTarget = ref(false)
 const togglingEnabled = ref(false)
+
+const aiClassifying = ref(false)
+const lastClassifyResult = ref(null)
+const unmatchedCount = computed(() =>
+  (items.value || []).filter((it) => !it.job_id).length
+)
+
+async function onAiClassify() {
+  aiClassifying.value = true
+  lastClassifyResult.value = null
+  try {
+    const r = await batchClassify()
+    lastClassifyResult.value = r
+    ElMessage.success(
+      `已完成: ${r.exact_matched + r.llm_matched}/${r.total} 个候选人已分配岗位`
+    )
+    await loadCandidates()
+  } catch (e) {
+    ElMessage.error('AI 分类失败: ' + (e.response?.data?.detail || e.message || '请重试'))
+  } finally {
+    aiClassifying.value = false
+  }
+}
 
 const progressPercent = computed(() => {
   const t = settings.value.target_count
