@@ -238,6 +238,31 @@ async def ai_parse_target(target, ai, db: Session) -> tuple[str, int | None]:
                 if use_vision and target.raw_text:
                     promoted_resume.raw_text = target.raw_text
 
+        # 自动接入 job_classifier: 解析完字段后, 把 candidate 自动归类到岗位 (job_id IS NULL 时).
+        # 失败不阻塞主流程 (try/except 包住) — 解析本身已成功, 分类只是 best-effort 后置动作.
+        try:
+            cand_for_classify: IntakeCandidate | None = None
+            if is_candidate:
+                cand_for_classify = target
+            elif getattr(target, "intake_candidate_id", None):
+                cand_for_classify = (
+                    db.query(IntakeCandidate)
+                    .filter_by(id=target.intake_candidate_id)
+                    .first()
+                )
+            if (
+                cand_for_classify is not None
+                and cand_for_classify.job_id is None
+                and (cand_for_classify.user_id or 0) > 0
+            ):
+                from app.modules.im_intake.job_classifier import classify_candidate_to_job
+
+                await classify_candidate_to_job(
+                    db, cand_for_classify, user_id=cand_for_classify.user_id
+                )
+        except Exception as cls_err:
+            logger.warning("auto job classify failed: %s", cls_err)
+
         db.commit()
 
         if is_candidate:
