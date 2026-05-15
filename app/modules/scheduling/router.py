@@ -703,11 +703,15 @@ async def get_interviewer_freebusy(
     interviewer_id: int,
     days: int = 5,
     service: SchedulingService = Depends(get_scheduling_service),
+    user_id: int = Depends(get_current_user_id),
 ):
     """查询面试官未来 N 天的飞书日历忙碌时段"""
     from app.modules.scheduling.models import Interviewer
     interviewer = service.db.query(Interviewer).filter(Interviewer.id == interviewer_id).first()
     if not interviewer:
+        raise HTTPException(status_code=404, detail="面试官不存在")
+    # 多租户隔离: 不允许跨账号读取面试官日历 (返回 404 而非 403,避免泄露存在性)
+    if interviewer.user_id != user_id:
         raise HTTPException(status_code=404, detail="面试官不存在")
     if not interviewer.feishu_user_id:
         return {"interviewer": interviewer.name, "busy_slots": [], "message": "未配置飞书ID，无法查询日历"}
@@ -747,12 +751,13 @@ async def get_interviewer_freebusy(
                 "end": item.get("end_time", ""),
             })
 
-    # 也查询系统内已安排的面试
+    # 也查询系统内已安排的面试 (按 user_id 隔离, 不读跨账号 Interview)
     from app.modules.scheduling.models import Interview
     existing = (
         service.db.query(Interview)
         .filter(
             Interview.interviewer_id == interviewer_id,
+            Interview.user_id == user_id,
             Interview.status != "cancelled",
             Interview.start_time >= start,
             Interview.start_time <= end,
