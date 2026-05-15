@@ -16,10 +16,17 @@ def _ensure_candidate_for_f3(
     db: Session, *, user_id: int, boss_id: str, name: str,
     education: str = "", work_years: int = 0, intended_job: str = "",
     skills_csv: str = "", latest_work_brief: str = "", raw_text: str = "",
+    job_id: int | None = None,
 ) -> IntakeCandidate:
     """spec 0429 阶段 B: F3 路径 ensure IntakeCandidate（写 Resume 前的镜像）。
 
     用 (user_id, boss_id) 唯一索引 dedup；非空字段才覆盖既有值，不清掉已抽到的信息。
+
+    spec 2026-05-15: 新建分支写入 ``job_id``;upsert 分支 NULL → 实值时回填(不算
+    "覆盖",因为 NULL 不是 first-write);非 NULL 且与传入的不一致时,**保持现值**
+    (first-write wins) 并落一条 ``f3_job_rebind_attempt`` 审计行,事后可查
+    cross-job greet 事实。这样 HR 同时招多个岗位时,候选人有稳定的 primary 岗位
+    归属,不会因为二次招呼而漂移。
     """
     c = (db.query(IntakeCandidate)
          .filter_by(user_id=user_id, boss_id=boss_id).first())
@@ -30,6 +37,7 @@ def _ensure_candidate_for_f3(
             education=education or "",
             work_years=work_years or 0,
             job_intention=intended_job or "",
+            job_id=job_id,
             skills=skills_csv or "",
             work_experience=latest_work_brief or "",
             raw_text=raw_text or "",
@@ -56,6 +64,29 @@ def _ensure_candidate_for_f3(
             c.work_experience = latest_work_brief
         if raw_text:
             c.raw_text = raw_text
+        # spec 2026-05-15: job_id 回填 / cross-job 审计
+        if job_id:
+            if c.job_id is None:
+                # NULL → 实值: 回填,first-write 的"第一次有效写"
+                c.job_id = job_id
+            elif c.job_id != job_id:
+                # 已有 primary 归属,二次 greet 落到不同岗位 → 不动,审计
+                try:
+                    log_event(
+                        f_stage="f3_job_rebind_attempt",
+                        action="cross_job_greet",
+                        entity_type="intake_candidate",
+                        entity_id=c.id,
+                        input_payload={
+                            "boss_id": c.boss_id,
+                            "primary_job_id": c.job_id,
+                            "attempted_job_id": job_id,
+                        },
+                        reviewer_id=user_id,
+                    )
+                except Exception:
+                    # 审计失败不应阻断主流程
+                    pass
         db.commit()
     return c
 
@@ -92,6 +123,7 @@ def _summarize_raw_text(c: "ScrapedCandidate") -> str:
 
 def upsert_resume_by_boss_id(
     db: Session, user_id: int, candidate: "ScrapedCandidate",
+    job_id: int | None = None,
 ) -> Resume:
     """按 (user_id, boss_id) 查找或新建 Resume 行.
 
@@ -103,6 +135,10 @@ def upsert_resume_by_boss_id(
     如需主动清字段, 不得走 upsert — 必须 DELETE+INSERT 或单独的 dedicated
     endpoint. 在 ``ScrapedCandidate`` schema 迁移为 None-sentinel 之前, 保留此
     语义; 任何语义变更应当作独立任务, 不能在 T2 范围内改.
+
+    spec 2026-05-15: ``job_id`` 一路透传给 IntakeCandidate + Resume,确定性绑定
+    候选人到 HR 当前操作的岗位。NULL → 实值 时回填(first-write 的第一次有效写),
+    非 NULL 不覆盖(由 ``_ensure_candidate_for_f3`` 落 cross-job 审计)。
     """
     existing = (
         db.query(Resume)
@@ -117,11 +153,13 @@ def upsert_resume_by_boss_id(
     )
 
     # spec 0429 阶段 B: F3 路径必须先建 IntakeCandidate（孤儿避免 + 简历库可见）
+    # spec 2026-05-15: job_id 透传 — 候选人 primary 岗位绑定
     cand_row = _ensure_candidate_for_f3(
         db, user_id=user_id, boss_id=candidate.boss_id, name=candidate.name,
         education=candidate.education, work_years=candidate.work_years,
         intended_job=candidate.intended_job, skills_csv=skills_csv,
         latest_work_brief=candidate.latest_work_brief, raw_text=raw_text,
+        job_id=job_id,
     )
 
     if existing:
@@ -141,6 +179,9 @@ def upsert_resume_by_boss_id(
         # 维护 candidate 的 promoted_resume_id 反向链
         if not cand_row.promoted_resume_id:
             cand_row.promoted_resume_id = existing.id
+        # spec 2026-05-15: Resume.job_id NULL → 实值时回填(与 candidate 同步)
+        if job_id and not existing.job_id:
+            existing.job_id = job_id
         # 故意不动: status, greet_status, greeted_at, ai_parsed, ai_score, ai_summary
         db.commit()
         db.refresh(existing)
@@ -163,6 +204,8 @@ def upsert_resume_by_boss_id(
         updated_at=now,
         # spec 0429 阶段 C: 反向键 1:1
         intake_candidate_id=cand_row.id,
+        # spec 2026-05-15: F3 路径透传 job_id, 候选人 primary 岗位归属
+        job_id=job_id,
     )
     try:
         db.add(r)
@@ -253,7 +296,8 @@ async def evaluate_and_record(
     if not job:
         raise ValueError(f"job {job_id} not found for user {user_id}")
     # 3. upsert resume
-    resume = upsert_resume_by_boss_id(db, user_id=user_id, candidate=candidate)
+    # spec 2026-05-15: job_id 一路透传到 candidate+resume,确定性绑定 primary 岗位
+    resume = upsert_resume_by_boss_id(db, user_id=user_id, candidate=candidate, job_id=job_id)
 
     # 4. 已 greeted 跳过 (历史覆盖, 不重复打招呼)
     if resume.greet_status == "greeted":
