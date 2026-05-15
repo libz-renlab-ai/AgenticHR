@@ -310,13 +310,20 @@ async def recompute_job(
             logger.warning(f"audit log failed (non-fatal): {e}")
 
 
-async def recompute_resume(db: Session, resume_id: int, task_id: str) -> None:
-    """后台任务：对 resume 的所有 is_active + approved 岗位打分."""
+async def recompute_resume(
+    db: Session, resume_id: int, task_id: str, user_id: int = 0,
+) -> None:
+    """后台任务：对 resume 的所有 is_active + approved 岗位打分.
+
+    多租户隔离: 必须按 user_id 过滤 Job, 否则 user A 的 resume 会被打到
+    user B 的 Job 上, 跨账号写脏 matching_results (CRITICAL)。
+    """
     task = _RECOMPUTE_TASKS[task_id]
     try:
         job_ids = [j.id for j in db.query(Job).filter(
             Job.is_active == True,
             Job.competency_model_status == "approved",
+            Job.user_id == user_id,
         ).all()]
         # total is pre-set by the endpoint via _new_task; only update if not yet set
         if not task["total"]:
@@ -366,11 +373,13 @@ async def recompute_job_with_fresh_session(
         db.close()
 
 
-async def recompute_resume_with_fresh_session(resume_id: int, task_id: str) -> None:
+async def recompute_resume_with_fresh_session(
+    resume_id: int, task_id: str, user_id: int = 0,
+) -> None:
     """Wrapper for recompute_resume that opens its own DB session so it outlives the HTTP response."""
     from app.database import SessionLocal
     db = SessionLocal()
     try:
-        await recompute_resume(db, resume_id, task_id)
+        await recompute_resume(db, resume_id, task_id, user_id=user_id)
     finally:
         db.close()

@@ -344,12 +344,16 @@ async def post_recompute(
         return {"task_id": task_id, "total": total}
 
     real_resume_id = _resolve_or_404(db, req.resume_id, user_id)
+    # 多租户隔离: total 也按 user_id 过滤, 否则 progress 计数会反映跨账号 Job
     total = db.query(Job).filter(
         Job.is_active == True,
         Job.competency_model_status == "approved",
+        Job.user_id == user_id,
     ).count()
     task_id = _new_task(total)
-    background.add_task(recompute_resume_with_fresh_session, real_resume_id, task_id)
+    background.add_task(
+        recompute_resume_with_fresh_session, real_resume_id, task_id, user_id,
+    )
     return {"task_id": task_id, "total": total}
 
 
