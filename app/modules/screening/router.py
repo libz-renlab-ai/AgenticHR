@@ -520,6 +520,38 @@ async def _t2_trigger_with_fresh_session(job_id: int) -> None:
         db.close()
 
 
+async def _recompute_with_purge_for_competency_change(
+    job_id: int, user_id: int
+) -> None:
+    """能力模型变更后全量重算 matching_results.
+
+    相比旧 T2 trigger (on_competency_approved), 本函数:
+      1. 先 purge job 下不在硬筛通过集合内的旧行 (避免脏数据残留)
+      2. 对硬筛通过的全量简历强制重算 (跑到一半被中断时, 下次进 AI Tab 可由 stale 检测拉起兜底)
+
+    实现复用 /api/matching/recompute 的核心逻辑, 不引入新接口.
+    """
+    from app.database import SessionLocal
+    from app.modules.matching.hard_filter import hard_filter_resume_ids
+    from app.modules.matching.router import _purge_outside_hard_filter
+    from app.modules.matching.service import (
+        _new_task, recompute_job_with_fresh_session,
+    )
+
+    db = SessionLocal()
+    try:
+        allowed = hard_filter_resume_ids(db, user_id, job_id)
+        _purge_outside_hard_filter(db, job_id, allowed)
+        db.commit()
+    finally:
+        db.close()
+
+    task_id = _new_task(len(allowed))
+    await recompute_job_with_fresh_session(
+        job_id, task_id, user_id, pre_filter_resume_ids=allowed,
+    )
+
+
 @router.post("/jobs/{job_id}/competency/approve")
 def approve_competency(job_id: int, body: _SaveBody, background_tasks: BackgroundTasks, user_id: int = Depends(get_current_user_id)):
     """HR 通过发布：保存模型 + 状态置为 approved + 回填扁平字段。若有 pending HITL 任务则一并关闭。"""
@@ -572,7 +604,10 @@ def approve_competency(job_id: int, body: _SaveBody, background_tasks: Backgroun
         output_payload=body.competency_model,
     )
 
-    # F2 T2 trigger: score recent resumes against newly approved job
-    background_tasks.add_task(_t2_trigger_with_fresh_session, job_id)
+    # F2 强触发: 能力模型变更后全量重算 (清掉旧行避免 stale 残留).
+    # 旧的 _t2_trigger_with_fresh_session 保留不删 (其他调用点和测试仍需要).
+    background_tasks.add_task(
+        _recompute_with_purge_for_competency_change, job_id, user_id,
+    )
 
     return {"status": "approved"}
