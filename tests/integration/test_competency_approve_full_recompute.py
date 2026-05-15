@@ -4,6 +4,8 @@
 matching_results 行的 competency_hash 刷新为新 cm 对应的 hash,
 而不是停留在旧 cm 的 hash (即不再有 stale 残留)。
 """
+from datetime import datetime, timezone
+
 import pytest
 from sqlalchemy.orm import sessionmaker
 from unittest.mock import patch, AsyncMock
@@ -117,3 +119,78 @@ async def test_full_recompute_refreshes_all_hashes(db_session, db_engine, monkey
     assert len(rows_after) == 3
     assert all(r.competency_hash == new_hash for r in rows_after), \
         f"stale hash 未刷新: {[r.competency_hash for r in rows_after]}"
+
+
+@pytest.mark.asyncio
+async def test_full_recompute_purges_orphan_rows(db_session, db_engine, monkeypatch):
+    """matching_results 中不在硬筛通过集合内的行被 purge 删除."""
+    from app.modules.screening import router as screening_router
+
+    # SessionLocal / _session_factory 重定向到测试引擎, 让 purge + recompute
+    # 看到同一份数据。
+    factory = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
+    monkeypatch.setattr("app.database.engine", db_engine)
+    monkeypatch.setattr("app.database.SessionLocal", factory)
+    monkeypatch.setattr(
+        "app.modules.screening.competency_service._session_factory", factory,
+    )
+
+    uid = 998
+    _seed_user(db_engine, uid)
+
+    cm = {
+        "hard_skills": [],
+        "experience": {"years_min": 0},
+        "education": {"min_level": "本科"},
+        "job_level": "中级",
+    }
+    job = Job(
+        title="后端", user_id=uid, is_active=True, required_skills="",
+        competency_model=cm, competency_model_status="approved",
+        education_min="本科",
+    )
+    db_session.add(job); db_session.commit()
+
+    # 一个硬筛通过的
+    c1, r1 = _make_complete_candidate(db_session, uid, "alive", "Python")
+    # 一个"孤儿"行：直接造 matching_result, 但对应 candidate 已 abandoned
+    c2, r2 = _make_complete_candidate(db_session, uid, "orphan", "Python")
+    c2.intake_status = "abandoned"
+    db_session.commit()
+
+    # 给两个 resume 都打分 (模拟历史数据)
+    db_session.add(MatchingResult(
+        resume_id=r1.id, job_id=job.id, total_score=80.0,
+        skill_score=100.0, experience_score=80.0, seniority_score=80.0,
+        education_score=100.0, industry_score=80.0,
+        hard_gate_passed=1, missing_must_haves="[]", evidence="{}",
+        tags='["高匹配"]',
+        competency_hash="OLD", weights_hash="OLD",
+        scored_at=datetime.now(timezone.utc),
+    ))
+    db_session.add(MatchingResult(
+        resume_id=r2.id, job_id=job.id, total_score=80.0,
+        skill_score=100.0, experience_score=80.0, seniority_score=80.0,
+        education_score=100.0, industry_score=80.0,
+        hard_gate_passed=1, missing_must_haves="[]", evidence="{}",
+        tags='["高匹配"]',
+        competency_hash="OLD", weights_hash="OLD",
+        scored_at=datetime.now(timezone.utc),
+    ))
+    db_session.commit()
+    assert db_session.query(MatchingResult).filter_by(job_id=job.id).count() == 2
+
+    # 跑新触发函数 — 应该 purge orphan
+    with patch("app.modules.matching.service.enhance_evidence_with_llm",
+               new=AsyncMock(side_effect=lambda ev, *a, **kw: ev)):
+        await screening_router._recompute_with_purge_for_competency_change(
+            job.id, uid,
+        )
+
+    db_session.expire_all()
+    rows = db_session.query(MatchingResult).filter_by(job_id=job.id).all()
+    assert len(rows) == 1, \
+        f"orphan 未被 purge: rows={[(r.resume_id, r.competency_hash) for r in rows]}"
+    assert rows[0].resume_id == r1.id
+    new_hash = compute_competency_hash(cm)
+    assert rows[0].competency_hash == new_hash
