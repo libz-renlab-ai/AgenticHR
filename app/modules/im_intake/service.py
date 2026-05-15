@@ -57,7 +57,9 @@ class IntakeService:
         if c is None:
             job_id = None
             if job_intention:
-                jobs = self.db.query(Job).all()
+                # 多租户隔离: 模糊匹配只能在自家 Job 列表里搜, 否则会把 user A 的
+                # 候选人挂到 user B 的 Job (update 分支已正确隔离, 这里补齐 create)。
+                jobs = self.db.query(Job).filter_by(user_id=self.user_id).all()
                 job_id = match_job_title(
                     job_intention, [{"id": j.id, "title": j.title} for j in jobs], threshold=0.7,
                 )
