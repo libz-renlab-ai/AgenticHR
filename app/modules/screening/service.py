@@ -69,13 +69,17 @@ class ScreeningService:
         self.db.commit()
         return True
 
-    def screen_resumes(self, job_id: int, resume_ids: list[int] | None = None) -> dict:
+    def screen_resumes(self, job_id: int, resume_ids: list[int] | None = None,
+                       user_id: int | None = None) -> dict:
         job = self.get_job(job_id)
         if not job:
             return {"job_id": job_id, "total": 0, "passed": 0, "rejected": 0, "results": []}
 
         # 排除已归档（archived）的简历，per-job 状态由 matching_results 管理
+        # 多租户隔离: 必须按 user_id 过滤, 否则会扫到其他账号的简历 (CRITICAL)
         query = self.db.query(Resume).filter(Resume.status != "rejected")
+        if user_id is not None:
+            query = query.filter(Resume.user_id == user_id)
         if resume_ids:
             query = query.filter(Resume.id.in_(resume_ids))
         resumes = query.all()

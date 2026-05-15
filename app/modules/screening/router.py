@@ -229,7 +229,7 @@ def screen_resumes(
         raise HTTPException(status_code=404, detail="岗位不存在")
     if job.user_id != user_id:
         raise HTTPException(status_code=403, detail="无权操作该岗位")
-    return service.screen_resumes(job_id, resume_ids)
+    return service.screen_resumes(job_id, resume_ids, user_id=user_id)
 
 
 class _ManualBody(BaseModel):
