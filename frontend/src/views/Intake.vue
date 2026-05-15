@@ -239,9 +239,19 @@ const togglingEnabled = ref(false)
 
 const aiClassifying = ref(false)
 const lastClassifyResult = ref(null)
-const unmatchedCount = computed(() =>
-  (items.value || []).filter((it) => !it.job_id).length
-)
+const unmatchedTotal = ref(0)
+const unmatchedCount = computed(() => unmatchedTotal.value)
+
+async function refreshUnmatchedCount() {
+  // fetch with large size to get accurate total across pages
+  try {
+    const r = await listIntakeCandidates({ page: 1, size: 200 })
+    const all = r?.items || []
+    unmatchedTotal.value = all.filter((it) => !it.job_id).length
+  } catch (e) {
+    unmatchedTotal.value = 0
+  }
+}
 
 async function onAiClassify() {
   aiClassifying.value = true
@@ -392,6 +402,7 @@ async function loadCandidates() {
   } finally {
     loading.value = false
   }
+  refreshUnmatchedCount()
 }
 
 function reload() {
