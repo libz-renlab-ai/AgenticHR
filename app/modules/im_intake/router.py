@@ -737,3 +737,49 @@ def outbox_ack(
     else:
         _outbox_ack_failed(db, outbox_id, error=body.error)
     return {"ok": True}
+
+
+@router.post("/candidates/batch-classify")
+async def batch_classify_candidates(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user_id),
+):
+    """对当前 user 名下所有 job_id IS NULL 的候选人跑分类.
+
+    串行执行 (LLM 调用相对慢, 但 124 个候选人量级可控). 返计数明细供前端展示.
+    """
+    from app.modules.im_intake.job_classifier import classify_candidate_to_job
+
+    pending = (
+        db.query(IntakeCandidate)
+        .filter(IntakeCandidate.user_id == user_id, IntakeCandidate.job_id.is_(None))
+        .all()
+    )
+    total = len(pending)
+    exact_matched = 0
+    llm_matched = 0
+    no_match = 0
+    errors = 0
+
+    for c in pending:
+        try:
+            jid, reason = await classify_candidate_to_job(db, c, user_id=user_id)
+            if jid is not None:
+                if reason == "exact_match":
+                    exact_matched += 1
+                else:
+                    llm_matched += 1
+            else:
+                no_match += 1
+        except Exception as e:
+            _log.warning("classify failed cid=%s: %s", c.id, e)
+            errors += 1
+
+    db.commit()
+    return {
+        "total": total,
+        "exact_matched": exact_matched,
+        "llm_matched": llm_matched,
+        "no_match": no_match,
+        "errors": errors,
+    }

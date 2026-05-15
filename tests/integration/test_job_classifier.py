@@ -126,3 +126,39 @@ async def test_classify_no_active_jobs_returns_none(db_session):
     jid, reason = await classify_candidate_to_job(db_session, c, user_id=16)
     assert jid is None
     assert reason == "no_active_jobs"
+
+
+def test_batch_classify_endpoint(client, db_session):
+    """造 3 个 exact + 2 个 LLM 候选, 调 endpoint, 验证返计数 + DB job_id."""
+    # client fixture 固定 user_id=1, conftest 已 seed 该 user
+    uid = 1
+    _make_job(db_session, uid, 8001, "全栈工程师")
+
+    # 3 个 exact match — job_intention 与 title 完全相等
+    exact_cands = []
+    for i in range(3):
+        exact_cands.append(_make_cand(db_session, uid, f"exact{i}", intention="全栈工程师"))
+    # 2 个走 LLM (intention 不匹配 title)
+    llm_cands = []
+    for i in range(2):
+        llm_cands.append(_make_cand(db_session, uid, f"llm{i}", intention="其他"))
+
+    # 模拟生产路径: 真 exact match 短路 + mock LLM 兜底
+    # endpoint 内 late-import job_classifier.classify_candidate_to_job, 故 patch 源模块
+    real_llm = AsyncMock(return_value=(8001, "llm_high: 兜底"))
+
+    with patch("app.modules.im_intake.job_classifier._llm_classify", real_llm):
+        resp = client.post("/api/intake/candidates/batch-classify")
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["total"] == 5
+    assert body["exact_matched"] == 3
+    assert body["llm_matched"] == 2
+    assert body["no_match"] == 0
+    assert body["errors"] == 0
+
+    # 验 DB: 所有候选 job_id 都已写入 8001
+    for c in exact_cands + llm_cands:
+        db_session.refresh(c)
+        assert c.job_id == 8001, f"{c.name} 未写 job_id"
