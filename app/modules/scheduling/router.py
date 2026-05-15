@@ -140,10 +140,14 @@ async def create_interviewer(
     service: SchedulingService = Depends(get_scheduling_service),
     user_id: int = Depends(get_current_user_id),
 ):
-    # 防呆：手机号去重
+    # 防呆：手机号去重 — 必须按 user_id 隔离, 否则跨账号会误阻塞 (多租户隔离 bug)
     from app.modules.scheduling.models import Interviewer
     if data.phone:
-        dup = service.db.query(Interviewer).filter(Interviewer.phone == data.phone).first()
+        dup = (
+            service.db.query(Interviewer)
+            .filter(Interviewer.user_id == user_id, Interviewer.phone == data.phone)
+            .first()
+        )
         if dup:
             raise HTTPException(status_code=409, detail=f"手机号 {data.phone} 已被面试官「{dup.name}」使用")
     data = await _ensure_feishu_id(data)
