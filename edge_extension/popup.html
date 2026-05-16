@@ -310,6 +310,36 @@
     <!-- 非当前页功能的小图标带（由 JS 填充） -->
     <div class="chip-row" id="chipRow"></div>
 
+    <!-- F3 学历门槛筛选 (全局设置, 始终可见) -->
+    <section class="card" id="edu-filter-card">
+      <div class="card-title">🎓 学历门槛 (F3 筛选)</div>
+      <div class="row">
+        <span class="label">最低学历</span>
+        <select id="edu-min-level" class="field">
+          <option value="大专">大专</option>
+          <option value="本科" selected>本科</option>
+          <option value="硕士">硕士</option>
+          <option value="博士">博士</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="label">名校标签</span>
+        <div id="edu-tags" style="display:flex;flex-wrap:wrap;gap:6px;">
+          <label><input type="checkbox" value="985" /> 985</label>
+          <label><input type="checkbox" value="211" /> 211</label>
+          <label><input type="checkbox" value="双一流" /> 双一流</label>
+          <label><input type="checkbox" value="QS_TOP_100" /> QS_TOP_100</label>
+        </div>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="edu-require" /> 必须命中名校</label>
+      </div>
+      <div class="row">
+        <button id="edu-save" class="btn btn-primary">保存门槛</button>
+        <span id="edu-save-hint" style="margin-left:8px;font-size:11px;"></span>
+      </div>
+    </section>
+
     <!-- F3 推荐牛人 -->
     <div class="card" id="cardF3" data-ctx="recommend">
       <div class="card-title">
