@@ -995,3 +995,53 @@ document.getElementById("btnCollectSingleChat").addEventListener("click", async 
     }
   });
 });
+
+// === F3 学历门槛卡片 ===========================================
+// HR 在 popup 配置「最低学历 + 名校标签 + 是否必须名校」, 持久化到
+// chrome.storage.local 的 HR_EDUCATION_FILTER 键; content.js 在
+// autoGreetRecommend 启动循环时读取并放入 POST body 的 education_filter。
+(function initEducationFilter() {
+  const STORAGE_KEY = 'HR_EDUCATION_FILTER';
+  const DEFAULT_FILTER = {
+    min_level: '本科',
+    prestigious_tags: [],
+    require_prestigious: false,
+  };
+  const $level = document.getElementById('edu-min-level');
+  const $tags = document.querySelectorAll('#edu-tags input[type=checkbox]');
+  const $require = document.getElementById('edu-require');
+  const $save = document.getElementById('edu-save');
+  const $hint = document.getElementById('edu-save-hint');
+  if (!$level || !$save) return;
+
+  function applyToUI(f) {
+    $level.value = f.min_level || '本科';
+    $tags.forEach(cb => { cb.checked = (f.prestigious_tags || []).includes(cb.value); });
+    $require.checked = !!f.require_prestigious;
+  }
+
+  function readFromUI() {
+    return {
+      min_level: $level.value,
+      prestigious_tags: Array.from($tags).filter(c => c.checked).map(c => c.value),
+      require_prestigious: !!$require.checked,
+    };
+  }
+
+  chrome.storage.local.get([STORAGE_KEY], (res) => {
+    applyToUI(res[STORAGE_KEY] || DEFAULT_FILTER);
+  });
+
+  $save.addEventListener('click', () => {
+    const f = readFromUI();
+    if (f.require_prestigious && f.prestigious_tags.length === 0) {
+      $hint.textContent = '勾了"必须名校"必须至少选 1 个名校标签';
+      $hint.style.color = '#ff4d4f';
+      return;
+    }
+    chrome.storage.local.set({ [STORAGE_KEY]: f }, () => {
+      $hint.textContent = '已保存 ' + new Date().toLocaleTimeString();
+      $hint.style.color = '#00b38a';
+    });
+  });
+})();
