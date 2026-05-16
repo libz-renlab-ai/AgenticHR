@@ -1,6 +1,6 @@
 """F3 recruit_bot 请求 / 响应 Pydantic schemas."""
 from typing import Literal
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 from app.modules.recruit_bot.education_check import EducationFilter
 
@@ -37,19 +37,12 @@ class ScrapedCandidate(BaseModel):
 
 
 class RecruitEvaluateRequest(BaseModel):
-    """F3 评估请求体。education_filter 必填；删旧 strategy 字段。"""
+    """F3 评估请求体。携带 HR 当前选中的系统岗位 + 一张从 Boss 推荐页抓来的
+    ScrapedCandidate + 当前面板配置的 EducationFilter。后端据此跑 upsert + 学历
+    门槛判定，返回 RecruitDecision。"""
     job_id: int
     candidate: ScrapedCandidate
     education_filter: EducationFilter
-
-    @model_validator(mode="after")
-    def _require_tags_when_required(self) -> "RecruitEvaluateRequest":
-        ef = self.education_filter
-        if ef.require_prestigious and not ef.prestigious_tags:
-            raise ValueError(
-                "require_prestigious=True 时 prestigious_tags 不可为空"
-            )
-        return self
 
 
 class RecruitDecision(BaseModel):

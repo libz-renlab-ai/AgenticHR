@@ -96,3 +96,14 @@ class TestCombinedSemantics:
     def test_reason_contains_diagnostic_info(self):
         r = check_education_threshold("大专", [], _f("本科"))
         assert "大专" in r.reason and "本科" in r.reason
+
+
+class TestEducationFilterValidator:
+    def test_require_prestigious_with_empty_tags_rejected(self):
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
+            EducationFilter(min_level="本科", prestigious_tags=[], require_prestigious=True)
+
+    def test_require_prestigious_with_tags_ok(self):
+        f = EducationFilter(min_level="本科", prestigious_tags=["985"], require_prestigious=True)
+        assert f.require_prestigious and f.prestigious_tags == ["985"]

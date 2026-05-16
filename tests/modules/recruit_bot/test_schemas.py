@@ -1,6 +1,11 @@
 """recruit_bot Pydantic schemas 校验."""
 import pytest
 from pydantic import ValidationError
+from app.modules.recruit_bot.schemas import (
+    RecruitEvaluateRequest,
+    RecruitDecision,
+    ScrapedCandidate,
+)
 
 
 def test_scraped_candidate_minimal():
@@ -64,20 +69,13 @@ def test_greet_record_request():
 
 class TestRecruitEvaluateRequestEducationFilter:
     def _candidate(self):
-        from app.modules.recruit_bot.schemas import ScrapedCandidate
         return ScrapedCandidate(name="A", boss_id="b1")
 
     def test_education_filter_required(self):
-        import pytest
-        from pydantic import ValidationError
-        from app.modules.recruit_bot.schemas import RecruitEvaluateRequest
         with pytest.raises(ValidationError):
             RecruitEvaluateRequest(job_id=1, candidate=self._candidate())
 
     def test_min_level_enum_constrained(self):
-        import pytest
-        from pydantic import ValidationError
-        from app.modules.recruit_bot.schemas import RecruitEvaluateRequest
         with pytest.raises(ValidationError):
             RecruitEvaluateRequest(
                 job_id=1, candidate=self._candidate(),
@@ -85,9 +83,6 @@ class TestRecruitEvaluateRequestEducationFilter:
             )
 
     def test_prestigious_tag_enum_constrained(self):
-        import pytest
-        from pydantic import ValidationError
-        from app.modules.recruit_bot.schemas import RecruitEvaluateRequest
         with pytest.raises(ValidationError):
             RecruitEvaluateRequest(
                 job_id=1, candidate=self._candidate(),
@@ -98,9 +93,6 @@ class TestRecruitEvaluateRequestEducationFilter:
             )
 
     def test_require_prestigious_with_empty_tags_rejected(self):
-        import pytest
-        from pydantic import ValidationError
-        from app.modules.recruit_bot.schemas import RecruitEvaluateRequest
         with pytest.raises(ValidationError):
             RecruitEvaluateRequest(
                 job_id=1, candidate=self._candidate(),
@@ -112,7 +104,6 @@ class TestRecruitEvaluateRequestEducationFilter:
             )
 
     def test_valid_payload(self):
-        from app.modules.recruit_bot.schemas import RecruitEvaluateRequest
         req = RecruitEvaluateRequest(
             job_id=1, candidate=self._candidate(),
             education_filter={
@@ -126,15 +117,11 @@ class TestRecruitEvaluateRequestEducationFilter:
 
 class TestRecruitDecisionLiteral:
     def test_new_decisions_allowed(self):
-        from app.modules.recruit_bot.schemas import RecruitDecision
         for d in ("should_greet", "skipped_already_greeted",
                   "rejected_low_education", "blocked_daily_cap"):
             RecruitDecision(decision=d)
 
     def test_old_decisions_rejected(self):
-        import pytest
-        from pydantic import ValidationError
-        from app.modules.recruit_bot.schemas import RecruitDecision
         for d in ("rejected_low_score", "error_no_competency", "error_scoring"):
             with pytest.raises(ValidationError):
                 RecruitDecision(decision=d)

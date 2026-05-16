@@ -1,7 +1,7 @@
 """F3 学历门槛筛选 — 学历等级 + 名校标签的纯函数判定."""
 import re
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 _EDU_ORD: dict[str, int] = {"大专": 1, "本科": 2, "硕士": 3, "博士": 4}
 
@@ -22,6 +22,14 @@ class EducationFilter(BaseModel):
     min_level: Literal["大专", "本科", "硕士", "博士"]
     prestigious_tags: list[PrestigiousTag] = Field(default_factory=list)
     require_prestigious: bool = False
+
+    @model_validator(mode="after")
+    def _validate_prestigious_tags_consistency(self) -> "EducationFilter":
+        if self.require_prestigious and not self.prestigious_tags:
+            raise ValueError(
+                "require_prestigious=True 时 prestigious_tags 不可为空"
+            )
+        return self
 
 
 class EducationCheckResult(BaseModel):
