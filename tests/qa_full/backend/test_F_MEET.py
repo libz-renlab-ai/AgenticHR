@@ -108,10 +108,12 @@ def test_F_MEET_01_auto_create_real(api_base, http, auth_headers, qa_db_path):
         meeting_topic="[QA-TEST] auto-create 验证",
     )
     try:
+        # 真跑 Playwright + 腾讯会议网页要 ~5 分钟（含登录态检查、表单填、提交、详情页等待）。
+        # 180s 太短，给到 420s 留余地，否则只会拿到 httpx.ReadTimeout 没法验真实业务结果。
         r = http.post(
             f"{api_base}/api/meeting/auto-create?interview_id={interview_id}",
             headers=auth_headers,
-            timeout=180,
+            timeout=420,
         )
         # 真实场景预期 200;Playwright/账号未配置可能 500/409
         assert r.status_code in (200, 409, 500), r.text
