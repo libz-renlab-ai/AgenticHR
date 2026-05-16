@@ -470,6 +470,20 @@ def create_interview(
             raise HTTPException(status_code=409, detail="该候选人已有待面试安排")
 
     data.resume_id = resume.id
+
+    # 多租户隔离: interviewer_id / job_id 也必须属于本人, 否则 user A 可让自己
+    # 面试列表里出现 user B 的面试官, 或通过 AI 面评读 user B 的 competency_model。
+    # 返 404 与 BUG-056 一致, 不暴露存在性。
+    from app.modules.scheduling.models import Interviewer
+    interviewer = service.db.query(Interviewer).filter(Interviewer.id == data.interviewer_id).first()
+    if interviewer is None or interviewer.user_id != user_id:
+        raise HTTPException(status_code=404, detail="面试官不存在")
+    if data.job_id is not None:
+        from app.modules.screening.models import Job
+        job = service.db.query(Job).filter(Job.id == data.job_id).first()
+        if job is None or job.user_id != user_id:
+            raise HTTPException(status_code=404, detail="岗位不存在")
+
     interview = service.create_interview(data, user_id=user_id)
     if interview is None:
         raise HTTPException(status_code=409, detail="该时段与面试官的其他面试冲突，请选择其他时间")

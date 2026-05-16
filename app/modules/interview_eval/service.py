@@ -50,7 +50,13 @@ def create_job(*, interview_id: int, user_id: int) -> int:
         # 校验 2：competency_model approved
         if interview.job_id is None:
             raise ServiceError(400, "本次面试未关联岗位")
-        job_row = db.query(Job).filter(Job.id == interview.job_id).first()
+        # 多租户隔离: 即便 interview 已 user-scoped, 仍强制 user_id 防御历史
+        # 跨账户 job_id 残留行 (scheduling create 修复前可能写入过)。
+        job_row = (
+            db.query(Job)
+            .filter(Job.id == interview.job_id, Job.user_id == user_id)
+            .first()
+        )
         if job_row is None or job_row.competency_model_status != "approved":
             raise ServiceError(
                 400, "请先在 Jobs 页完成能力模型抽取并审核通过（F1）",
