@@ -99,7 +99,9 @@ def test_F_REC_01_evaluate_and_record_real_llm(
             "skill_tags": ["Python", "FastAPI"],
             "school_tier_tags": [],
         },
-        "strategy": "school_only",  # school_only 跳过 LLM, 走通基本流程不依赖外部
+        "education_filter": {
+            "min_level": "本科", "prestigious_tags": [], "require_prestigious": False,
+        },
     }
     r = http.post(
         f"{api_base}/api/recruit/evaluate_and_record",
@@ -109,9 +111,10 @@ def test_F_REC_01_evaluate_and_record_real_llm(
     if r.status_code == 200:
         data = r.json()
         assert "decision" in data
+        # education-only filter 替换 F2 五维打分后的合法枚举集
         assert data["decision"] in (
-            "should_greet", "skipped_already_greeted", "rejected_low_score",
-            "blocked_daily_cap", "error_no_competency", "error_scoring",
+            "should_greet", "skipped_already_greeted", "rejected_low_education",
+            "blocked_daily_cap",
         )
 
 
@@ -131,7 +134,9 @@ def test_F_REC_01_evaluate_job_not_found(api_base, http, auth_headers):
     body = {
         "job_id": 999_888_777,
         "candidate": {"name": "x", "boss_id": "qa_404_boss"},
-        "strategy": "school_only",
+        "education_filter": {
+            "min_level": "本科", "prestigious_tags": [], "require_prestigious": False,
+        },
     }
     r = http.post(
         f"{api_base}/api/recruit/evaluate_and_record",
