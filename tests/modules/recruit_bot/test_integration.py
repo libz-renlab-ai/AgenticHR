@@ -1,6 +1,16 @@
-"""F3 端到端后端路径集成测试."""
+"""F3 端到端后端路径集成测试 (education-only filter)."""
 import pytest
 from datetime import datetime, timezone
+
+from app.modules.recruit_bot.education_check import EducationFilter
+
+
+def _ef(min_level="本科", tags=None, require=False):
+    return EducationFilter(
+        min_level=min_level,
+        prestigious_tags=tags or [],
+        require_prestigious=require,
+    )
 
 
 def _mk_user(db, user_id, username, daily_cap=1000):
@@ -11,26 +21,20 @@ def _mk_user(db, user_id, username, daily_cap=1000):
 
 def _mk_job(db, user_id, threshold=30):
     from app.modules.screening.models import Job
+    # education-only F3 不再要求 competency_model_status='approved', 但保留字段无害
     j = Job(
         user_id=user_id, title="后端", jd_text="x",
-        competency_model={
-            "schema_version": 1,
-            "hard_skills": [{"name":"Python","weight":9,"must_have":True}],
-            "soft_skills":[],"experience":{"years_min":2,"years_max":5,"industries":[]},
-            "education":{"min_level":"本科"},"job_level":"","bonus_items":[],
-            "exclusions":[],"assessment_dimensions":[],
-            "source_jd_hash":"h","extracted_at":"2026-04-21T00:00:00Z",
-        },
-        competency_model_status="approved", greet_threshold=threshold,
+        competency_model=None,
+        competency_model_status="none", greet_threshold=threshold,
     )
     db.add(j); db.commit(); db.refresh(j)
     return j
 
 
-def _mk_cand(boss_id="b1"):
+def _mk_cand(boss_id="b1", education="本科"):
     from app.modules.recruit_bot.schemas import ScrapedCandidate
     return ScrapedCandidate(
-        name="张三", boss_id=boss_id, age=28, education="本科",
+        name="张三", boss_id=boss_id, age=28, education=education,
         school="X 大", major="CS", intended_job="后端",
         work_years=3, skill_tags=["Python", "Redis"],
     )
@@ -43,9 +47,12 @@ async def test_full_pipeline_should_greet_then_record(db):
     )
     from app.modules.resume.models import Resume
     _mk_user(db, 1, "hr1")
-    job = _mk_job(db, user_id=1, threshold=30)
+    job = _mk_job(db, user_id=1)
 
-    dec = await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=_mk_cand())
+    dec = await evaluate_and_record(
+        db, user_id=1, job_id=job.id, candidate=_mk_cand(),
+        education_filter=_ef(min_level="本科"),
+    )
     assert dec.decision == "should_greet"
     assert dec.resume_id is not None
 
@@ -60,34 +67,40 @@ async def test_full_pipeline_should_greet_then_record(db):
 
 @pytest.mark.asyncio
 async def test_full_pipeline_rejected(db):
-    """高阈值场景 — candidate 无 must-have 技能 → rejected_low_score."""
+    """学历低于门槛 → rejected_low_education."""
     from app.modules.recruit_bot.service import evaluate_and_record
     from app.modules.resume.models import Resume
-    from app.modules.recruit_bot.schemas import ScrapedCandidate
     _mk_user(db, 1, "hr1")
-    job = _mk_job(db, user_id=1, threshold=50)
-    # 缺 Python must-have → hard_gate 不通过 → 低分
-    c = ScrapedCandidate(
-        name="李四", boss_id="reject_target", age=28, education="本科",
-        school="X 大", major="CS", intended_job="后端",
-        work_years=3, skill_tags=["Redis"],
+    job = _mk_job(db, user_id=1)
+    c = _mk_cand(boss_id="reject_target", education="大专")
+    dec = await evaluate_and_record(
+        db, user_id=1, job_id=job.id, candidate=c,
+        education_filter=_ef(min_level="本科"),
     )
-    dec = await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=c)
-    assert dec.decision == "rejected_low_score"
+    assert dec.decision == "rejected_low_education"
     r = db.query(Resume).filter_by(id=dec.resume_id).first()
     assert r.status == "rejected"
     assert r.greet_status == "none"
+    assert r.reject_reason.startswith("education_only:")
 
 
 @pytest.mark.asyncio
 async def test_idempotent_evaluate(db):
     from app.modules.recruit_bot.service import evaluate_and_record
     _mk_user(db, 1, "hr1")
-    job = _mk_job(db, user_id=1, threshold=30)
-    d1 = await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=_mk_cand())
-    d2 = await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=_mk_cand())
+    job = _mk_job(db, user_id=1)
+    d1 = await evaluate_and_record(
+        db, user_id=1, job_id=job.id, candidate=_mk_cand(),
+        education_filter=_ef(min_level="本科"),
+    )
+    d2 = await evaluate_and_record(
+        db, user_id=1, job_id=job.id, candidate=_mk_cand(),
+        education_filter=_ef(min_level="本科"),
+    )
     assert d1.resume_id == d2.resume_id
-    assert d1.decision == d2.decision
+    # 第二次因 greet_status='pending_greet'!='greeted' 仍能跑, 但 d1 已设 pending_greet
+    # 所以 d2 走相同路径 → should_greet
+    assert d1.decision == "should_greet"
 
 
 @pytest.mark.asyncio
@@ -97,8 +110,11 @@ async def test_idempotent_record_greet_preserves_timestamp(db):
     )
     from app.modules.resume.models import Resume
     _mk_user(db, 1, "hr1")
-    job = _mk_job(db, user_id=1, threshold=30)
-    d = await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=_mk_cand())
+    job = _mk_job(db, user_id=1)
+    d = await evaluate_and_record(
+        db, user_id=1, job_id=job.id, candidate=_mk_cand(),
+        education_filter=_ef(min_level="本科"),
+    )
     record_greet_sent(db, user_id=1, resume_id=d.resume_id, success=True)
     r1 = db.query(Resume).filter_by(id=d.resume_id).first()
     t1 = r1.greeted_at
@@ -117,17 +133,25 @@ async def test_cap_across_multi_users(db):
     _mk_user(db, 1, "hr1")
     _mk_user(db, 2, "hr2")
 
-    job_a = _mk_job(db, user_id=1, threshold=30)
-    job_b = _mk_job(db, user_id=2, threshold=30)
+    job_a = _mk_job(db, user_id=1)
+    job_b = _mk_job(db, user_id=2)
 
     ua = db.query(User).filter_by(id=1).first(); ua.daily_cap = 1; db.commit()
 
-    d1 = await evaluate_and_record(db, user_id=1, job_id=job_a.id, candidate=_mk_cand(boss_id="x1"))
+    d1 = await evaluate_and_record(
+        db, user_id=1, job_id=job_a.id, candidate=_mk_cand(boss_id="x1"),
+        education_filter=_ef(min_level="本科"),
+    )
     record_greet_sent(db, user_id=1, resume_id=d1.resume_id, success=True)
 
-    d2 = await evaluate_and_record(db, user_id=1, job_id=job_a.id, candidate=_mk_cand(boss_id="x2"))
+    d2 = await evaluate_and_record(
+        db, user_id=1, job_id=job_a.id, candidate=_mk_cand(boss_id="x2"),
+        education_filter=_ef(min_level="本科"),
+    )
     assert d2.decision == "blocked_daily_cap"
 
-    # user_B 不受影响
-    d3 = await evaluate_and_record(db, user_id=2, job_id=job_b.id, candidate=_mk_cand(boss_id="x3"))
+    d3 = await evaluate_and_record(
+        db, user_id=2, job_id=job_b.id, candidate=_mk_cand(boss_id="x3"),
+        education_filter=_ef(min_level="本科"),
+    )
     assert d3.decision == "should_greet"

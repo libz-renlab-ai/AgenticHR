@@ -196,7 +196,9 @@ from app.core.audit.logger import log_event
 from app.modules.auth.models import User
 from app.modules.recruit_bot.schemas import RecruitDecision, UsageInfo
 from app.modules.screening.models import Job
-from app.modules.matching.service import MatchingService
+
+if TYPE_CHECKING:
+    from app.modules.recruit_bot.education_check import EducationFilter  # noqa
 
 logger = logging.getLogger(__name__)
 
@@ -227,10 +229,20 @@ def get_daily_usage(db: Session, user_id: int) -> UsageInfo:
 async def evaluate_and_record(
     db: Session, user_id: int, job_id: int,
     candidate: "ScrapedCandidate",
-    strategy: str | None = None,
+    education_filter: "EducationFilter",
 ) -> RecruitDecision:
-    """核心决策: daily_cap → upsert → 已 greeted skip → F2 score → threshold → record."""
-    # 1. daily_cap 先于一切 (省打分钱, 也避免无意义 upsert)
+    """F3 决策: daily_cap → job 归属 → upsert resume → 已 greeted skip → 学历门槛 → MatchingResult upsert.
+
+    spec 2026-05-15: 替换原五维 F2 score_pair 为「学历等级 + 名校标签」单维度门槛;
+    门槛由 HR 在扩展面板配置, 经请求体传入。取消 competency_model_status='approved'
+    前置 (job 只要归属正确即可)。仍写一行 MatchingResult 兼容 screening UI。
+    """
+    import json
+    from datetime import datetime, timezone
+    from app.modules.matching.models import MatchingResult
+    from app.modules.recruit_bot.education_check import check_education_threshold
+
+    # 1. daily_cap
     usage = get_daily_usage(db, user_id)
     if usage.remaining <= 0:
         log_event(
@@ -244,7 +256,7 @@ async def evaluate_and_record(
             reason=f"今日已打 {usage.used}/{usage.cap}",
         )
 
-    # 2. job 归属 + competency_model
+    # 2. job 归属 (不再要求 competency_model)
     job = (
         db.query(Job)
         .filter(Job.id == job_id, Job.user_id == user_id)
@@ -252,10 +264,11 @@ async def evaluate_and_record(
     )
     if not job:
         raise ValueError(f"job {job_id} not found for user {user_id}")
+
     # 3. upsert resume
     resume = upsert_resume_by_boss_id(db, user_id=user_id, candidate=candidate)
 
-    # 4. 已 greeted 跳过 (历史覆盖, 不重复打招呼)
+    # 4. 已 greeted 跳过
     if resume.greet_status == "greeted":
         log_event(
             f_stage="F3_evaluate", action="skipped_already_greeted",
@@ -269,107 +282,105 @@ async def evaluate_and_record(
             reason="历史已打过招呼",
         )
 
-    # 5. school_only 策略: 跳过 LLM，仅看院校层次标签
-    # 匹配含 985/211/双一流 的任意 tag 格式 (如 "211院校", "985院校", "双一流院校" 等)
-    import re as _re
-    _TIER_RE = _re.compile(r'985|211|双一流')
-    if strategy == 'school_only':
-        tier_tags = candidate.school_tier_tags or []
-        has_tier = any(_TIER_RE.search(t) for t in tier_tags)
-        if has_tier:
-            resume.status = "passed"
-            resume.greet_status = "pending_greet"
-            db.commit()
-            log_event(
-                f_stage="F3_evaluate", action="should_greet",
-                entity_type="resume", entity_id=resume.id,
-                input_payload={"boss_id": candidate.boss_id, "tier_tags": tier_tags, "strategy": "school_only"},
-                reviewer_id=user_id,
-            )
-            return RecruitDecision(
-                decision="should_greet",
-                resume_id=resume.id,
-                reason=f"985/211/双一流院校: {', '.join(tier_tags)}",
-            )
-        else:
-            resume.status = "rejected"
-            resume.reject_reason = "school_only: 非985/211/双一流院校"
-            db.commit()
-            log_event(
-                f_stage="F3_evaluate", action="rejected_low_score",
-                entity_type="resume", entity_id=resume.id,
-                input_payload={"boss_id": candidate.boss_id, "tier_tags": tier_tags, "strategy": "school_only"},
-                reviewer_id=user_id,
-            )
-            return RecruitDecision(
-                decision="rejected_low_score",
-                resume_id=resume.id,
-                reason=f"非985/211/双一流院校 (tags={tier_tags})",
-            )
+    # 5. 学历门槛判定
+    check = check_education_threshold(
+        candidate.education or "",
+        candidate.school_tier_tags or [],
+        education_filter,
+    )
 
-    # 6. F2 匹配打分 (school_only已在上面返回，到这里必须有competency_model)
-    if not job.competency_model:
-        log_event(
-            f_stage="F3_evaluate", action="error_no_competency",
-            entity_type="job", entity_id=job_id,
-            input_payload={"boss_id": candidate.boss_id},
-            reviewer_id=user_id,
-        )
-        return RecruitDecision(
-            decision="error_no_competency",
-            reason=f"job {job_id} 能力模型未生成",
-        )
-    svc = MatchingService(db)
-    try:
-        result = await svc.score_pair(resume.id, job.id, triggered_by="F3")
-    except Exception as e:
-        logger.exception(f"F3 score_pair failed: {e}")
-        log_event(
-            f_stage="F3_evaluate", action="error_scoring",
-            entity_type="resume", entity_id=resume.id,
-            input_payload={"boss_id": candidate.boss_id},
-            output_payload={"error": str(e)},
-            reviewer_id=user_id,
-        )
-        return RecruitDecision(
-            decision="error_scoring",
-            resume_id=resume.id,
-            reason=f"打分异常: {e}",
-        )
+    # 6. MatchingResult upsert (无论 pass/fail 都写一行, 复用既有 UI)
+    now = datetime.now(timezone.utc)
+    total = 100.0 if check.passed else 0.0
+    edu_sc = 100.0 if check.level_pass else 0.0
+    tags_list = ["education_only"]
+    evidence_obj = {
+        "education_only": {
+            "candidate_level": candidate.education or "",
+            "candidate_school": candidate.school or "",
+            "school_tier_tags": list(candidate.school_tier_tags or []),
+            "required_level": education_filter.min_level,
+            "required_tags": list(education_filter.prestigious_tags),
+            "require_prestigious": education_filter.require_prestigious,
+            "level_pass": check.level_pass,
+            "prestigious_pass": check.prestigious_pass,
+            "matched_tiers": check.matched_tiers,
+        }
+    }
+    existing_mr = db.query(MatchingResult).filter_by(
+        resume_id=resume.id, job_id=job.id
+    ).first()
+    if existing_mr:
+        existing_mr.total_score = total
+        existing_mr.skill_score = 0.0
+        existing_mr.experience_score = 0.0
+        existing_mr.seniority_score = 0.0
+        existing_mr.education_score = edu_sc
+        existing_mr.industry_score = 0.0
+        existing_mr.hard_gate_passed = 1 if check.passed else 0
+        existing_mr.missing_must_haves = "[]"
+        existing_mr.evidence = json.dumps(evidence_obj, ensure_ascii=False)
+        existing_mr.tags = json.dumps(tags_list, ensure_ascii=False)
+        existing_mr.competency_hash = "education_only"
+        existing_mr.weights_hash = "education_only"
+        existing_mr.scored_at = now
+    else:
+        db.add(MatchingResult(
+            resume_id=resume.id, job_id=job.id,
+            total_score=total,
+            skill_score=0.0, experience_score=0.0,
+            seniority_score=0.0, education_score=edu_sc, industry_score=0.0,
+            hard_gate_passed=1 if check.passed else 0,
+            missing_must_haves="[]",
+            evidence=json.dumps(evidence_obj, ensure_ascii=False),
+            tags=json.dumps(tags_list, ensure_ascii=False),
+            competency_hash="education_only", weights_hash="education_only",
+            scored_at=now,
+        ))
 
-    threshold = job.greet_threshold
-    score = int(result.total_score)
-
-    # 6. 阈值判定 + 更新 resume
-    if score >= threshold:
+    # 7. 阈值判定 + 更新 resume
+    if check.passed:
         resume.status = "passed"
         resume.greet_status = "pending_greet"
         db.commit()
         log_event(
             f_stage="F3_evaluate", action="should_greet",
             entity_type="resume", entity_id=resume.id,
-            input_payload={"boss_id": candidate.boss_id, "score": score, "threshold": threshold},
+            input_payload={
+                "boss_id": candidate.boss_id,
+                "education_filter": education_filter.model_dump(),
+                "candidate_education": candidate.education,
+                "school_tier_tags": list(candidate.school_tier_tags or []),
+                "matched_tiers": check.matched_tiers,
+            },
             reviewer_id=user_id,
         )
         return RecruitDecision(
             decision="should_greet",
-            resume_id=resume.id, score=score, threshold=threshold,
-            reason=f"分 {score} ≥ 阈值 {threshold}",
+            resume_id=resume.id,
+            reason=check.reason,
         )
     else:
         resume.status = "rejected"
-        resume.reject_reason = f"F3 分{score}低于阈值{threshold}"
+        resume.reject_reason = f"education_only: {check.reason}"
         db.commit()
         log_event(
-            f_stage="F3_evaluate", action="rejected_low_score",
+            f_stage="F3_evaluate", action="rejected_low_education",
             entity_type="resume", entity_id=resume.id,
-            input_payload={"boss_id": candidate.boss_id, "score": score, "threshold": threshold},
+            input_payload={
+                "boss_id": candidate.boss_id,
+                "education_filter": education_filter.model_dump(),
+                "candidate_education": candidate.education,
+                "school_tier_tags": list(candidate.school_tier_tags or []),
+                "level_pass": check.level_pass,
+                "prestigious_pass": check.prestigious_pass,
+            },
             reviewer_id=user_id,
         )
         return RecruitDecision(
-            decision="rejected_low_score",
-            resume_id=resume.id, score=score, threshold=threshold,
-            reason=f"分 {score} < 阈值 {threshold}",
+            decision="rejected_low_education",
+            resume_id=resume.id,
+            reason=check.reason,
         )
 
 

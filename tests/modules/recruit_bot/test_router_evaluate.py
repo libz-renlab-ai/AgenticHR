@@ -67,13 +67,19 @@ def client(tmp_path, monkeypatch):
         app.dependency_overrides.pop(get_current_user_id, None)
 
 
-def _body(job_id, boss_id="b1", name="张三"):
+def _body(job_id, boss_id="b1", name="张三", education="本科",
+          min_level="本科", prestigious_tags=None, require_prestigious=False):
     return {
         "job_id": job_id,
         "candidate": {
             "name": name, "boss_id": boss_id,
-            "education": "本科", "work_years": 3,
+            "education": education, "work_years": 3,
             "intended_job": "后端", "skill_tags": ["Python"],
+        },
+        "education_filter": {
+            "min_level": min_level,
+            "prestigious_tags": prestigious_tags or [],
+            "require_prestigious": require_prestigious,
         },
     }
 
@@ -94,7 +100,6 @@ def test_evaluate_returns_should_greet(client):
     d = r.json()
     assert d["decision"] == "should_greet"
     assert d["resume_id"] is not None
-    assert d["score"] >= 30
 
 
 def test_evaluate_rejects_foreign_job(client):
@@ -108,3 +113,35 @@ def test_evaluate_validates_missing_boss_id(client):
     body = _body(jid); body["candidate"]["boss_id"] = ""
     r = c.post("/api/recruit/evaluate_and_record", json=body)
     assert r.status_code == 422
+
+
+def test_evaluate_missing_education_filter_422(client):
+    """Task 4: education_filter 必填, 缺失返 422."""
+    c, jid, uid = client
+    r = c.post("/api/recruit/evaluate_and_record", json={
+        "job_id": jid,
+        "candidate": {"name": "A", "boss_id": "b1"},
+    })
+    assert r.status_code == 422
+
+
+def test_evaluate_require_prestigious_no_tags_422(client):
+    """Task 4: require_prestigious=True 但 tags=[] 应 422 (EducationFilter validator)."""
+    c, jid, uid = client
+    r = c.post("/api/recruit/evaluate_and_record", json={
+        "job_id": jid,
+        "candidate": {"name": "A", "boss_id": "b1", "education": "本科"},
+        "education_filter": {
+            "min_level": "本科", "prestigious_tags": [], "require_prestigious": True,
+        },
+    })
+    assert r.status_code == 422
+
+
+def test_evaluate_rejected_low_education(client):
+    """Task 4: 学历低于门槛 → 200 + decision='rejected_low_education'."""
+    c, jid, uid = client
+    body = _body(jid, education="大专", min_level="硕士")
+    r = c.post("/api/recruit/evaluate_and_record", json=body)
+    assert r.status_code == 200
+    assert r.json()["decision"] == "rejected_low_education"
