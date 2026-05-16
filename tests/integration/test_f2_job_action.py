@@ -195,7 +195,9 @@ def test_list_passed_for_job_returns_only_qualified(client, db_session):
     job = _mk_job(db_session, title="硕士+985岗位",
                   education_min="硕士", school_tier_min="985")
 
-    resp = client.get(f"/api/matching/passed-resumes/{job.id}")
+    # spec 2026-05-15 Round 2: 路由默认 strict=True 仅返本岗位绑定候选人,
+    # 这里候选人 job_id=NULL → 加 show_all=true 走旧"硬筛通过即出"行为
+    resp = client.get(f"/api/matching/passed-resumes/{job.id}?show_all=true")
     assert resp.status_code == 200
     data = resp.json()
     assert len(data) == 1
@@ -217,7 +219,7 @@ def test_list_passed_for_job_includes_email(client, db_session):
                         phone="13800000005", email="test@example.com")
     job = _mk_job(db_session, title="邮箱测试岗位")  # 无门槛
 
-    resp = client.get(f"/api/matching/passed-resumes/{job.id}")
+    resp = client.get(f"/api/matching/passed-resumes/{job.id}?show_all=true")
     assert resp.status_code == 200
     data = resp.json()
     assert len(data) == 1
