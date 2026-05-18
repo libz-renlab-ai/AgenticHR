@@ -326,11 +326,13 @@ async def evaluate_and_record(
             reason="历史已打过招呼",
         )
 
-    # 5. 学历门槛判定
+    # 5. 学历门槛判定 — 第 4 个参数 candidate_school 兜底按校名查 985/211 白名单,
+    # 解决 Boss 推荐卡片不打 '985'/'211' 标签时清北人被 require_prestigious 误拒的问题。
     check = check_education_threshold(
         candidate.education or "",
         candidate.school_tier_tags or [],
         education_filter,
+        candidate.school or "",
     )
 
     # 6. MatchingResult upsert (无论 pass/fail 都写一行, 复用既有 UI)

@@ -945,7 +945,12 @@ function scrapeRecommendCard(cardEl) {
     // .tag-item.highlight = 推荐理由 (live 校准)
     if (t.classList?.contains('highlight') || /来自相似职位|推荐理由/.test(txt)) {
       recommendation_reason = txt;
-    } else if (/^\d+院校$|^985$|^211$|^双一流$/.test(txt)) {
+      // school tier 标签 (live 校准 2026-05-18):
+      //   - '211院校' / '985院校' / '双一流' — 老形态
+      //   - 'QS前100院校' / 'QS前500院校' / '全球前100院校' — Boss 现行高频标签
+      //   - '海外名校' / 'QS_TOP_*' — 偶发
+      // 后端按学校名查 985/211 白名单兜底, 但这里能多抠就多抠, 反向加快通过率。
+    } else if (/^\d+院校$|^985院校?$|^211院校?$|^双一流$|^QS前\d+院校?$|^全球前\d+院校?$|^海外名校$/.test(txt)) {
       school_tier_tags.push(txt);
     } else if (/专业前\d+%/.test(txt)) {
       ranking_tags.push(txt);
