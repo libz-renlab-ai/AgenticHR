@@ -1000,6 +1000,25 @@ async function autoGreetRecommend({ jobId, serverUrl, authToken }) {
   const stats = { total: 0, greeted: 0, skipped: 0, rejected: 0, failed: 0, blocked: false };
   _setStats(stats);
 
+  // F3 学历门槛筛选: 从 popup 设置 (chrome.storage.local) 读取, 缺省回退默认
+  const educationFilter = await new Promise((resolve) => {
+    try {
+      chrome.storage.local.get(['HR_EDUCATION_FILTER'], (res) => {
+        resolve(res.HR_EDUCATION_FILTER || {
+          min_level: '本科', prestigious_tags: [], require_prestigious: false,
+        });
+      });
+    } catch (e) {
+      resolve({ min_level: '本科', prestigious_tags: [], require_prestigious: false });
+    }
+  });
+  if (educationFilter.require_prestigious && educationFilter.prestigious_tags.length === 0) {
+    log('未配置名校标签但启用了"必须名校", 已停止');
+    _setRunning(false);
+    return { success: false, message: '请在扩展弹窗里完善学历门槛设置', summary: stats, log: LOG };
+  }
+  log(`学历门槛: ${educationFilter.min_level}${educationFilter.require_prestigious ? ' + 必须名校' : ''}${educationFilter.prestigious_tags.length ? ' [' + educationFilter.prestigious_tags.join(',') + ']' : ''}`);
+
   try {
     if (!location.pathname.includes(F3_SELECTORS.PAGE_URL_PATH)) {
       return { success: false, message: '请先打开 Boss 推荐牛人页', log: LOG };
@@ -1072,7 +1091,7 @@ async function autoGreetRecommend({ jobId, serverUrl, authToken }) {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ job_id: jobId, candidate: scraped, strategy: 'school_only' }),
+          body: JSON.stringify({ job_id: jobId, candidate: scraped, education_filter: educationFilter }),
         });
         if (evalResp.status === 401) {
           _setRunning(false);
@@ -1097,23 +1116,12 @@ async function autoGreetRecommend({ jobId, serverUrl, authToken }) {
           summary: stats, log: LOG,
         };
       }
-      if (decision.decision === 'error_no_competency') {
-        _setRunning(false);
-        return {
-          success: false, message: `岗位能力模型未生成`,
-          summary: stats, log: LOG,
-        };
-      }
       if (decision.decision === 'skipped_already_greeted') {
         stats.skipped++; log('历史已打过招呼，跳过');
         _setStats(stats);
-      } else if (decision.decision === 'rejected_low_score') {
+      } else if (decision.decision === 'rejected_low_education') {
         stats.rejected++;
-        log(`分 ${decision.score} < 阈值 ${decision.threshold}, 跳过`);
-        _setStats(stats);
-      } else if (decision.decision === 'error_scoring') {
-        stats.failed++;
-        log(`打分异常: ${decision.reason}, 跳过`);
+        log(`学历未达标: ${decision.reason}, 跳过`);
         _setStats(stats);
       } else if (decision.decision === 'should_greet') {
         const greetBtn = findGreetButtonInCard(card);

@@ -1,6 +1,11 @@
 """recruit_bot Pydantic schemas 校验."""
 import pytest
 from pydantic import ValidationError
+from app.modules.recruit_bot.schemas import (
+    RecruitEvaluateRequest,
+    RecruitDecision,
+    ScrapedCandidate,
+)
 
 
 def test_scraped_candidate_minimal():
@@ -60,3 +65,63 @@ def test_greet_record_request():
     assert r.error_msg == ""
     r2 = GreetRecordRequest(resume_id=2, success=False, error_msg="button_not_found")
     assert r2.error_msg == "button_not_found"
+
+
+class TestRecruitEvaluateRequestEducationFilter:
+    def _candidate(self):
+        return ScrapedCandidate(name="A", boss_id="b1")
+
+    def test_education_filter_required(self):
+        with pytest.raises(ValidationError):
+            RecruitEvaluateRequest(job_id=1, candidate=self._candidate())
+
+    def test_min_level_enum_constrained(self):
+        with pytest.raises(ValidationError):
+            RecruitEvaluateRequest(
+                job_id=1, candidate=self._candidate(),
+                education_filter={"min_level": "中专"},
+            )
+
+    def test_prestigious_tag_enum_constrained(self):
+        with pytest.raises(ValidationError):
+            RecruitEvaluateRequest(
+                job_id=1, candidate=self._candidate(),
+                education_filter={
+                    "min_level": "本科",
+                    "prestigious_tags": ["c9"],
+                },
+            )
+
+    def test_require_prestigious_with_empty_tags_rejected(self):
+        with pytest.raises(ValidationError):
+            RecruitEvaluateRequest(
+                job_id=1, candidate=self._candidate(),
+                education_filter={
+                    "min_level": "本科",
+                    "prestigious_tags": [],
+                    "require_prestigious": True,
+                },
+            )
+
+    def test_valid_payload(self):
+        req = RecruitEvaluateRequest(
+            job_id=1, candidate=self._candidate(),
+            education_filter={
+                "min_level": "本科",
+                "prestigious_tags": ["985", "211"],
+                "require_prestigious": False,
+            },
+        )
+        assert req.education_filter.min_level == "本科"
+
+
+class TestRecruitDecisionLiteral:
+    def test_new_decisions_allowed(self):
+        for d in ("should_greet", "skipped_already_greeted",
+                  "rejected_low_education", "blocked_daily_cap"):
+            RecruitDecision(decision=d)
+
+    def test_old_decisions_rejected(self):
+        for d in ("rejected_low_score", "error_no_competency", "error_scoring"):
+            with pytest.raises(ValidationError):
+                RecruitDecision(decision=d)
