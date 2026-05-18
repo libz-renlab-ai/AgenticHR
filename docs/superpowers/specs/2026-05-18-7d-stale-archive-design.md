@@ -63,26 +63,32 @@ def last_message_dt(
     chat_snapshot: dict | None,
     fallback: datetime | None = None,
 ) -> datetime | None:
-    """从 chat_snapshot 取最后一条消息的 sent_at, 失败回退到 fallback。
+    """从 chat_snapshot 找最新 sent_at, 再与 fallback 取较新者。
 
-    chat_snapshot 结构: {"messages": [{"sender_id": ..., "content": ...,
-    "sent_at": "ISO-8601 str"}, ...]}. 反向遍历找最近一条有合法 sent_at 的
-    消息。无 sent_at 或 parse 失败的逐条跳过。
+    返回 max(chat_last_ts, fallback) — fallback 是"时间下界"而非"全空时
+    才用". 这样反归档时把 intake_started_at 重置为 now → 即使 chat 里
+    仍有 10 天前老消息, max() 也会取 now → 给 7 天宽限期, 否则反归档
+    后立即会被再次归档 (设计陷阱, 实现时被测试发现并修正)。
 
-    fallback 通常传 candidate.intake_started_at — 既给新建候选人完整 7 天
-    缓冲, 也给反归档候选人完整 7 天宽限。
+    任一侧为 None 时返回另一侧; 都为 None 返回 None。
     """
+    chat_dt = None
     msgs = (chat_snapshot or {}).get("messages") or []
     for m in reversed(msgs):
-        ts = m.get("sent_at")
+        ts = (m or {}).get("sent_at")
         if not ts:
             continue
         try:
-            # 支持 'Z' 后缀的 ISO 8601
-            return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+            chat_dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+            break
         except (ValueError, TypeError):
             continue
-    return fallback
+    # naive datetime 视为 UTC, 都规范化后 max
+    if chat_dt is None:
+        return fallback
+    if fallback is None:
+        return chat_dt
+    return max(chat_dt, fallback)
 
 
 def is_stale(

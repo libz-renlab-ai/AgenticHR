@@ -51,6 +51,27 @@ class TestLastMessageDt:
         fallback = datetime(2026, 1, 1, tzinfo=timezone.utc)
         assert last_message_dt({"foo": "bar"}, fallback=fallback) == fallback
 
+    def test_fallback_newer_than_chat_wins(self):
+        """反归档场景: chat 有真实老消息 + fallback 是 now → 应返回 fallback.
+        这是给反归档候选人 7 天宽限期的关键 — 否则反归档后立即又被归档。"""
+        snap = {"messages": [
+            {"sender_id": "boss", "content": "ok", "sent_at": "2026-04-01T08:00:00Z"},
+        ]}
+        # fallback (反归档时被重置的 intake_started_at) 比 chat 新
+        fallback_now = datetime(2026, 5, 18, tzinfo=timezone.utc)
+        r = last_message_dt(snap, fallback=fallback_now)
+        assert r == fallback_now
+
+    def test_chat_newer_than_fallback_wins(self):
+        """正常活跃候选人: chat 新消息 + intake_started_at 是 30 天前
+        → 应返回 chat 时间 (业务行为不变)."""
+        snap = {"messages": [
+            {"sender_id": "boss", "content": "我刚回复", "sent_at": "2026-05-17T08:00:00Z"},
+        ]}
+        old_fallback = datetime(2026, 4, 1, tzinfo=timezone.utc)
+        r = last_message_dt(snap, fallback=old_fallback)
+        assert r == datetime(2026, 5, 17, 8, 0, tzinfo=timezone.utc)
+
 
 class TestIsStale:
     def _now(self):

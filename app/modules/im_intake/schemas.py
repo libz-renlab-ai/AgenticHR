@@ -135,14 +135,18 @@ class CollectChatIn(BaseModel):
 
 class NextActionOut(BaseModel):
     # BUG-013: 移除 timed_out —— decide_next_action 从不产生该动作，schema 与实现不一致
+    # 2026-05-18: 新增 archived_stale (已入库 7d 无消息归档) /
+    # skipped_stale_new (入库前 stale 拦截)
     type: Literal["send_hard", "request_pdf", "wait_pdf", "wait_reply",
-                  "send_soft", "complete", "mark_pending_human", "abandon"]
+                  "send_soft", "complete", "mark_pending_human", "abandon",
+                  "archived_stale", "skipped_stale_new"]
     text: str = ""
     slot_keys: list[str] = Field(default_factory=list)
 
 
 class CollectChatOut(BaseModel):
-    candidate_id: int
+    # candidate_id 可为 None: 当入库前拦截 (skipped_stale_new) 时, 不创建 candidate
+    candidate_id: int | None = None
     intake_status: str
     next_action: NextActionOut
 
