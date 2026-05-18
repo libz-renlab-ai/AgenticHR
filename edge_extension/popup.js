@@ -38,11 +38,11 @@ function classifyPage(url) {
 }
 
 const CTX_TEXT = {
-  recommend: "当前页：Boss 推荐牛人",
-  chat: "当前页：Boss 聊天",
-  list: "当前页：Boss 消息列表",
-  detail: "当前页：Boss 简历详情",
-  other: "请在 Boss 直聘页面使用",
+  recommend: "推荐牛人页 · 可自动打招呼",
+  chat: "聊天页 · 可采集这个候选人",
+  list: "消息列表 · 可批量操作",
+  detail: "简历详情 · 可采集这一页",
+  other: "请先打开 Boss 直聘网站",
 };
 
 async function detectPageContext() {
@@ -63,7 +63,9 @@ function highlightCard(ctx) {
   const map = { recommend: "cardF3", chat: "cardF4", list: "cardList", detail: "cardDetail" };
   const primaryId = _userExpandedId || map[ctx] || null;
   const chipRow = document.getElementById("chipRow");
-  const stack = chipRow ? chipRow.parentNode : null;
+  // primary card 永远塞回主 .stack, 而不是 chipRow.parentNode (新版 HTML 把
+  // chipRow 包在 chipRowWrap 里, 老逻辑会误把 primary card 塞进 wrap)
+  const stack = document.querySelector(".stack");
   CARD_IDS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -71,7 +73,6 @@ function highlightCard(ctx) {
     if (id === primaryId) {
       el.classList.add("primary-card");
       el.classList.remove("compressed");
-      // primary card returns to main stack flow (after chipRow)
       if (stack && el.parentNode !== stack) stack.appendChild(el);
       el.onclick = null;
     } else {
@@ -85,6 +86,9 @@ function highlightCard(ctx) {
       };
     }
   });
+  // chipRowWrap 当 chipRow 没子卡片时整个隐藏 (含 label)
+  const wrap = document.getElementById("chipRowWrap");
+  if (wrap) wrap.style.display = (chipRow && chipRow.children.length) ? "" : "none";
 }
 
 // ── Initialization ──────────────────────────────────────────────────
@@ -228,16 +232,20 @@ function getAuthToken() {
 
 function updateAuthUI() {
   const name = _authUser || '用户';
+  const onboarding = document.getElementById('onboardingCard');
   if (_authToken) {
     if (loginSection) loginSection.style.display = 'none';
     if (userSection) userSection.classList.remove('hidden');
     if (userSettingsSection) userSettingsSection.style.display = 'block';
     if (displayUser) displayUser.textContent = name;
     if (displayUser2) displayUser2.textContent = name;
+    // 已登录的老用户不需要看新手引导
+    if (onboarding) onboarding.style.display = 'none';
   } else {
     if (loginSection) loginSection.style.display = 'block';
     if (userSection) userSection.classList.add('hidden');
     if (userSettingsSection) userSettingsSection.style.display = 'none';
+    if (onboarding) onboarding.style.display = 'block';
   }
 }
 

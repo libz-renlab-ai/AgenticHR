@@ -24,7 +24,7 @@
     html, body { background: var(--bg); }
 
     body {
-      width: 360px;
+      width: 380px;
       max-height: 600px;
       overflow-y: auto;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -33,22 +33,23 @@
       line-height: 1.5;
     }
 
-    /* ── Top bar ────────────────────────────────────────── */
+    /* ── 顶栏 ──────────────────────────────────────────── */
     .topbar {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 14px;
+      padding: 12px 14px;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: #fff;
     }
-    .topbar .brand { font-size: 13px; font-weight: 600; letter-spacing: 0.3px; }
     .topbar .status-dot {
       width: 8px; height: 8px; border-radius: 50%;
       background: rgba(255,255,255,0.6);
+      flex-shrink: 0;
     }
     .topbar .status-dot.connected { background: #b7eb8f; box-shadow: 0 0 6px #b7eb8f; }
     .topbar .status-dot.error { background: #ff7875; }
+    .topbar .brand { font-size: 14px; font-weight: 600; letter-spacing: 0.3px; }
     .topbar .spacer { flex: 1; }
     .topbar .user-pill {
       display: inline-flex; align-items: center; gap: 4px;
@@ -57,32 +58,57 @@
       border-radius: 10px;
       font-size: 11px;
       cursor: pointer;
-      max-width: 120px;
+      max-width: 130px;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .topbar .icon-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px; border-radius: 50%;
+      width: 26px; height: 26px; border-radius: 50%;
       background: rgba(255,255,255,0.18);
       color: #fff; border: 0; cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
     }
     .topbar .icon-btn:hover { background: rgba(255,255,255,0.28); }
 
-    /* ── Context strip ──────────────────────────────────── */
+    /* ── 当前页面提示 ──────────────────────────────────── */
     .context-strip {
-      padding: 8px 14px;
-      font-size: 11px;
-      color: var(--text-muted);
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--text);
       background: var(--card);
       border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .context-strip .pin { font-size: 13px; }
+    .context-strip .label-main { font-weight: 600; }
+    .context-strip .connect-state {
+      font-size: 10px;
+      color: var(--text-faint);
+      margin-left: auto;
+    }
+
+    /* ── 主体堆 ────────────────────────────────────────── */
+    .stack { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── 新手引导 ──────────────────────────────────────── */
+    .onboarding {
+      background: linear-gradient(180deg, #f0f9f5 0%, #fff 100%);
+      border: 1px solid #b7eb8f;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .onboarding-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
       display: flex; align-items: center; gap: 6px;
     }
-    .context-strip .pin { color: var(--primary); }
+    .onboarding ol { margin: 0 0 0 20px; padding: 0; font-size: 11.5px; color: var(--text-muted); }
+    .onboarding ol li { margin: 3px 0; }
+    .onboarding ol li b { color: var(--text); }
 
-    /* ── Cards ─────────────────────────────────────────── */
-    .stack { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
-
+    /* ── 卡片基础 ──────────────────────────────────────── */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -91,11 +117,21 @@
     }
     .card.primary-card {
       border-color: var(--primary);
-      box-shadow: 0 2px 8px rgba(0,179,138,0.12);
+      box-shadow: 0 2px 12px rgba(0,179,138,0.15);
     }
     .card.dimmed { opacity: 0.6; }
 
-    /* ── Compressed card (Option B: non-context cards as icon chips) ── */
+    /* ── Chip 行(其他场景的快捷入口) ───────────────────── */
+    .chip-row-wrap {
+      display: flex; flex-direction: column; gap: 6px;
+      padding: 0;
+    }
+    .chip-row-wrap:empty { display: none; }
+    .chip-row-label {
+      font-size: 11px;
+      color: var(--text-faint);
+      padding-left: 2px;
+    }
     .chip-row {
       display: flex;
       flex-wrap: wrap;
@@ -106,14 +142,14 @@
     }
     .chip-row:empty { display: none; }
     .card.compressed {
-      padding: 6px 10px;
+      padding: 6px 12px;
       display: inline-flex;
       align-items: center;
       min-height: 28px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 16px;
-      opacity: 0.8;
+      opacity: 0.85;
       cursor: pointer;
       font-size: 11px;
       box-shadow: none;
@@ -129,27 +165,39 @@
       gap: 4px;
     }
     .card.compressed .card-title .tag { display: none; }
+
     .card-title {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       display: flex; align-items: center; gap: 6px;
     }
     .card-title .tag {
       font-size: 10px;
       font-weight: 500;
-      padding: 1px 6px;
+      padding: 1px 7px;
       border-radius: 8px;
       background: var(--primary-light);
       color: var(--primary-dark);
     }
-    .card-hint { font-size: 11px; color: var(--text-faint); margin-top: 6px; }
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: -4px;
+      margin-bottom: 10px;
+    }
+    .card-hint { font-size: 11px; color: var(--text-faint); margin-top: 8px; line-height: 1.5; }
 
-    /* ── Form bits ─────────────────────────────────────── */
-    .row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .divider {
+      height: 1px; background: var(--border);
+      margin: 12px 0 10px;
+    }
+
+    /* ── 表单元素 ──────────────────────────────────────── */
+    .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     .row:last-child { margin-bottom: 0; }
-    .label { font-size: 11px; color: var(--text-muted); min-width: 36px; }
+    .label { font-size: 11px; color: var(--text-muted); min-width: 44px; }
     .field {
       flex: 1;
       padding: 7px 10px;
@@ -162,9 +210,9 @@
     .field:focus { border-color: var(--primary); }
     select.field { cursor: pointer; }
 
-    /* ── Buttons ───────────────────────────────────────── */
+    /* ── 按钮 ──────────────────────────────────────────── */
     .btn {
-      padding: 8px 12px;
+      padding: 8px 14px;
       border: 0;
       border-radius: 6px;
       font-size: 12px;
@@ -178,65 +226,68 @@
     .btn:active:not(:disabled) { transform: translateY(1px); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: #13a47e; color: #fff; }
     .btn-danger  { background: var(--danger); color: #fff; }
     .btn-ghost   { background: #fff; color: var(--text-muted); border: 1px solid #d9d9d9; }
     .btn-link    { background: transparent; color: var(--primary); padding: 2px 4px; font-size: 11px; }
-    .btn.full    { width: 100%; padding: 10px; font-size: 13px; font-weight: 500; }
+    .btn.full    { width: 100%; padding: 11px; font-size: 13px; font-weight: 500; }
+    .btn-row { display: flex; gap: 6px; }
 
-    /* ── Usage line ────────────────────────────────────── */
+    /* ── 配额条 ────────────────────────────────────────── */
     .usage {
       display: flex; align-items: center; gap: 6px;
       font-size: 11px; color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      background: #fafafa;
+      border-radius: 4px;
     }
     .usage .num { color: var(--text); font-weight: 600; }
+    .usage .spacer { flex: 1; }
 
-    /* ── Stats (run progress) ──────────────────────────── */
+    /* ── 进度统计 ──────────────────────────────────────── */
     .stats {
       font-size: 11px;
       color: var(--text-muted);
-      margin-top: 8px;
-      padding: 6px 8px;
+      margin-top: 10px;
+      padding: 8px 10px;
       background: var(--primary-light);
       border-radius: 4px;
       min-height: 0;
     }
     .stats:empty { display: none; }
 
-    /* ── Collapsibles ──────────────────────────────────── */
+    /* ── 折叠组件 ──────────────────────────────────────── */
     .collapsible > .head {
       display: flex; align-items: center; justify-content: space-between;
       cursor: pointer;
       font-size: 12px;
-      color: var(--text-muted);
+      color: var(--text);
+      font-weight: 500;
       user-select: none;
     }
-    .collapsible > .head .caret { transition: transform 0.2s; display: inline-block; }
+    .collapsible > .head .caret { transition: transform 0.2s; display: inline-block; color: var(--text-faint); }
     .collapsible.open > .head .caret { transform: rotate(90deg); }
-    .collapsible > .body { display: none; margin-top: 10px; }
+    .collapsible > .body { display: none; margin-top: 12px; }
     .collapsible.open > .body { display: block; }
 
-    .other-list { display: flex; flex-direction: column; gap: 8px; }
-    .other-item {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px;
-      background: #fafafa;
-    }
-    .other-item .row-top {
+    /* ── 切换开关 ──────────────────────────────────────── */
+    .toggle-row {
       display: flex; align-items: center; justify-content: space-between;
-      font-size: 12px; color: var(--text);
+      gap: 10px;
     }
-    .other-item .ctx { font-size: 10px; color: var(--text-faint); }
+    .toggle-row .label-block { flex: 1; }
+    .toggle-row .label-block .t { font-size: 12px; font-weight: 500; }
+    .toggle-row .label-block .d { font-size: 10px; color: var(--text-faint); margin-top: 2px; }
 
-    /* ── Result area ───────────────────────────────────── */
+    /* ── 结果区 ────────────────────────────────────────── */
     .result-area {
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 10px;
       min-height: 48px;
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
       font-size: 11px;
       color: var(--text-muted);
@@ -248,7 +299,24 @@
     .result-area.success { border-color: #b7eb8f; background: #f6ffed; color: #389e0d; }
     .result-area.error   { border-color: #ffa39e; background: #fff2f0; color: var(--danger); }
 
-    /* ── Settings panel (slide-over) ───────────────────── */
+    /* ── 学历门槛标签复选 ──────────────────────────────── */
+    .tag-checks { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-checks label {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px;
+      border: 1px solid #d9d9d9;
+      border-radius: 12px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .tag-checks label:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    /* ── 设置面板 ──────────────────────────────────────── */
     .settings-panel {
       position: fixed;
       inset: 0;
@@ -257,177 +325,221 @@
       transition: transform 0.25s ease;
       z-index: 10;
       display: flex; flex-direction: column;
+      overflow-y: auto;
     }
     .settings-panel.open { transform: translateX(0); }
     .settings-header {
-      padding: 10px 14px;
+      padding: 12px 14px;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: #fff;
       display: flex; align-items: center; gap: 10px;
-      font-size: 13px; font-weight: 600;
+      font-size: 14px; font-weight: 600;
+      flex-shrink: 0;
     }
     .settings-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
     .footer {
       text-align: center;
-      padding: 8px;
+      padding: 10px;
       font-size: 10px;
       color: var(--text-faint);
       border-top: 1px solid var(--border);
     }
 
-    /* ── Utility ───────────────────────────────────────── */
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- ═════ Top bar ═════ -->
+  <!-- ═════ 顶栏 ═════ -->
   <div class="topbar">
     <span class="status-dot" id="statusDot"></span>
     <span class="brand">招聘助手</span>
     <span class="spacer"></span>
     <span id="userSection" class="hidden">
       <span class="user-pill" id="userPill" title="点击退出">
-        <span id="displayUser">用户</span>
+        👤 <span id="displayUser">用户</span>
         <button id="btnLogout" class="btn btn-link" style="color:#fff;padding:0 2px;">退出</button>
       </span>
     </span>
     <button class="icon-btn" id="btnOpenSettings" title="设置">⚙</button>
   </div>
 
-  <!-- ═════ Context strip ═════ -->
+  <!-- ═════ 当前页提示 ═════ -->
   <div class="context-strip">
     <span class="pin">📍</span>
-    <span id="contextLabel">检测中…</span>
-    <span class="spacer" style="flex:1"></span>
-    <span id="statusText" style="font-size:10px;color:var(--text-faint);">未连接</span>
+    <span class="label-main" id="contextLabel">检测中…</span>
+    <span class="connect-state" id="statusText">未连接</span>
   </div>
 
-  <!-- ═════ Main stack ═════ -->
+  <!-- ═════ 主体堆 ═════ -->
   <div class="stack">
 
-    <!-- 非当前页功能的小图标带（由 JS 填充） -->
-    <div class="chip-row" id="chipRow"></div>
-
-    <!-- F3 学历门槛筛选 (全局设置, 始终可见) -->
-    <section class="card" id="edu-filter-card">
-      <div class="card-title">🎓 学历门槛 (F3 筛选)</div>
-      <div class="row">
-        <span class="label">最低学历</span>
-        <select id="edu-min-level" class="field">
-          <option value="大专">大专</option>
-          <option value="本科" selected>本科</option>
-          <option value="硕士">硕士</option>
-          <option value="博士">博士</option>
-        </select>
-      </div>
-      <div class="row">
-        <span class="label">名校标签</span>
-        <div id="edu-tags" style="display:flex;flex-wrap:wrap;gap:6px;">
-          <label><input type="checkbox" value="985" /> 985</label>
-          <label><input type="checkbox" value="211" /> 211</label>
-          <label><input type="checkbox" value="双一流" /> 双一流</label>
-          <label><input type="checkbox" value="QS_TOP_100" /> QS_TOP_100</label>
-        </div>
-      </div>
-      <div class="row">
-        <label><input type="checkbox" id="edu-require" /> 必须命中名校</label>
-      </div>
-      <div class="row">
-        <button id="edu-save" class="btn btn-primary">保存门槛</button>
-        <span id="edu-save-hint" style="margin-left:8px;font-size:11px;"></span>
-      </div>
+    <!-- 新手引导（首次使用） -->
+    <section class="onboarding" id="onboardingCard">
+      <div class="onboarding-title">👋 第一次用?三步上手</div>
+      <ol>
+        <li>点右上 <b>⚙ 设置</b> → 登录招聘助手账号</li>
+        <li>在 Boss 直聘网站登录,打开<b>推荐牛人</b>页或<b>消息列表</b>页</li>
+        <li>下方会自动显示<b>当前页能做的操作</b>,直接点开始即可</li>
+      </ol>
     </section>
 
-    <!-- F3 推荐牛人 -->
+    <!-- 非当前页功能的小图标带（由 JS 填充） -->
+    <div class="chip-row-wrap" id="chipRowWrap">
+      <div class="chip-row-label">其他页面也可以:(在 Boss 切到对应页才能用)</div>
+      <div class="chip-row" id="chipRow"></div>
+    </div>
+
+    <!-- ─────────── 推荐牛人页:自动打招呼 ─────────── -->
     <div class="card" id="cardF3" data-ctx="recommend">
       <div class="card-title">
-        <span>🎯 F3 推荐牛人自动打招呼</span>
+        <span>🎯 自动给推荐牛人打招呼</span>
         <span class="tag" id="tagF3">推荐牛人页</span>
       </div>
+      <div class="card-subtitle">系统逐个看推荐卡片,符合学历门槛的自动点"打招呼"</div>
+
       <div class="row">
-        <span class="label">岗位</span>
+        <span class="label">目标岗位</span>
         <select id="recruitJobSelect" class="field">
           <option value="">-- 选择岗位 --</option>
         </select>
       </div>
       <div class="usage">
-        今日 <span class="num" id="usageUsed">0</span> / <span class="num" id="usageCap">0</span>
-        <a href="#" id="editCap" class="btn btn-link">改配额</a>
+        <span>今日已打招呼</span>
+        <span class="num" id="usageUsed">0</span>
+        <span>/</span>
+        <span class="num" id="usageCap">0</span>
+        <span class="spacer"></span>
+        <a href="#" id="editCap" class="btn btn-link">改上限</a>
       </div>
       <button class="btn btn-primary full" id="btnRecruitStart">▶ 开始自动打招呼</button>
       <div class="stats" id="recruitStats"></div>
       <button class="btn btn-danger full" id="btnPause" style="display:none;margin-top:8px;">⏸ 暂停</button>
+      <div class="card-hint">学历门槛在下方"高级筛选"里改。打招呼额度在公司账号上,改"上限"是改本系统并发数。</div>
     </div>
 
-    <!-- F4 聊天候选人 -->
+    <!-- ─────────── 聊天页:单聊采集 ─────────── -->
     <div class="card" id="cardF4" data-ctx="chat">
       <div class="card-title">
-        <span>💬 F4 单聊候选人采集</span>
+        <span>💬 采集这个候选人</span>
         <span class="tag" id="tagF4">聊天页</span>
       </div>
+      <div class="card-subtitle">在 Boss 聊天里打开某个候选人后,把他的聊天/资料抓回系统</div>
+
       <button class="btn btn-primary full" id="btnCollectSingleChat">采集当前聊天候选人</button>
-      <div class="card-hint">在 boss.zhipin.com 聊天页打开候选人对话后使用。LLM 抽取姓名/联系方式/意向等。</div>
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:12px;font-weight:600;">🔁 自动采集开关</div>
-          <div class="card-hint" style="margin-top:2px;">开启后 Step1 每小时扫列表 / Step2 每3小时分析聊天</div>
-        </div>
-        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" id="intakeAutoscanToggle" />
-          <span id="intakeAutoscanLabel" style="font-size:12px;color:var(--text-muted);">关</span>
-        </label>
-      </div>
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">手动立即触发</div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-ghost" id="btnStep1" style="flex:1;font-size:11px;padding:6px 4px;">
-            ⟳ 扫描新候选人
-          </button>
-          <button class="btn btn-ghost" id="btnStep2" style="flex:1;font-size:11px;padding:6px 4px;">
-            🔍 分析聊天记录
-          </button>
-        </div>
-        <div id="phaseStatus" style="font-size:10px;color:var(--text-faint);margin-top:5px;text-align:center;min-height:14px;"></div>
-      </div>
+      <div class="card-hint">系统会按聊天记录抠出姓名/手机/学历/意向,自动归档到简历库。</div>
     </div>
 
-    <!-- 消息列表批量组（求简历 + 批量采集） -->
+    <!-- ─────────── 消息列表页:批量 ─────────── -->
     <div class="card" id="cardList" data-ctx="list">
       <div class="card-title">
         <span>📋 消息列表批量操作</span>
         <span class="tag" id="tagList">消息列表</span>
       </div>
-      <button class="btn btn-primary full" id="btnAutoGreet">对新招呼批量求简历</button>
-      <button class="btn btn-primary full" id="btnBatchCollect" style="margin-top:6px;background:#13a47e;">批量采集已求到简历</button>
-      <div style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
-        <div style="font-size:11px;color:#666;margin-bottom:4px;">批量采集新候选人（按标准筛选）</div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-          <select id="batchNewJobSelect" style="flex:1;min-width:100px;font-size:12px;padding:2px 4px;"></select>
-          <input id="batchNewLimit" type="number" min="1" max="50" value="10"
-            style="width:52px;font-size:12px;padding:2px 4px;border:1px solid #ddd;border-radius:3px;" title="采集数量上限">
-          <button class="btn btn-primary" id="btnBatchCollectNew"
-            style="font-size:12px;padding:4px 10px;">开始采集</button>
-        </div>
+      <div class="card-subtitle">两步:先批量"求简历",等候选人发来,再批量采集入库</div>
+
+      <button class="btn btn-primary full" id="btnAutoGreet">① 给新招呼批量求简历</button>
+      <button class="btn btn-secondary full" id="btnBatchCollect" style="margin-top:6px;">② 批量采集已收到的简历</button>
+
+      <div class="divider"></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500;">按筛选标准采集新候选人</div>
+      <div class="card-hint" style="margin:0 0 6px;">选岗位+采集人数上限,按岗位绑定的标准过滤,只入库符合的人。</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <select id="batchNewJobSelect" style="flex:1;min-width:120px;font-size:12px;padding:6px 8px;border:1px solid #d9d9d9;border-radius:6px;"></select>
+        <input id="batchNewLimit" type="number" min="1" max="50" value="10"
+          style="width:60px;font-size:12px;padding:6px 4px;border:1px solid #d9d9d9;border-radius:6px;text-align:center;" title="采集数量上限 (1-50)">
+        <button class="btn btn-primary" id="btnBatchCollectNew" style="font-size:12px;padding:7px 12px;">开始</button>
       </div>
-      <div class="card-hint">先"求简历"→对方发简历→再"批量采集"入库。</div>
     </div>
 
-    <!-- 详情页单采 -->
+    <!-- ─────────── 详情页:单采 ─────────── -->
     <div class="card" id="cardDetail" data-ctx="detail">
       <div class="card-title">
-        <span>📄 详情页单采</span>
-        <span class="tag" id="tagDetail">简历详情</span>
+        <span>📄 采集这份简历</span>
+        <span class="tag" id="tagDetail">简历详情页</span>
       </div>
-      <button class="btn btn-primary full" id="btnCollect">采集当前页面简历</button>
-      <div class="card-hint">打开候选人简历详情页后使用。</div>
+      <div class="card-subtitle">直接抓这一页的简历信息+附件 PDF 入库</div>
+
+      <button class="btn btn-primary full" id="btnCollect">采集当前页简历</button>
     </div>
 
-    <!-- 日志 -->
-    <div class="card collapsible open" id="logCard">
+    <!-- ─────────── 高级:后台自动跟进 ─────────── -->
+    <div class="card collapsible" id="autoIntakeCard">
       <div class="head">
-        <span>▸ 日志 <span id="logHint" style="color:var(--text-faint);font-size:10px;"></span></span>
+        <span>🤖 后台自动跟进 (高级)</span>
+        <span class="caret">▸</span>
+      </div>
+      <div class="body">
+        <div class="card-subtitle" style="margin-top:0;">开启后,系统每小时自动扫消息列表+每3小时分析候选人聊天,不需要你打开扩展。</div>
+        <div class="toggle-row">
+          <div class="label-block">
+            <div class="t">开启后台自动跟进</div>
+            <div class="d">需要 Boss 直聘页面保持打开</div>
+          </div>
+          <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" id="intakeAutoscanToggle" />
+            <span id="intakeAutoscanLabel" style="font-size:12px;color:var(--text-muted);">关</span>
+          </label>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">手动立即触发一次</div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btnStep1" style="flex:1;font-size:11px;padding:7px 6px;">
+            ⟳ 扫描新候选人
+          </button>
+          <button class="btn btn-ghost" id="btnStep2" style="flex:1;font-size:11px;padding:7px 6px;">
+            🔍 分析候选人聊天
+          </button>
+        </div>
+        <div id="phaseStatus" style="font-size:10px;color:var(--text-faint);margin-top:6px;text-align:center;min-height:14px;"></div>
+      </div>
+    </div>
+
+    <!-- ─────────── 高级:学历门槛 ─────────── -->
+    <div class="card collapsible" id="edu-filter-card">
+      <div class="head">
+        <span>🎓 学历门槛 (推荐牛人筛选)</span>
+        <span class="caret">▸</span>
+      </div>
+      <div class="body">
+        <div class="card-subtitle" style="margin-top:0;">自动打招呼时按这套门槛过滤,不满足的直接跳过。</div>
+        <div class="row">
+          <span class="label">最低学历</span>
+          <select id="edu-min-level" class="field">
+            <option value="大专">大专</option>
+            <option value="本科" selected>本科</option>
+            <option value="硕士">硕士</option>
+            <option value="博士">博士</option>
+          </select>
+        </div>
+        <div class="row" style="align-items:flex-start;">
+          <span class="label" style="padding-top:4px;">名校加分</span>
+          <div id="edu-tags" class="tag-checks">
+            <label><input type="checkbox" value="985" /> 985</label>
+            <label><input type="checkbox" value="211" /> 211</label>
+            <label><input type="checkbox" value="双一流" /> 双一流</label>
+            <label><input type="checkbox" value="QS_TOP_100" /> QS 前 100</label>
+          </div>
+        </div>
+        <div class="row">
+          <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="edu-require" />
+            必须命中名校才打招呼
+          </label>
+        </div>
+        <div class="card-hint" style="margin-bottom:8px;">建议先 <b>不勾</b> "必须命中名校",观察淘汰率。勾选后非名校一律跳过。</div>
+        <div class="row">
+          <button id="edu-save" class="btn btn-primary">💾 保存门槛</button>
+          <span id="edu-save-hint" style="margin-left:4px;font-size:11px;"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────── 日志 ─────────── -->
+    <div class="card collapsible" id="logCard">
+      <div class="head">
+        <span>📜 操作日志 <span id="logHint" style="color:var(--text-faint);font-size:10px;font-weight:normal;"></span></span>
         <span class="caret">▸</span>
       </div>
       <div class="body">
@@ -437,9 +549,9 @@
 
   </div>
 
-  <div class="footer">Boss 直聘简历采集助手</div>
+  <div class="footer">招聘助手 · 简化 HR 在 Boss 直聘的日常操作</div>
 
-  <!-- ═════ Settings slide-over ═════ -->
+  <!-- ═════ 设置面板 ═════ -->
   <div class="settings-panel" id="settingsPanel">
     <div class="settings-header">
       <button class="icon-btn" id="btnCloseSettings" title="返回">←</button>
@@ -447,17 +559,9 @@
     </div>
     <div class="settings-body">
 
-      <div class="card">
-        <div class="card-title">🔗 服务器</div>
-        <div class="row">
-          <input type="text" id="serverUrl" class="field" placeholder="http://127.0.0.1:8000">
-          <button class="btn btn-ghost" id="btnTestConnection">测试</button>
-        </div>
-        <div class="card-hint"><span id="statusTextFull">未连接</span></div>
-      </div>
-
       <div class="card" id="loginSection">
-        <div class="card-title">🔐 登录</div>
+        <div class="card-title">🔐 登录招聘助手</div>
+        <div class="card-subtitle" style="margin-top:0;">请先登录(用招聘助手账号,不是 Boss 账号)</div>
         <div class="row">
           <input type="text" id="loginUsername" class="field" placeholder="用户名">
         </div>
@@ -468,11 +572,21 @@
       </div>
 
       <div class="card" id="userSettingsSection" style="display:none;">
-        <div class="card-title">👤 账号</div>
-        <div class="row" style="justify-content:space-between;">
-          <span style="font-size:12px;">已登录为 <b id="displayUser2">—</b></span>
+        <div class="card-title">👤 当前账号</div>
+        <div class="row" style="justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;">已登录: <b id="displayUser2">—</b></span>
           <button class="btn btn-ghost" id="btnLogoutFromSettings">退出登录</button>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔗 后端服务器</div>
+        <div class="card-subtitle" style="margin-top:0;">招聘助手后端地址,一般保持默认即可</div>
+        <div class="row">
+          <input type="text" id="serverUrl" class="field" placeholder="http://127.0.0.1:8000">
+          <button class="btn btn-ghost" id="btnTestConnection">测试</button>
+        </div>
+        <div class="card-hint">当前: <span id="statusTextFull">未连接</span></div>
       </div>
 
     </div>
