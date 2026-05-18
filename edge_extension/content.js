@@ -523,8 +523,16 @@ async function downloadPdf(candidateInfo, expectedName, serverUrl, authToken = '
 
     const uploadHeaders = authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
     const uploadResp = await fetch(`${serverUrl}/api/resumes/upload`, { method: 'POST', headers: uploadHeaders, body: form });
-    if (uploadResp.ok) { log('上传成功'); return { ok: true, data: await uploadResp.json() }; }
+    // 上传成功 / 失败两条路径都要 closeDialog, 确保下一候选人开始前 PDF 预览不残留
+    // (现网报告 2026-05-18: 上一人简历没关上, 已开始给下一人发消息)
+    if (uploadResp.ok) {
+      log('上传成功');
+      const data = await uploadResp.json();
+      await closeDialog();
+      return { ok: true, data };
+    }
     log(`上传失败: ${uploadResp.status}`);
+    await closeDialog();
     return { ok: false };
   } catch (e) {
     log(`异常: ${e.message}`);
@@ -540,36 +548,54 @@ function extractPdfUrl(iframeSrc) {
 }
 
 async function closeDialog() {
-  // 尝试所有可能的关闭按钮
-  const selectors = [
+  // 关闭简历预览弹窗 / PDF iframe。三层兜底, 函数返回前**保证** DOM 中
+  // 已无 .attachment-iframe / .resume-common-dialog 残留, 避免下一个候选人
+  // 被处理时上一个的简历预览还盖在聊天面板上 (现网报告 2026-05-18)。
+  const closeSelectors = [
     '.resume-custom-close',
     '.resume-common-dialog .boss-popup__close',
     '.boss-popup__close',
     '.dialog-resume-full .close',
     '.icon-close',
   ];
-  for (const sel of selectors) {
-    const btn = document.querySelector(sel);
-    if (btn && btn.offsetParent !== null) { // offsetParent !== null 表示可见
-      btn.click();
-      log(`关闭弹窗: ${sel}`);
-      break;
-    }
-  }
-  // 等弹窗消失
-  await sleep(300);
-  // 如果 iframe 还在，再点一次
-  if (document.querySelector('.attachment-iframe')) {
-    for (const sel of selectors) {
+  const residualSelector = '.attachment-iframe, iframe[src*="pdf"], iframe[src*="wflow"], .resume-common-dialog, .dialog-resume-full';
+
+  function clickFirstClose() {
+    for (const sel of closeSelectors) {
       const btn = document.querySelector(sel);
-      if (btn && btn.offsetParent !== null) { btn.click(); break; }
+      if (btn && btn.offsetParent !== null) {
+        btn.click();
+        return sel;
+      }
     }
+    return null;
+  }
+
+  // 第 1 轮: click 关闭按钮 + 等弹窗消失
+  const sel1 = clickFirstClose();
+  if (sel1) log(`关闭弹窗: ${sel1}`);
+  await sleep(300);
+
+  // 第 2 轮: 如果还在, 再 click
+  if (document.querySelector(residualSelector)) {
+    clickFirstClose();
     await sleep(300);
   }
-  // 最后手段：按 Escape
-  if (document.querySelector('.attachment-iframe')) {
+
+  // 第 3 轮: Escape 键
+  if (document.querySelector(residualSelector)) {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }));
     await sleep(300);
+  }
+
+  // 终极兜底: 直接 DOM remove (avoids leftover stacking on next candidate)
+  const residuals = document.querySelectorAll(residualSelector);
+  if (residuals.length > 0) {
+    log(`兜底删除 ${residuals.length} 个残留弹窗/iframe`);
+    residuals.forEach((el) => {
+      try { el.remove(); } catch (_) {}
+    });
+    await sleep(200);
   }
 }
 
@@ -2022,6 +2048,11 @@ async function step2_enrichCandidates() {
   for (const c of candidates) {
     const bossId = c.boss_id;
     if (!bossId) { skipped_missing++; continue; }
+
+    // 切到下一个候选人**之前**强制清理上一人的简历预览/PDF iframe。
+    // 现网报告 2026-05-18: 上一人简历预览没关上, 已开始给下一人发消息。
+    // 防止 downloadPdf 任一异常路径残留弹窗污染下一轮。
+    await closeDialog();
 
     // 慢网下虚拟列表滚动可能一次没到位 — 重试 3 次再判定"不在列表"
     const geek = await intake_retry(() => _scrollToGeekItem(bossId), {
