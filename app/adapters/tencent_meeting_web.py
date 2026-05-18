@@ -9,13 +9,44 @@
   1. 在 .env 里把新标签加进 TENCENT_MEETING_ACCOUNTS（逗号分隔，比如 zhang,li）
   2. 重启后端
   3. 在前端点"创建腾讯会议"，让调度器把任务分配到新账号时，扫码登录新账号即可
+
+[2026-05-15] Windows 下 uvicorn 主循环是 SelectorEventLoop，不支持 subprocess
+（`asyncio.create_subprocess_exec` 直接 `raise NotImplementedError`），所以
+async_playwright().start() 必崩。直接在新线程里建 ProactorEventLoop 也水土不服
+（Playwright 的 Node driver 一握手就 "Connection closed while reading from the
+driver"）。最终方案：模块内部统一用 **sync_playwright**（Playwright 自带的同步
+封装会自己管线程+loop，已被 tencent_meeting_recording.py 验证可行），由对外
+async 入口通过 `asyncio.to_thread(...)` 把整个同步流程扔到工作线程。
 """
 import asyncio
 import logging
 import os
 import re
+import sys
+import time
 
 logger = logging.getLogger(__name__)
+
+
+def _ensure_proactor_loop_in_thread() -> None:
+    """让本进程后续 `asyncio.new_event_loop()` 拿到 ProactorEventLoop（Windows 必需）。
+
+    背景：uvicorn 在启动时把全局 policy 设成 WindowsSelectorEventLoopPolicy，
+    HTTP/WebSocket 能跑，但 Selector loop 不支持 subprocess
+    —— `asyncio.create_subprocess_exec` 直接 `raise NotImplementedError`。
+    sync_playwright 内部用 `asyncio.new_event_loop()` 构造自己的 loop，吃的是
+    **全局 policy**，所以只把线程 loop 换成 Proactor 没用，必须改 policy。
+
+    解决：把全局 policy 切到 ProactorEventLoopPolicy。uvicorn 主循环已经在跑
+    自己的 Selector loop，不受新 policy 影响；之后任何 `new_event_loop()` 调用
+    都会拿到 Proactor，subprocess 能 spawn。HTTP 处理本身不受影响。
+    """
+    if sys.platform != "win32":
+        return
+    policy = asyncio.get_event_loop_policy()
+    if not isinstance(policy, asyncio.WindowsProactorEventLoopPolicy):
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        logger.info("Switched global event loop policy to WindowsProactorEventLoopPolicy")
 
 SCHEDULE_URL = "https://meeting.tencent.com/user-center/user-meeting-list/schedule"
 
@@ -70,8 +101,8 @@ def _cleanup_stale_chrome(browser_data_dir: str) -> None:
                 logger.warning(f"Could not remove {p}: {e}")
 
 
-async def _dismiss_blocking_modals(page):
-    """移除所有可能遮挡主界面按钮的弹窗。
+def _dismiss_blocking_modals(page):
+    """移除所有可能遮挡主界面按钮的弹窗（sync 版）。
 
     腾讯会议在设置日期/时间后有时会自动弹一个"重复会议"配置对话框
     （class 含 RepeatMeeetingModal），它会拦截点击事件让"预定会议"按钮点不动。
@@ -79,8 +110,8 @@ async def _dismiss_blocking_modals(page):
     """
     # 1) Escape 一下通常能关掉大多数普通弹窗
     try:
-        await page.keyboard.press("Escape")
-        await asyncio.sleep(0.3)
+        page.keyboard.press("Escape")
+        time.sleep(0.3)
     except Exception:
         pass
 
@@ -93,17 +124,17 @@ async def _dismiss_blocking_modals(page):
         '.met-dialog button[aria-label="Close"]',
     ]:
         try:
-            el = await page.query_selector(selector)
-            if el and await el.is_visible():
-                await el.click(timeout=1500)
+            el = page.query_selector(selector)
+            if el and el.is_visible():
+                el.click(timeout=1500)
                 logger.info(f"Dismissed modal via {selector}")
-                await asyncio.sleep(0.4)
+                time.sleep(0.4)
         except Exception:
             continue
 
     # 3) 最后兜底：直接把所有可见的 .met-dialog 从 DOM 里拿掉
     try:
-        removed = await page.evaluate("""() => {
+        removed = page.evaluate("""() => {
             const dialogs = document.querySelectorAll('.met-dialog, .met-modal, [role="dialog"]');
             let count = 0;
             dialogs.forEach(d => {
@@ -123,9 +154,9 @@ async def _dismiss_blocking_modals(page):
         logger.debug(f"DOM cleanup failed: {e}")
 
 
-async def _set_input_value(page, selector, value):
-    """Set input value using React-compatible method."""
-    await page.evaluate(f"""({{ selector, value }}) => {{
+def _set_input_value(page, selector, value):
+    """Set input value using React-compatible method (sync 版)."""
+    page.evaluate(f"""({{ selector, value }}) => {{
         const el = document.querySelector(selector);
         if (!el) return;
         const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
@@ -135,8 +166,8 @@ async def _set_input_value(page, selector, value):
     }}""", {"selector": selector, "value": value})
 
 
-async def _set_time(page, start_h, start_m, end_h, end_m):
-    """Set start and end time by directly manipulating the input values.
+def _set_time(page, start_h, start_m, end_h, end_m):
+    """Set start and end time by directly manipulating the input values (sync 版)。
 
     Start time = hour[0], minute[0] (visible, index 0)
     End time = hour[49], minute[49] (visible, index 49)
@@ -151,7 +182,7 @@ async def _set_time(page, start_h, start_m, end_h, end_m):
 
     logger.info(f"Time (rounded to 00/30): {start_h}:{start_m} - {end_h}:{end_m}")
 
-    await page.evaluate("""({ sh, sm, eh, em }) => {
+    page.evaluate("""({ sh, sm, eh, em }) => {
         const hours = document.querySelectorAll('input.hour');
         const minutes = document.querySelectorAll('input.minute');
 
@@ -177,16 +208,16 @@ async def _set_time(page, start_h, start_m, end_h, end_m):
            "eh": end_h.zfill(2), "em": end_m.zfill(2)})
 
     # Also click the inputs to trigger any UI update
-    hours = await page.query_selector_all('input.hour')
+    hours = page.query_selector_all('input.hour')
     if len(hours) > 49:
-        await hours[0].click()
-        await asyncio.sleep(0.2)
-        await hours[0].press("Escape")
-        await asyncio.sleep(0.1)
-        await hours[49].click()
-        await asyncio.sleep(0.2)
-        await hours[49].press("Escape")
-        await asyncio.sleep(0.1)
+        hours[0].click()
+        time.sleep(0.2)
+        hours[0].press("Escape")
+        time.sleep(0.1)
+        hours[49].click()
+        time.sleep(0.2)
+        hours[49].press("Escape")
+        time.sleep(0.1)
 
     logger.info(f"Time set: {start_h}:{start_m} - {end_h}:{end_m}")
 
@@ -194,7 +225,21 @@ async def _set_time(page, start_h, start_m, end_h, end_m):
 async def create_meeting(topic: str, start_date: str, start_time: str,
                          end_date: str, end_time: str,
                          account_label: str = "default") -> dict:
-    """Create a Tencent Meeting via web automation.
+    """Create a Tencent Meeting via web automation (public async wrapper).
+
+    把同步实现扔到 worker 线程：FastAPI handler `await` 它，主事件循环不阻塞；
+    sync_playwright 自己开线程跑 Node driver，避开 SelectorEventLoop 限制。
+    """
+    return await asyncio.to_thread(
+        _create_meeting_sync,
+        topic, start_date, start_time, end_date, end_time, account_label,
+    )
+
+
+def _create_meeting_sync(topic: str, start_date: str, start_time: str,
+                        end_date: str, end_time: str,
+                        account_label: str = "default") -> dict:
+    """实际跑 Playwright 的同步版本。被 `asyncio.to_thread` 派发到工作线程执行。
 
     Args:
         topic: Meeting subject
@@ -203,13 +248,12 @@ async def create_meeting(topic: str, start_date: str, start_time: str,
         end_date: "2026/04/10"
         end_time: "15:00"
         account_label: 账号标签（对应 data/meeting_browser_{label}/ 目录）。
-                       不同标签 = 不同腾讯会议登录账号，允许同一时段并发开会。
 
     Returns:
         {"success": True, "meeting_id": "...", "link": "https://...", "password": ""}
     """
     try:
-        from playwright.async_api import async_playwright
+        from playwright.sync_api import sync_playwright
     except ImportError:
         return {"success": False, "error": "playwright not installed"}
 
@@ -217,109 +261,142 @@ async def create_meeting(topic: str, start_date: str, start_time: str,
     os.makedirs(browser_data_dir, exist_ok=True)
     logger.info(f"Using Tencent Meeting account '{account_label}' at {browser_data_dir}")
 
-    # 清理上次遗留的僵尸 Chrome 进程和锁文件，避免 launch_persistent_context 因
-    # profile 被占用而立刻 exit 21
+    # 清理上次遗留的僵尸 Chrome 进程和锁文件
     _cleanup_stale_chrome(browser_data_dir)
 
+    # Windows + uvicorn 必须强制 ProactorEventLoop，否则 sync_playwright 启不来 Node driver
+    _ensure_proactor_loop_in_thread()
+
+    pw = None
+    browser = None
     try:
-        pw = await async_playwright().start()
-        browser = await pw.chromium.launch_persistent_context(
+        pw = sync_playwright().start()
+        browser = pw.chromium.launch_persistent_context(
             user_data_dir=browser_data_dir,
             headless=False,
             viewport={"width": 1280, "height": 900},
         )
 
-        page = browser.pages[0] if browser.pages else await browser.new_page()
-        await page.goto(SCHEDULE_URL, timeout=60000)
-        await asyncio.sleep(4)
+        page = browser.pages[0] if browser.pages else browser.new_page()
+        page.goto(SCHEDULE_URL, timeout=60000)
+        time.sleep(4)
+
+        # 落盘各阶段诊断（截图 + HTML），方便排查 UI 失配。
+        # 默认关；TENCENT_MEETING_DEBUG=1 才开。开了会在 data/meeting_debug_shots 累积文件。
+        _diag_on = os.environ.get("TENCENT_MEETING_DEBUG") == "1"
+        diag_dir = os.path.abspath("data/meeting_debug_shots")
+        ts = time.strftime("%Y%m%d-%H%M%S")
+        if _diag_on:
+            os.makedirs(diag_dir, exist_ok=True)
+        def _snap(tag: str) -> None:
+            if not _diag_on:
+                return
+            try:
+                path = os.path.join(diag_dir, f"{ts}-{tag}.png")
+                page.screenshot(path=path, full_page=False)
+                logger.info(f"diag snapshot {tag}: {path} | url={page.url}")
+            except Exception as exc:
+                logger.warning(f"snapshot {tag} failed: {exc}")
+
+        _snap("01-after-goto")
 
         # Check login
         if 'login' in page.url.lower():
             logger.warning("Tencent Meeting: waiting for login...")
+            _snap("02-login-prompt")
             for _ in range(120):
-                await asyncio.sleep(1)
+                time.sleep(1)
                 if 'login' not in page.url.lower():
                     break
             else:
-                await browser.close()
-                await pw.stop()
+                _snap("02-login-timeout")
                 return {"success": False, "error": "Login timeout"}
-            await page.goto(SCHEDULE_URL, timeout=60000)
-            await asyncio.sleep(4)
+            page.goto(SCHEDULE_URL, timeout=60000)
+            time.sleep(4)
+            _snap("03-after-login")
 
         # 1. Fill topic
-        title_input = await page.query_selector('input[placeholder="请输入会议名称"]')
+        title_input = page.query_selector('input[placeholder="请输入会议名称"]')
         if title_input:
-            await title_input.click(click_count=3)
-            await title_input.fill(topic)
+            title_input.click(click_count=3)
+            title_input.fill(topic)
         else:
-            await browser.close()
-            await pw.stop()
+            _snap("04-no-topic-input")
             return {"success": False, "error": "Cannot find topic input"}
 
         # 2. Set dates
-        date_inputs = await page.query_selector_all('input[placeholder="选择日期"]')
+        date_inputs = page.query_selector_all('input[placeholder="选择日期"]')
         if len(date_inputs) >= 2:
-            await date_inputs[0].click(click_count=3)
-            await date_inputs[0].fill(start_date)
-            await date_inputs[0].press("Enter")
-            await asyncio.sleep(0.5)
+            date_inputs[0].click(click_count=3)
+            date_inputs[0].fill(start_date)
+            date_inputs[0].press("Enter")
+            time.sleep(0.5)
 
-            await date_inputs[1].click(click_count=3)
-            await date_inputs[1].fill(end_date)
-            await date_inputs[1].press("Enter")
-            await asyncio.sleep(0.5)
+            date_inputs[1].click(click_count=3)
+            date_inputs[1].fill(end_date)
+            date_inputs[1].press("Enter")
+            time.sleep(0.5)
 
         # 3. Set times
         start_h, start_m = start_time.split(":")
         end_h, end_m = end_time.split(":")
-        await _set_time(page, start_h, start_m, end_h, end_m)
-        await asyncio.sleep(1)
+        _set_time(page, start_h, start_m, end_h, end_m)
+        time.sleep(1)
 
         # 3.5 设置完时间后，腾讯会议有时会弹"重复会议"对话框遮住提交按钮
-        await _dismiss_blocking_modals(page)
+        _dismiss_blocking_modals(page)
+        _snap("05-before-submit")
 
         # 4. Submit（两次尝试：先正常点，失败则清弹窗后强制点）
-        submit = await page.query_selector('button:has-text("预定会议")')
+        submit = page.query_selector('button:has-text("预定会议")')
         if submit:
             try:
-                await submit.click(timeout=5000)
+                submit.click(timeout=5000)
                 logger.info("Submit clicked normally")
             except Exception as e:
                 logger.warning(f"Submit click blocked ({e}); dismissing modals and retrying with force")
-                await _dismiss_blocking_modals(page)
-                await asyncio.sleep(0.5)
+                _dismiss_blocking_modals(page)
+                time.sleep(0.5)
                 try:
-                    # force=True 跳过"元素可见且未被遮挡"的检查
-                    await submit.click(force=True, timeout=5000)
+                    submit.click(force=True, timeout=5000)
                     logger.info("Submit clicked with force=True")
                 except Exception as e2:
                     logger.error(f"Submit click failed even with force: {e2}")
                     raise
-            await asyncio.sleep(3)
+            time.sleep(3)
 
         # 5. Handle dialog
-        ok_btn = await page.query_selector('text=我知道了')
+        ok_btn = page.query_selector('text=我知道了')
         if ok_btn:
-            await ok_btn.click()
-            await asyncio.sleep(3)
+            ok_btn.click()
+            time.sleep(3)
 
         # May need second click
         if 'schedule' in page.url:
-            submit2 = await page.query_selector('button:has-text("预定会议")')
+            submit2 = page.query_selector('button:has-text("预定会议")')
             if submit2:
-                await submit2.click()
-                await asyncio.sleep(8)
+                submit2.click()
+                time.sleep(8)
+
+        _snap("06-after-submit")
 
         # 6. Wait for detail page
         for _ in range(15):
             if 'detailed-meeting-info' in page.url or 'meeting_id' in page.url:
                 break
-            await asyncio.sleep(1)
+            time.sleep(1)
+
+        _snap("07-final")
 
         # 7. Extract meeting info
-        html = await page.content()
-        text = await page.inner_text('body')
+        html = page.content()
+        text = page.inner_text('body')
+        if _diag_on:
+            try:
+                with open(os.path.join(diag_dir, f"{ts}-07-final.html"), "w", encoding="utf-8") as _fh:
+                    _fh.write(html)
+            except Exception:
+                pass
 
         link_match = re.search(r'https://meeting\.tencent\.com/dm/[a-zA-Z0-9]+', html)
         meeting_link = link_match.group() if link_match else ""
@@ -330,9 +407,6 @@ async def create_meeting(topic: str, start_date: str, start_time: str,
         pwd_match = re.search(r'会议密码[：:]\s*(\d+)', text)
         meeting_pwd = pwd_match.group(1) if pwd_match else ""
 
-        await browser.close()
-        await pw.stop()
-
         if meeting_link:
             logger.info(f"Meeting created: {meeting_link} (ID: {meeting_id})")
             return {
@@ -341,16 +415,57 @@ async def create_meeting(topic: str, start_date: str, start_time: str,
                 "link": meeting_link,
                 "password": meeting_pwd,
             }
-        else:
-            return {"success": False, "error": "Meeting link not found after submit"}
+        # 没拿到链接：看看表单里有没有红字校验提示，抓出来回给前端
+        form_errors: list[str] = []
+        try:
+            for sel in [
+                '.met-form-item-error',          # element-ui-like
+                '.met-form-item-error-tip',
+                '.met-form-error',
+                '[class*="errorTip"]',
+                '[class*="ErrorTip"]',
+                'div.error-tip',
+                'span.error-tip',
+            ]:
+                for el in page.query_selector_all(sel):
+                    txt = (el.inner_text() or "").strip()
+                    if txt and txt not in form_errors:
+                        form_errors.append(txt)
+        except Exception:
+            pass
+        if form_errors:
+            joined = "; ".join(form_errors[:3])
+            return {"success": False, "error": f"腾讯会议表单校验未通过：{joined}"}
+        return {"success": False, "error": "Meeting link not found after submit"}
 
     except Exception as e:
-        logger.error(f"Meeting creation failed: {e}")
-        return {"success": False, "error": str(e)}
+        import traceback
+        tb = traceback.format_exc()
+        logger.error(f"Meeting creation failed: {e!r}\n{tb}")
+        # str(NotImplementedError()) 是空串，会让前端只看到 detail=""；用 repr 兜底
+        return {"success": False, "error": str(e) or repr(e) or "未知错误"}
+    finally:
+        try:
+            if browser:
+                browser.close()
+        except Exception:
+            pass
+        try:
+            if pw:
+                pw.stop()
+        except Exception:
+            pass
 
 
 async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dict:
-    """在腾讯会议网页上取消某场会议。
+    """Cancel a Tencent Meeting (public async wrapper)。"""
+    return await asyncio.to_thread(
+        _cancel_meeting_sync, meeting_id, account_label,
+    )
+
+
+def _cancel_meeting_sync(meeting_id: str, account_label: str = "default") -> dict:
+    """在腾讯会议网页上取消某场会议（同步实现，跑在 worker 线程）。
 
     Args:
         meeting_id: 腾讯会议的 9 位会议号（去除空格）
@@ -369,7 +484,7 @@ async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dic
         return {"success": False, "error": "meeting_id 为空"}
 
     try:
-        from playwright.async_api import async_playwright
+        from playwright.sync_api import sync_playwright
     except ImportError:
         return {"success": False, "error": "playwright not installed"}
 
@@ -381,42 +496,45 @@ async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dic
     mid = meeting_id.strip().replace(" ", "")
     logger.info(f"Cancelling Tencent meeting {mid} via account '{account_label}'")
 
+    # Windows + uvicorn 必须强制 ProactorEventLoop，否则 sync_playwright 启不来 Node driver
+    _ensure_proactor_loop_in_thread()
+
     pw = None
     browser = None
     try:
-        pw = await async_playwright().start()
-        browser = await pw.chromium.launch_persistent_context(
+        pw = sync_playwright().start()
+        browser = pw.chromium.launch_persistent_context(
             user_data_dir=browser_data_dir,
             headless=False,
             viewport={"width": 1400, "height": 900},
         )
-        page = browser.pages[0] if browser.pages else await browser.new_page()
+        page = browser.pages[0] if browser.pages else browser.new_page()
 
         # 直达"即将召开的会议"tab
-        await page.goto(
+        page.goto(
             "https://meeting.tencent.com/user-center/user-meeting-list/current",
             timeout=60000,
         )
-        await asyncio.sleep(2)
+        time.sleep(2)
         if "login" in page.url.lower():
             return {"success": False, "error": f"登录态失效，请先手动登录账号 {account_label}"}
 
         # 等 tbody 有行再继续
         try:
-            await page.wait_for_selector("tbody tr", timeout=15000)
+            page.wait_for_selector("tbody tr", timeout=15000)
         except Exception:
             return {"success": False, "error": "会议列表未加载（该账号可能没有任何即将召开的会议）"}
 
-        await _dismiss_blocking_modals(page)
-        await asyncio.sleep(1)
+        _dismiss_blocking_modals(page)
+        time.sleep(1)
 
         # 用 attr selector 精确命中这行（class 是一串数字，不能用 CSS 的 .xxx 语法）
-        row = await page.query_selector(f'tr[class="{mid}"]')
+        row = page.query_selector(f'tr[class="{mid}"]')
         if not row:
             # 备用：按会议号带空格的 title 属性找
             if len(mid) == 9:
                 spaced = f"{mid[0:3]} {mid[3:6]} {mid[6:9]}"
-                row = await page.query_selector(f'tr:has(span[title="{spaced}"])')
+                row = page.query_selector(f'tr:has(span[title="{spaced}"])')
         if not row:
             logger.warning(f"Meeting {mid} not found in upcoming tab")
             return {"success": False, "error": f"未在即将召开列表中找到会议 {mid}（可能已过期或被取消）"}
@@ -424,21 +542,21 @@ async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dic
         logger.info(f"Located row for meeting {mid}")
 
         # 行内取消按钮
-        cancel_btn = await row.query_selector("button.cancle-meeting-btn")
+        cancel_btn = row.query_selector("button.cancle-meeting-btn")
         if not cancel_btn:
             return {"success": False, "error": "行内未找到 cancle-meeting-btn（DOM 结构可能已变）"}
 
         try:
-            await cancel_btn.scroll_into_view_if_needed(timeout=3000)
+            cancel_btn.scroll_into_view_if_needed(timeout=3000)
         except Exception:
             pass
-        await cancel_btn.click(timeout=5000)
+        cancel_btn.click(timeout=5000)
         logger.info("Cancel button clicked, waiting for confirm dialog")
-        await asyncio.sleep(1)
+        time.sleep(1)
 
         # 确认弹窗：先等 .met-dialog 出现
         try:
-            await page.wait_for_selector(
+            page.wait_for_selector(
                 '.met-dialog, [role="dialog"]',
                 state="visible",
                 timeout=5000,
@@ -458,9 +576,9 @@ async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dic
             '.met-dialog button.primary',
         ]:
             try:
-                btn = await page.query_selector(selector)
-                if btn and await btn.is_visible():
-                    await btn.click(timeout=3000)
+                btn = page.query_selector(selector)
+                if btn and btn.is_visible():
+                    btn.click(timeout=3000)
                     logger.info(f"Confirmed via {selector}")
                     confirmed = True
                     break
@@ -470,15 +588,15 @@ async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dic
         if not confirmed:
             logger.warning("No confirm button matched; attempting Enter key")
             try:
-                await page.keyboard.press("Enter")
+                page.keyboard.press("Enter")
             except Exception:
                 pass
 
         # 校验：等这行在表格里消失（证明取消成功）
         disappeared = False
         for _ in range(10):
-            await asyncio.sleep(1)
-            still_there = await page.query_selector(f'tr[class="{mid}"]')
+            time.sleep(1)
+            still_there = page.query_selector(f'tr[class="{mid}"]')
             if not still_there:
                 disappeared = True
                 break
@@ -496,11 +614,11 @@ async def cancel_meeting(meeting_id: str, account_label: str = "default") -> dic
     finally:
         try:
             if browser:
-                await browser.close()
+                browser.close()
         except Exception:
             pass
         try:
             if pw:
-                await pw.stop()
+                pw.stop()
         except Exception:
             pass
