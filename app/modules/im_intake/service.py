@@ -14,6 +14,9 @@ from app.modules.im_intake.pdf_collector import PdfCollector
 from app.modules.im_intake.job_matcher import match_job_title
 from app.modules.im_intake.decision import decide_next_action, NextAction
 from app.modules.im_intake.promote import promote_to_resume
+from app.modules.im_intake.staleness import (
+    STALE_DAYS, last_message_dt, is_stale,
+)
 from app.modules.im_intake.templates import HARD_SLOT_KEYS
 from app.modules.screening.models import Job
 from app.core.audit.logger import log_event
@@ -141,6 +144,43 @@ class IntakeService:
                 if key not in seen:
                     merged_messages.append(m)
                     seen.add(key)
+
+        # ── 2026-05-18: 7 天无新消息自动归档 ───────────────────────────────
+        # 用合并后的 messages 找最近 sent_at, 失败回退到 intake_started_at
+        # (反归档时被重置, 给 7 天宽限期)。已经是终态的候选人由后续
+        # decide_next_action 内的 terminal guard 处理, 这里不重复判。
+        if candidate.intake_status not in TERMINAL_CANDIDATE_STATES:
+            now_archive_chk = datetime.now(timezone.utc)
+            last_dt = last_message_dt(
+                {"messages": merged_messages},
+                fallback=candidate.intake_started_at,
+            )
+            if is_stale(last_dt, now=now_archive_chk):
+                candidate.intake_status = "timed_out"
+                candidate.intake_completed_at = now_archive_chk
+                candidate.reject_reason = f"auto_archive_{STALE_DAYS}d_no_reply"
+                self.db.commit()
+                # outbox 关掉 pending 问题, 防止 stale 候选人留着 outbox 行
+                try:
+                    from app.modules.im_intake.outbox_service import (
+                        expire_pending_for_candidate as _expire,
+                    )
+                    _expire(self.db, candidate.id, reason="auto_archive_stale")
+                except Exception:
+                    pass
+                _audit_safe(
+                    "f4_auto_archive", "stale_no_reply", candidate.id,
+                    {
+                        "last_message_dt": last_dt.isoformat() if last_dt else None,
+                        "stale_days_threshold": STALE_DAYS,
+                    },
+                    reviewer_id=self.user_id or None,
+                )
+                return NextAction(
+                    type="archived_stale",
+                    text="",
+                    meta={"reason": f"超过 {STALE_DAYS} 天无新消息, 自动归档"},
+                )
 
         pending_hard = [k for k in HARD_SLOT_KEYS if not slots_by_key[k].value]
         if merged_messages and pending_hard:

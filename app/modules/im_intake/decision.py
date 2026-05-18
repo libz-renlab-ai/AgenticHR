@@ -7,6 +7,8 @@ from app.modules.im_intake.question_generator import QuestionGenerator
 ActionType = Literal[
     "send_hard", "request_pdf", "wait_pdf", "wait_reply",
     "send_soft", "complete", "mark_pending_human", "abandon",
+    # 2026-05-18 新增: 7 天无消息自动归档 / 入库前 stale 拦截
+    "archived_stale", "skipped_stale_new",
 ]
 
 

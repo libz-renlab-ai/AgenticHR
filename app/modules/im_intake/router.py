@@ -300,6 +300,46 @@ def mark_timed_out(
     return {"ok": True, "status": "timed_out"}
 
 
+@router.post("/candidates/{candidate_id}/unarchive")
+def unarchive_candidate(
+    candidate_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user_id),
+):
+    """2026-05-18: 手动反归档。把 timed_out 候选人放回 awaiting_reply, 重置
+    intake_started_at 给 7 天宽限期 (作为 staleness 判定的 fallback 时间锚)。
+
+    仅 timed_out 状态可反归档 — complete / abandoned / pending_human 各有其
+    专门的恢复路径或不应被简单恢复。
+    """
+    c = db.query(IntakeCandidate).filter_by(id=candidate_id, user_id=user_id).first()
+    if not c:
+        raise HTTPException(404, "candidate not found")
+    if c.intake_status != "timed_out":
+        raise HTTPException(
+            400,
+            f"only timed_out can be unarchived, current status: {c.intake_status}",
+        )
+    now = datetime.now(timezone.utc)
+    old_reject = c.reject_reason
+    c.intake_status = "awaiting_reply"
+    c.intake_started_at = now  # 关键: 重置时间锚, 给 7 天宽限
+    c.intake_completed_at = None
+    c.reject_reason = ""
+    c.last_checked_at = now
+    db.commit()
+    _audit_safe(
+        "f4_unarchived", "manual_unarchive", c.id,
+        {"from_reject_reason": old_reject},
+        reviewer_id=user_id,
+    )
+    return {
+        "ok": True,
+        "status": c.intake_status,
+        "intake_started_at": c.intake_started_at.isoformat(),
+    }
+
+
 _MANUAL_ALLOWED_STATUSES = frozenset(
     ["collecting", "awaiting_reply", "pending_human", "complete", "abandoned", "timed_out"]
 )
@@ -360,6 +400,39 @@ async def collect_chat(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
+    # 2026-05-18 入库前 stale 拦截: 新候选人 (DB 中无此 boss_id) 且本次 body.messages
+    # 最后一条 > 7 天前 → 不创建 candidate, 直接返回 skipped_stale_new。
+    # 已存在候选人走原 flow, 由 analyze_chat 内的归档逻辑兜底。
+    from app.modules.im_intake.staleness import last_message_dt, is_stale, STALE_DAYS
+    existing_candidate = (
+        db.query(IntakeCandidate)
+        .filter_by(user_id=user_id, boss_id=body.boss_id)
+        .first()
+    )
+    if existing_candidate is None:
+        msgs_dicts = [m.model_dump() for m in body.messages]
+        first_seen_last_dt = last_message_dt({"messages": msgs_dicts}, fallback=None)
+        if is_stale(first_seen_last_dt):
+            _audit_safe(
+                "f4_pre_ingest_reject", "stale_skip_create",
+                entity_id=0,  # boss_id 还没对应 candidate.id
+                payload={
+                    "boss_id": body.boss_id,
+                    "last_message_dt": first_seen_last_dt.isoformat() if first_seen_last_dt else None,
+                    "stale_days_threshold": STALE_DAYS,
+                },
+                reviewer_id=user_id,
+            )
+            return CollectChatOut(
+                candidate_id=None,
+                intake_status="skipped_stale_new",
+                next_action=NextActionOut(
+                    type="skipped_stale_new",
+                    text=f"候选人最后聊天 > {STALE_DAYS} 天, 跳过入库",
+                    slot_keys=[],
+                ),
+            )
+
     svc = _build_service(db, user_id=user_id)
     c = svc.ensure_candidate(body.boss_id, name=body.name, job_intention=body.job_intention)
     job = db.query(Job).filter_by(id=c.job_id).first() if c.job_id else None
