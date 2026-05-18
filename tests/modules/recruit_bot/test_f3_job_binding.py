@@ -45,6 +45,13 @@ def _mk_candidate(boss_id="b1", name="张三"):
     )
 
 
+def _default_filter():
+    """spec 2026-05-15-education-only-filter: evaluate_and_record 必填参数;
+    job_binding 测试只关心 job_id 绑定行为，用最低门槛避免学历检查干扰。"""
+    from app.modules.recruit_bot.education_check import EducationFilter
+    return EducationFilter(min_level="大专")
+
+
 class TestF3JobBindingWriteThrough:
     """T1: evaluate_and_record(job_id=A) → candidate.job_id=A & resume.job_id=A."""
 
@@ -55,7 +62,7 @@ class TestF3JobBindingWriteThrough:
         _mk_user(db)
         job = _mk_job(db)
         cand = _mk_candidate(boss_id="b_t1a")
-        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand)
+        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand, education_filter=_default_filter())
         c = db.query(IntakeCandidate).filter_by(user_id=1, boss_id="b_t1a").first()
         assert c is not None, "F3 应创建 IntakeCandidate"
         assert c.job_id == job.id, (
@@ -70,7 +77,7 @@ class TestF3JobBindingWriteThrough:
         _mk_user(db)
         job = _mk_job(db)
         cand = _mk_candidate(boss_id="b_t1b")
-        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand)
+        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand, education_filter=_default_filter())
         r = db.query(Resume).filter_by(user_id=1, boss_id="b_t1b").first()
         assert r is not None
         assert r.job_id == job.id, (
@@ -121,9 +128,9 @@ class TestF3CrossJobRebind:
         job_a = _mk_job(db, title="后端")
         job_b = _mk_job(db, title="产品经理")
         cand = _mk_candidate(boss_id="b_t3a")
-        await evaluate_and_record(db, user_id=1, job_id=job_a.id, candidate=cand)
+        await evaluate_and_record(db, user_id=1, job_id=job_a.id, candidate=cand, education_filter=_default_filter())
         # 同 boss_id 二次 greet 另一岗位
-        await evaluate_and_record(db, user_id=1, job_id=job_b.id, candidate=cand)
+        await evaluate_and_record(db, user_id=1, job_id=job_b.id, candidate=cand, education_filter=_default_filter())
         c = db.query(IntakeCandidate).filter_by(user_id=1, boss_id="b_t3a").first()
         assert c.job_id == job_a.id, (
             f"first-write wins: 应保持第一次 {job_a.id}, 实际 {c.job_id}"
@@ -138,8 +145,8 @@ class TestF3CrossJobRebind:
         job_a = _mk_job(db, title="后端")
         job_b = _mk_job(db, title="产品经理")
         cand = _mk_candidate(boss_id="b_t3b")
-        await evaluate_and_record(db, user_id=1, job_id=job_a.id, candidate=cand)
-        await evaluate_and_record(db, user_id=1, job_id=job_b.id, candidate=cand)
+        await evaluate_and_record(db, user_id=1, job_id=job_a.id, candidate=cand, education_filter=_default_filter())
+        await evaluate_and_record(db, user_id=1, job_id=job_b.id, candidate=cand, education_filter=_default_filter())
         c = db.query(IntakeCandidate).filter_by(user_id=1, boss_id="b_t3b").first()
         events = (
             db.query(AuditEvent)
@@ -161,8 +168,8 @@ class TestF3CrossJobRebind:
         _mk_user(db)
         job = _mk_job(db, title="后端")
         cand = _mk_candidate(boss_id="b_t3c")
-        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand)
-        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand)
+        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand, education_filter=_default_filter())
+        await evaluate_and_record(db, user_id=1, job_id=job.id, candidate=cand, education_filter=_default_filter())
         c = db.query(IntakeCandidate).filter_by(user_id=1, boss_id="b_t3c").first()
         events = (
             db.query(AuditEvent)

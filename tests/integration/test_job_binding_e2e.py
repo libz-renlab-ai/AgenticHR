@@ -59,6 +59,13 @@ def _scraped(boss_id: str, name: str, intended: str = ""):
     )
 
 
+def _default_filter():
+    """spec 2026-05-15-education-only-filter: evaluate_and_record 必填参数;
+    job_binding E2E 测试只验证 job_id 绑定行为，用最低门槛避免学历检查干扰。"""
+    from app.modules.recruit_bot.education_check import EducationFilter
+    return EducationFilter(min_level="大专")
+
+
 @pytest.mark.asyncio
 async def test_two_jobs_separated_after_f3_greet(db_session, two_jobs, monkeypatch):
     """N=2 候选人 × 2 岗位, F3 打招呼后, candidate.job_id 必须按 HR 选定的岗位分."""
@@ -83,19 +90,23 @@ async def test_two_jobs_separated_after_f3_greet(db_session, two_jobs, monkeypat
     await evaluate_and_record(
         db_session, user_id=1, job_id=pm.id,
         candidate=_scraped("b_pm_1", "产品张"),
+        education_filter=_default_filter(),
     )
     await evaluate_and_record(
         db_session, user_id=1, job_id=pm.id,
         candidate=_scraped("b_pm_2", "产品李"),
+        education_filter=_default_filter(),
     )
     # 开发岗 打招呼 2 个
     await evaluate_and_record(
         db_session, user_id=1, job_id=dev.id,
         candidate=_scraped("b_dev_1", "开发王"),
+        education_filter=_default_filter(),
     )
     await evaluate_and_record(
         db_session, user_id=1, job_id=dev.id,
         candidate=_scraped("b_dev_2", "开发陈"),
+        education_filter=_default_filter(),
     )
 
     # 按 job_id 拉人, 必须只看到属于该岗位的
@@ -141,9 +152,9 @@ async def test_list_candidates_filter_by_job_id_works_end_to_end(
     )
 
     pm, dev = two_jobs
-    await evaluate_and_record(db_session, user_id=1, job_id=pm.id, candidate=_scraped("b_e2e_pm_a", "产A"))
-    await evaluate_and_record(db_session, user_id=1, job_id=pm.id, candidate=_scraped("b_e2e_pm_b", "产B"))
-    await evaluate_and_record(db_session, user_id=1, job_id=dev.id, candidate=_scraped("b_e2e_dev_a", "开A"))
+    await evaluate_and_record(db_session, user_id=1, job_id=pm.id, candidate=_scraped("b_e2e_pm_a", "产A"), education_filter=_default_filter())
+    await evaluate_and_record(db_session, user_id=1, job_id=pm.id, candidate=_scraped("b_e2e_pm_b", "产B"), education_filter=_default_filter())
+    await evaluate_and_record(db_session, user_id=1, job_id=dev.id, candidate=_scraped("b_e2e_dev_a", "开A"), education_filter=_default_filter())
     db_session.commit()
 
     resp_pm = client.get(f"/api/intake/candidates?job_id={pm.id}&size=200")
@@ -186,11 +197,13 @@ async def test_cross_job_greet_does_not_leak_into_other_job_view(
     await evaluate_and_record(
         db_session, user_id=1, job_id=pm.id,
         candidate=_scraped("b_cross", "跨岗张"),
+        education_filter=_default_filter(),
     )
     # 第二次: 开发岗 (HR 改了主意, 同一个人改投开发)
     await evaluate_and_record(
         db_session, user_id=1, job_id=dev.id,
         candidate=_scraped("b_cross", "跨岗张"),
+        education_filter=_default_filter(),
     )
 
     c = db_session.query(IntakeCandidate).filter_by(boss_id="b_cross").first()
