@@ -35,7 +35,10 @@ async def on_resume_parsed(db: Session, resume_id: int) -> None:
     if not resume:
         return
     user_id = resume.user_id
+    # 多租户隔离: 只对同用户的岗位打分, 否则 user A 简历会被写到 user B 的
+    # matching_results, 与 b867297/6ede54e/e115bab 同源 leak。
     jobs = db.query(Job).filter(
+        Job.user_id == user_id,
         Job.is_active == True,
         Job.competency_model_status == "approved",
     ).all()
@@ -66,7 +69,11 @@ async def on_competency_approved(db: Session, job_id: int) -> None:
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     apply_guard = _intake_in_use(db, user_id)
 
+    # 多租户隔离: 只扫同用户的简历。apply_guard=True 时 hard_filter_resume_ids
+    # 已 user-scoped, 但 apply_guard=False 路径 (用户未启用 intake) 会全局扫,
+    # 给 user B 简历写 user A 岗位的 matching_results。两条路径都要强加 user_id。
     base_q = db.query(Resume).filter(
+        Resume.user_id == user_id,
         Resume.ai_parsed == "yes",
         Resume.created_at >= cutoff,
     )

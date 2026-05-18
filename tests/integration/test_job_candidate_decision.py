@@ -161,7 +161,9 @@ class TestPassedResumesGate:
         client.patch(f"/api/jobs/{job.id}/candidates/{c1.id}/decision", json={"action": "passed"})
         client.patch(f"/api/jobs/{job.id}/candidates/{c2.id}/decision", json={"action": "rejected"})
 
-        resp = client.get(f"/api/matching/passed-resumes/{job.id}")
+        # spec 2026-05-15 Round 2: 路由默认 strict=True 仅返本岗位绑定的候选人;
+        # 本测试 _mk_candidate 未绑 job_id → 用 show_all=true 走旧语义。
+        resp = client.get(f"/api/matching/passed-resumes/{job.id}?show_all=true")
         assert resp.status_code == 200
         items = resp.json()
         assert len(items) == 3
@@ -178,7 +180,7 @@ class TestPassedResumesGate:
         client.patch(f"/api/jobs/{job.id}/candidates/{c1.id}/decision", json={"action": "passed"})
         client.patch(f"/api/jobs/{job.id}/candidates/{c2.id}/decision", json={"action": "rejected"})
 
-        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=passed")
+        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=passed&show_all=true")
         assert resp.status_code == 200
         items = resp.json()
         assert len(items) == 1
@@ -190,7 +192,7 @@ class TestPassedResumesGate:
         job = _mk_job(db_session)
         client.patch(f"/api/jobs/{job.id}/candidates/{c1.id}/decision", json={"action": "passed"})
 
-        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=undecided")
+        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=undecided&show_all=true")
         items = resp.json()
         assert len(items) == 1
         assert items[0]["name"] == "未决"
@@ -207,8 +209,9 @@ class TestPassedResumesGate:
         client.patch(f"/api/jobs/{job_a.id}/candidates/{cand.id}/decision", json={"action": "passed"})
         client.patch(f"/api/jobs/{job_b.id}/candidates/{cand.id}/decision", json={"action": "rejected"})
 
-        ra = client.get(f"/api/matching/passed-resumes/{job_a.id}")
-        rb = client.get(f"/api/matching/passed-resumes/{job_b.id}")
+        # 同 candidate 跨多岗位 → 必走 show_all (strict 下一个 candidate 只能绑一个岗位)
+        ra = client.get(f"/api/matching/passed-resumes/{job_a.id}?show_all=true")
+        rb = client.get(f"/api/matching/passed-resumes/{job_b.id}?show_all=true")
         assert ra.json()[0]["job_action"] == "passed"
         assert rb.json()[0]["job_action"] == "rejected"
 
@@ -255,8 +258,8 @@ class TestLegacyMatchingResultPatchSyncs:
         ).first()
         assert d is not None and d.action == "passed"
 
-        # 5) /passed-resumes 返 job_action
-        resp2 = client.get(f"/api/matching/passed-resumes/{job.id}")
+        # 5) /passed-resumes 返 job_action (show_all 走旧语义, candidate 未绑 job_id)
+        resp2 = client.get(f"/api/matching/passed-resumes/{job.id}?show_all=true")
         items = resp2.json()
         assert any(i["name"] == cand.name and i["job_action"] == "passed" for i in items)
 
@@ -338,8 +341,8 @@ class TestSpecEdgeCases:
         db_session.commit()
         cand.promoted_resume_id = resume.id
         db_session.commit()
-        # /passed-resumes?action=passed 仍返该候选人
-        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=passed")
+        # /passed-resumes?action=passed 仍返该候选人 (candidate 未绑 job_id, 加 show_all)
+        resp = client.get(f"/api/matching/passed-resumes/{job.id}?action=passed&show_all=true")
         items = resp.json()
         assert any(i["id"] == cand.id and i["job_action"] == "passed" for i in items)
 
@@ -369,13 +372,13 @@ class TestSpecEdgeCases:
             f"/api/jobs/{job_id}/candidates/{cand_id}/decision",
             json={"action": "passed"},
         )
-        # 当前门槛空, 候选人应在列表
-        items = client.get(f"/api/matching/passed-resumes/{job_id}").json()
+        # 当前门槛空, 候选人应在列表 (show_all 走旧语义, candidate 未绑 job_id)
+        items = client.get(f"/api/matching/passed-resumes/{job_id}?show_all=true").json()
         assert any(i["id"] == cand_id for i in items)
         # 调严到 985 (211 不达标)
         job.school_tier_min = "985"
         db_session.commit()
-        items_strict = client.get(f"/api/matching/passed-resumes/{job_id}").json()
+        items_strict = client.get(f"/api/matching/passed-resumes/{job_id}?show_all=true").json()
         assert all(i["id"] != cand_id for i in items_strict)
         # decision 行仍在 (无害残留)
         d = db_session.query(JobCandidateDecision).filter_by(
@@ -385,7 +388,7 @@ class TestSpecEdgeCases:
         # 放宽回去, candidate 复活带原 passed 状态
         job.school_tier_min = ""
         db_session.commit()
-        items_back = client.get(f"/api/matching/passed-resumes/{job_id}?action=passed").json()
+        items_back = client.get(f"/api/matching/passed-resumes/{job_id}?action=passed&show_all=true").json()
         assert any(i["id"] == cand_id and i["job_action"] == "passed" for i in items_back)
 
     def test_same_candidate_different_jobs_isolated(self, client, db_session):

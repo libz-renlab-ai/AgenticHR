@@ -61,3 +61,9 @@ scripts/seed_map.json
 
 # 演示截图（不入仓库）
 demo-*.png
+*-verified.png
+*-fixed.png
+
+# Windows / MSYS / Cygwin crash dump
+*.stackdump
+*.dmp

@@ -77,45 +77,80 @@ def _on_card_action(data):
 
 
 def _save_reply(open_id: str, text: str):
+    """收到 Feishu 文字回复 → 写到该面试官最新 scheduled 面试的 notes。
+
+    多租户语义 (方案 A 广播): 若多个 HR 都把同一位面试官 (同 open_id) 注册到
+    自己账号下, 回复内容会广播到 **每个 HR** 名下该面试官的最新 scheduled 面试,
+    避免旧实现只命中"第一个查到的 Interviewer"导致串号到错家 HR。
+    """
     try:
         from app.database import SessionLocal
         from app.modules.scheduling.models import Interviewer, Interview
 
         db = SessionLocal()
-        interviewer = db.query(Interviewer).filter(Interviewer.feishu_user_id == open_id).first()
-        if not interviewer:
-            db.close()
-            return
+        try:
+            interviewers = (
+                db.query(Interviewer)
+                .filter(Interviewer.feishu_user_id == open_id)
+                .all()
+            )
+            if not interviewers:
+                return
 
-        interview = (
-            db.query(Interview)
-            .filter(Interview.interviewer_id == interviewer.id, Interview.status == "scheduled")
-            .order_by(Interview.created_at.desc())
-            .first()
-        )
-        if interview:
             now = datetime.now(_tz8).strftime("%m-%d %H:%M")
-            note = f"[{now} {interviewer.name}] {text}"
-            interview.notes = f"{interview.notes}\n{note}" if interview.notes else note
-            db.commit()
-            logger.info(f"[Feishu] Reply saved to interview {interview.id}")
-
-        db.close()
+            written_ids: list[int] = []
+            for interviewer in interviewers:
+                # 注意: Interview.interviewer_id FK 已保证同 user_id, 不需额外过滤
+                interview = (
+                    db.query(Interview)
+                    .filter(
+                        Interview.interviewer_id == interviewer.id,
+                        Interview.status == "scheduled",
+                    )
+                    .order_by(Interview.created_at.desc())
+                    .first()
+                )
+                if interview is None:
+                    continue
+                note = f"[{now} {interviewer.name}] {text}"
+                interview.notes = f"{interview.notes}\n{note}" if interview.notes else note
+                written_ids.append(interview.id)
+            if written_ids:
+                db.commit()
+                logger.info(f"[Feishu] Reply broadcast to interviews {written_ids}")
+        finally:
+            db.close()
     except Exception as e:
         logger.error(f"[Feishu] Save reply error: {e}")
 
 
 def _save_card_response(interview_id: int, action: str, open_id: str):
+    """卡片按钮点击 → 写指定 interview 的 notes (interview_id 由 card payload 提供)。
+
+    多租户语义: interview 是单条权威定位, 不广播。面试官姓名按
+    interview.user_id 反查同 open_id Interviewer, 防止旧实现取到跨账户
+    Interviewer 把别家 HR 的面试官名字写进当前 notes。
+    """
     try:
         from app.database import SessionLocal
         from app.modules.scheduling.models import Interviewer, Interview
 
         db = SessionLocal()
-        interviewer = db.query(Interviewer).filter(Interviewer.feishu_user_id == open_id).first()
-        name = interviewer.name if interviewer else "unknown"
+        try:
+            interview = db.query(Interview).filter(Interview.id == interview_id).first()
+            if interview is None:
+                return
 
-        interview = db.query(Interview).filter(Interview.id == interview_id).first()
-        if interview:
+            interviewer = (
+                db.query(Interviewer)
+                .filter(
+                    Interviewer.feishu_user_id == open_id,
+                    Interviewer.user_id == interview.user_id,
+                )
+                .first()
+            )
+            name = interviewer.name if interviewer else "unknown"
+
             now = datetime.now(_tz8).strftime("%m-%d %H:%M")
             if action == "available":
                 note = f"[{now}] {name}: 已确认有空"
@@ -125,8 +160,8 @@ def _save_card_response(interview_id: int, action: str, open_id: str):
             interview.notes = f"{interview.notes}\n{note}" if interview.notes else note
             db.commit()
             logger.info(f"[Feishu] Card response: interview={interview_id} {action}")
-
-        db.close()
+        finally:
+            db.close()
     except Exception as e:
         logger.error(f"[Feishu] Save card response error: {e}")
 
