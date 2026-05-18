@@ -38,57 +38,66 @@ function classifyPage(url) {
 }
 
 const CTX_TEXT = {
-  recommend: "推荐牛人页 · 可自动打招呼",
-  chat: "聊天页 · 可采集这个候选人",
-  list: "消息列表 · 可批量操作",
-  detail: "简历详情 · 可采集这一页",
-  other: "请先打开 Boss 直聘网站",
+  recommend: "你在 推荐牛人页",
+  chat: "你在 Boss 聊天页",
+  list: "你在 Boss 消息列表",
+  detail: "你在 简历详情页",
+  other: "请打开 Boss 直聘网站",
 };
+
+let _currentCtx = "other";
 
 async function detectPageContext() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const ctx = classifyPage(tab?.url || "");
-    contextLabel.textContent = CTX_TEXT[ctx];
-    highlightCard(ctx);
+    _currentCtx = classifyPage(tab?.url || "");
   } catch {
-    contextLabel.textContent = CTX_TEXT.other;
-    highlightCard("other");
+    _currentCtx = "other";
+  }
+  contextLabel.textContent = CTX_TEXT[_currentCtx];
+  highlightCard(_currentCtx);
+  updatePageHints();
+}
+
+function highlightCard(ctx) {
+  // Tab 方案下不再用 chipRow 压缩。只对当前 tab 内的卡片做 dim/highlight 视觉提示:
+  // 卡片对应的页面与当前页一致 → 正常显示;
+  // 否则保持显示但 dim, 暗示"换页才能用"。
+  // 这只是视觉, 按钮 disable 状态另外由 checkConnection / 业务逻辑控制。
+  const map = { recommend: "cardF3", chat: "cardF4", list: "cardList", detail: "cardDetail" };
+  const targetId = map[ctx];
+  ["cardF3", "cardF4", "cardList", "cardDetail"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === targetId) el.classList.remove("dimmed");
+    else el.classList.add("dimmed");
+  });
+}
+
+// Tab 当前页与黄色提示条联动: 在 找人 tab 但不在推荐牛人页 → 显示提示
+function updatePageHints() {
+  const huntHint = document.getElementById("huntPageHint");
+  const harvestHint = document.getElementById("harvestPageHint");
+  if (huntHint) {
+    huntHint.classList.toggle("hidden", _currentCtx === "recommend");
+  }
+  if (harvestHint) {
+    // 收人 tab 的功能在 chat / list / detail 任一页都能用一部分
+    harvestHint.classList.toggle("hidden", _currentCtx !== "other");
   }
 }
 
-let _userExpandedId = null;
-
-function highlightCard(ctx) {
-  const map = { recommend: "cardF3", chat: "cardF4", list: "cardList", detail: "cardDetail" };
-  const primaryId = _userExpandedId || map[ctx] || null;
-  const chipRow = document.getElementById("chipRow");
-  // primary card 永远塞回主 .stack, 而不是 chipRow.parentNode (新版 HTML 把
-  // chipRow 包在 chipRowWrap 里, 老逻辑会误把 primary card 塞进 wrap)
-  const stack = document.querySelector(".stack");
-  CARD_IDS.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove("dimmed");
-    if (id === primaryId) {
-      el.classList.add("primary-card");
-      el.classList.remove("compressed");
-      if (stack && el.parentNode !== stack) stack.appendChild(el);
-      el.onclick = null;
-    } else {
-      el.classList.remove("primary-card");
-      el.classList.add("compressed");
-      if (chipRow && el.parentNode !== chipRow) chipRow.appendChild(el);
-      el.onclick = (ev) => {
-        if (ev.target.closest("button, input, select, a")) return;
-        _userExpandedId = (_userExpandedId === id) ? null : id;
-        highlightCard(ctx);
-      };
-    }
+function setActiveTab(tabName) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.tab === tabName);
   });
-  // chipRowWrap 当 chipRow 没子卡片时整个隐藏 (含 label)
-  const wrap = document.getElementById("chipRowWrap");
-  if (wrap) wrap.style.display = (chipRow && chipRow.children.length) ? "" : "none";
+  document.querySelectorAll(".tab-panel").forEach(p => {
+    const id = p.id;
+    const want = (tabName === "hunt" && id === "tabHunt")
+              || (tabName === "harvest" && id === "tabHarvest")
+              || (tabName === "log" && id === "tabLog");
+    p.classList.toggle("hidden", !want);
+  });
 }
 
 // ── Initialization ──────────────────────────────────────────────────
@@ -113,11 +122,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (btnOpenSettings) btnOpenSettings.addEventListener("click", () => settingsPanel.classList.add("open"));
   if (btnCloseSettings) btnCloseSettings.addEventListener("click", () => settingsPanel.classList.remove("open"));
 
-  // Collapsible log card
-  if (logCard) {
-    const head = logCard.querySelector(".head");
-    if (head) head.addEventListener("click", () => logCard.classList.toggle("open"));
+  // "去登录" 按钮 — 未登录空状态里的快捷入口
+  const btnGoLogin = document.getElementById("btnGoLogin");
+  if (btnGoLogin) btnGoLogin.addEventListener("click", () => settingsPanel.classList.add("open"));
+
+  // Tab 切换
+  document.querySelectorAll(".tab").forEach(t => {
+    t.addEventListener("click", () => setActiveTab(t.dataset.tab));
+  });
+  // 默认打开"找人" tab (已登录时); 未登录时 panels 由 updateAuthUI 全部隐藏
+  if (_authToken) {
+    // 智能默认: 在收人相关页 → 自动进收人 tab
+    const harvestCtxs = new Set(["chat", "list", "detail"]);
+    setActiveTab(harvestCtxs.has(_currentCtx) ? "harvest" : "hunt");
   }
+
+  // 学历门槛 / 后台自动跟进 / 日志 卡片的折叠点击
+  document.querySelectorAll(".collapsible > .head").forEach(head => {
+    head.addEventListener("click", () => head.parentElement.classList.toggle("open"));
+  });
+
+  // 注: log/学历门槛/后台自动跟进等所有 .collapsible 卡片的折叠事件
+  // 统一在下面的 .collapsible > .head 监听器里绑定, 这里不再单独绑 logCard。
 
   // F4 autoscan toggle (storage key: intake_enabled, read by background.js alarms)
   const autoscanToggle = document.getElementById("intakeAutoscanToggle");
@@ -232,20 +258,27 @@ function getAuthToken() {
 
 function updateAuthUI() {
   const name = _authUser || '用户';
-  const onboarding = document.getElementById('onboardingCard');
+  const needLogin = document.getElementById('needLoginCard');
+  const tabbar = document.getElementById('tabbar');
+  const panels = document.querySelectorAll('.tab-panel');
   if (_authToken) {
     if (loginSection) loginSection.style.display = 'none';
     if (userSection) userSection.classList.remove('hidden');
     if (userSettingsSection) userSettingsSection.style.display = 'block';
     if (displayUser) displayUser.textContent = name;
     if (displayUser2) displayUser2.textContent = name;
-    // 已登录的老用户不需要看新手引导
-    if (onboarding) onboarding.style.display = 'none';
+    // 显示 tab + 主体
+    if (needLogin) needLogin.classList.add('hidden');
+    if (tabbar) tabbar.style.display = '';
+    // panels 的显示由 setActiveTab 控制, 这里仅恢复默认
   } else {
     if (loginSection) loginSection.style.display = 'block';
     if (userSection) userSection.classList.add('hidden');
     if (userSettingsSection) userSettingsSection.style.display = 'none';
-    if (onboarding) onboarding.style.display = 'block';
+    // 显示空状态, 隐藏 tab + 所有 panel
+    if (needLogin) needLogin.classList.remove('hidden');
+    if (tabbar) tabbar.style.display = 'none';
+    panels.forEach(p => p.classList.add('hidden'));
   }
 }
 
