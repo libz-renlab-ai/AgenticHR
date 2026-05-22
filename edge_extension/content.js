@@ -1907,6 +1907,7 @@ async function step1_scanList() {
   if (!/\/web\/chat/.test(location.pathname) || /recommend/.test(location.pathname)) {
     return { ok: false, reason: "not_on_chat_list" };
   }
+  LOG.length = 0; _paused = false; _stopped = false; _setRunning(true);
   intake_showToast("Step1: 加载联系人列表...", "info");
   const serverUrl = await intake_getServerUrl();
   const authToken = await intake_getAuthToken();
@@ -1927,6 +1928,7 @@ async function step1_scanList() {
   } catch (_) {
     intake_showToast("Step1: 候选人列表未加载，请确认 BOSS 消息页已打开后重试", "error");
     log("[step1] 候选人列表 15s 内未渲染，放弃本次扫描");
+    _setRunning(false);
     return { ok: false, reason: "list_not_loaded" };
   }
 
@@ -1943,7 +1945,9 @@ async function step1_scanList() {
     log(`[step1] 虚拟列表读取: 共 ${dataSources.length} 条候选人`);
     const total = dataSources.length;
     intake_showToast(`Step1: 共 ${total} 人，注册中...`, "info");
+    let progressDone = 0;
     for (const item of dataSources) {
+      try { await waitIfPaused(); } catch (_) { break; }  // user clicked Stop
       const bossId = item.uniqueId;  // e.g. "70177414-0"
       if (!bossId) continue;
       processed.add(bossId);
@@ -1961,6 +1965,10 @@ async function step1_scanList() {
         failed++;
         log(`[step1] register error: ${e?.message || e}`);
       }
+      progressDone += 1;
+      if (progressDone % 50 === 0) {
+        intake_showToast(`Step1: 注册中 ${progressDone}/${total}...`, "info");
+      }
       await sleep(30); // 本地 API，轻量节流
     }
   } else {
@@ -1968,6 +1976,7 @@ async function step1_scanList() {
     log("[step1] dataSources 不可用，回退到 DOM 扫描");
     let items = document.querySelectorAll(".geek-item");
     for (const item of items) {
+      try { await waitIfPaused(); } catch (_) { break; }  // user clicked Stop
       const bossId = item.getAttribute("data-id");
       if (!bossId || processed.has(bossId)) continue;
       processed.add(bossId);
@@ -1996,6 +2005,7 @@ async function step1_scanList() {
   const msg = `Step1 完成: 注册 ${registered} 人, 失败 ${failed}, 扫描 ${processed.size} 人`;
   intake_showToast(msg, "done");
   log(`[step1] ${msg}`);
+  _setRunning(false);
   return { ok: true, registered, failed, scanned: processed.size };
 }
 
