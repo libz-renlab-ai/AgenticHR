@@ -1900,7 +1900,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 // Step1: 扫描"全部"列表，批量注册新候选人（不进入聊天）
 // ════════════════════════════════════════════════════════════════════
 
-const _STEP1_SCAN_LIMIT = 300;
+// (cap removed 2026-05-22 — bridge stable-rounds + deadline already bound the result)
 
 async function step1_scanList() {
   if (!location.host.includes("zhipin.com")) return { ok: false, reason: "not_on_zhipin" };
@@ -1941,9 +1941,9 @@ async function step1_scanList() {
 
   if (dataSources && dataSources.length > 0) {
     log(`[step1] 虚拟列表读取: 共 ${dataSources.length} 条候选人`);
-    intake_showToast(`Step1: 共 ${dataSources.length} 人，注册中...`, "info");
-    const toProcess = dataSources.slice(0, _STEP1_SCAN_LIMIT);
-    for (const item of toProcess) {
+    const total = dataSources.length;
+    intake_showToast(`Step1: 共 ${total} 人，注册中...`, "info");
+    for (const item of dataSources) {
       const bossId = item.uniqueId;  // e.g. "70177414-0"
       if (!bossId) continue;
       processed.add(bossId);
@@ -1968,7 +1968,6 @@ async function step1_scanList() {
     log("[step1] dataSources 不可用，回退到 DOM 扫描");
     let items = document.querySelectorAll(".geek-item");
     for (const item of items) {
-      if (processed.size >= _STEP1_SCAN_LIMIT) break;
       const bossId = item.getAttribute("data-id");
       if (!bossId || processed.has(bossId)) continue;
       processed.add(bossId);

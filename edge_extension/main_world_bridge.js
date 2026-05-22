@@ -19,13 +19,13 @@
       //  - 每轮 hard scroll: 容器 scrollTop=scrollHeight + scrollToIndex(末项 +1)
       //    多手段触发懒加载哨兵
       //  - 增长后立刻 0.5s 短间隔继续推, 卡住时退避到 1.5s 给后端追时间
-      //  - 总时长上限 90s (远超旧实现的 30*0.7=21s),够拉 ~500 人
+      //  - 总时长上限 180s,够拉 ~1200 人 (2026-05-22 上调,1000人量级)
       async function loadAll() {
         if (!ulVue) return null;
-        const STALL_ROUNDS = 4;          // 连续 N 轮无增长才停
+        const STALL_ROUNDS = 6;          // 连续 N 轮无增长才停 (2026-05-22 4→6, 容忍 Boss 节流)
         const FAST_WAIT_MS = 500;
         const STALL_WAIT_MS = 1500;
-        const TOTAL_DEADLINE_MS = 90000;
+        const TOTAL_DEADLINE_MS = 180000;  // 2026-05-22 90s→180s, 1000人量级
         const start = Date.now();
         // The actual scrollable element. Prefer the explicit user-list scroller
         // class first; fall back to ulVue.$el / its parent.
