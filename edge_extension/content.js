@@ -110,6 +110,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       .catch((e) => sendResponse({ ok: false, error: String(e) }));
     return true;
   }
+  if (message.action === 'startBgKeepAlive') {
+    intake_startBgKeepAlive().then(r => sendResponse(r));
+    return true;
+  }
+  if (message.action === 'stopBgKeepAlive') {
+    intake_stopBgKeepAlive().then(r => sendResponse(r));
+    return true;
+  }
+  if (message.action === 'bgKeepAliveStatus') {
+    sendResponse(intake_bgKeepAliveStatus());
+    return false;
+  }
   if (message.action === 'pause') { _setPaused(true); sendResponse({ success: true }); }
   else if (message.action === 'resume') { _setPaused(false); sendResponse({ success: true }); }
   else if (message.action === 'stop') { _stopped = true; _setPaused(false); _setRunning(false); sendResponse({ success: true }); }
@@ -2238,6 +2250,120 @@ async function step2_enrichCandidates() {
   intake_showToast(msg, "done");
   log(`[step2] ${msg}`);
   return { ok: true, processed, skipped_missing, skipped_no_new, failed };
+}
+
+// ════════════════════════════════════════════════════════════════════
+// 后台保活 — Audio 流让 Chrome 不冻结 hidden tab (2026-05-22)
+// ════════════════════════════════════════════════════════════════════
+//
+// 问题: Chrome 隐藏 tab 节流 setTimeout 到 1s/次; idle 5min + 无 audio
+// 后进入 intensive throttling, setTimeout 钳到 60s/次. Step1 1000 人
+// 注册原本 30s, 后台无 audio 时变成 ~16 小时 — 用户感觉"停了".
+//
+// 解决: 播放超声波 (40kHz) + 几乎静音 (gain 0.001) 的 AudioContext
+// 振荡器. Chrome 视 tab 为"播放媒体", 豁免 intensive 节流, 保持在
+// standard 1s 级别. Step1 1000 人: 16h → 17min.
+//
+// 限制: AudioContext.resume() 需要 user gesture. popup 按钮点击不能
+// 直接给 BOSS tab 授权 gesture, 所以首次激活会失败 (pending), 等用户
+// 点击 BOSS 页面任意位置时自动 retry (那次 click 是 trusted gesture).
+
+let _bgKeepAliveCtx = null;
+let _bgKeepAliveOsc = null;
+let _bgKeepAliveActive = false;
+let _bgKeepAlivePending = false;  // 用户打开 toggle 但还没拿到 gesture
+
+async function intake_startBgKeepAlive() {
+  if (_bgKeepAliveActive) return { ok: true, alreadyActive: true };
+  try {
+    if (!_bgKeepAliveCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return { ok: false, reason: 'no_audio_context_api' };
+      _bgKeepAliveCtx = new AC();
+    }
+    if (_bgKeepAliveCtx.state === 'suspended') {
+      try { await _bgKeepAliveCtx.resume(); } catch (_) {}
+    }
+    if (_bgKeepAliveCtx.state !== 'running') {
+      _bgKeepAlivePending = true;
+      await chrome.storage.local.set({ bg_keep_alive_enabled: true });
+      try { intake_showToast('🔇 后台保活待激活, 请点击 BOSS 页面任意处', 'info'); } catch (_) {}
+      return { ok: false, reason: 'awaiting_user_gesture', pending: true };
+    }
+    if (!_bgKeepAliveOsc) {
+      _bgKeepAliveOsc = _bgKeepAliveCtx.createOscillator();
+      const gain = _bgKeepAliveCtx.createGain();
+      gain.gain.value = 0.001;
+      _bgKeepAliveOsc.frequency.value = 40000;
+      _bgKeepAliveOsc.connect(gain);
+      gain.connect(_bgKeepAliveCtx.destination);
+      _bgKeepAliveOsc.start();
+    }
+    _bgKeepAliveActive = true;
+    _bgKeepAlivePending = false;
+    await chrome.storage.local.set({ bg_keep_alive_enabled: true });
+    try { intake_showToast('🔇 后台保活已开启 (timer 节流降至 1s)', 'done'); } catch (_) {}
+    return { ok: true };
+  } catch (e) {
+    try { intake_showToast('🔇 后台保活启动失败: ' + (e && e.message), 'error'); } catch (_) {}
+    return { ok: false, reason: String(e && e.message || e) };
+  }
+}
+
+async function intake_stopBgKeepAlive() {
+  if (!_bgKeepAliveActive && !_bgKeepAliveOsc) {
+    _bgKeepAlivePending = false;
+    await chrome.storage.local.set({ bg_keep_alive_enabled: false });
+    return { ok: true, wasInactive: true };
+  }
+  try {
+    if (_bgKeepAliveOsc) {
+      try { _bgKeepAliveOsc.stop(); } catch (_) {}
+      try { _bgKeepAliveOsc.disconnect(); } catch (_) {}
+      _bgKeepAliveOsc = null;
+    }
+    if (_bgKeepAliveCtx && _bgKeepAliveCtx.state === 'running') {
+      try { await _bgKeepAliveCtx.suspend(); } catch (_) {}
+    }
+    _bgKeepAliveActive = false;
+    _bgKeepAlivePending = false;
+    await chrome.storage.local.set({ bg_keep_alive_enabled: false });
+    try { intake_showToast('🔇 后台保活已关闭', 'info'); } catch (_) {}
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: String(e && e.message || e) };
+  }
+}
+
+function intake_bgKeepAliveStatus() {
+  return {
+    active: _bgKeepAliveActive,
+    pending: _bgKeepAlivePending,
+    ctxState: _bgKeepAliveCtx ? _bgKeepAliveCtx.state : null,
+  };
+}
+
+// 首次脚本注入时检查持久化状态, 上次开启过则标记 pending, 等下次 click 激活
+if (typeof chrome !== 'undefined' && chrome.storage) {
+  try {
+    chrome.storage.local.get(['bg_keep_alive_enabled']).then((r) => {
+      if (r && r.bg_keep_alive_enabled) {
+        _bgKeepAlivePending = true;
+        console.log('[bg-keep-alive] pending — 上次开启过, 等下次 BOSS 页面点击激活');
+      }
+    }).catch(() => {});
+  } catch (_) {}
+}
+
+// 监听 BOSS 页面任意 trusted click, 若 pending 则尝试激活 (capture 阶段)
+// 不与现有 _setPaused(true) 冲突 — 那是后于此的监听
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', (e) => {
+    if (!e.isTrusted) return;
+    if (_bgKeepAlivePending && !_bgKeepAliveActive) {
+      intake_startBgKeepAlive().catch(() => {});
+    }
+  }, true);
 }
 
 // ════════════════════════════════════════════════════════════════════

@@ -161,6 +161,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // 后台保活 toggle (Audio keep-alive, 解决 hidden tab 节流问题)
+  const bgKeepAliveToggle = document.getElementById("bgKeepAliveToggle");
+  const bgKeepAliveLabel = document.getElementById("bgKeepAliveLabel");
+  const bgKeepAliveHint = document.getElementById("bgKeepAliveHint");
+  async function findBossTab() {
+    const tabs = await chrome.tabs.query({ url: "https://www.zhipin.com/*" });
+    return tabs && tabs.length ? (tabs.find(t => /\/web\/chat/.test(t.url || "")) || tabs[0]) : null;
+  }
+  if (bgKeepAliveToggle) {
+    chrome.storage.local.get(["bg_keep_alive_enabled"], (r) => {
+      const on = !!r.bg_keep_alive_enabled;
+      bgKeepAliveToggle.checked = on;
+      if (bgKeepAliveLabel) bgKeepAliveLabel.textContent = on ? "开" : "关";
+    });
+    bgKeepAliveToggle.addEventListener("change", async () => {
+      const on = bgKeepAliveToggle.checked;
+      if (bgKeepAliveLabel) bgKeepAliveLabel.textContent = on ? "开" : "关";
+      // 先持久化, content.js 重载时能恢复 pending 状态
+      chrome.storage.local.set({ bg_keep_alive_enabled: on });
+      const tab = await findBossTab();
+      if (!tab) {
+        if (bgKeepAliveHint) {
+          bgKeepAliveHint.style.display = on ? "block" : "none";
+          bgKeepAliveHint.textContent = on ? "⚠️ 打开 Boss 标签后此设置生效" : "";
+        }
+        return;
+      }
+      try {
+        const result = await chrome.tabs.sendMessage(tab.id, {
+          action: on ? "startBgKeepAlive" : "stopBgKeepAlive",
+        });
+        if (bgKeepAliveHint) {
+          if (on && result && result.pending) {
+            bgKeepAliveHint.style.display = "block";
+            bgKeepAliveHint.textContent = "⚠️ 请点 Boss 页面任意位置激活";
+          } else {
+            bgKeepAliveHint.style.display = "none";
+          }
+        }
+      } catch (e) {
+        if (bgKeepAliveHint) {
+          bgKeepAliveHint.style.display = "block";
+          bgKeepAliveHint.textContent = "⚠️ 通信失败, 请刷新 Boss 页面";
+        }
+      }
+    });
+  }
+
   // Step1/Step2 manual triggers
   const btnStep1 = document.getElementById("btnStep1");
   const btnStep2 = document.getElementById("btnStep2");
