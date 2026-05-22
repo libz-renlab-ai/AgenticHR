@@ -2018,7 +2018,7 @@ async function step1_scanList() {
     intake_showToast(`Step1: 共 ${total} 人，注册中...`, "info");
     let progressDone = 0;
     for (const item of dataSources) {
-      try { await waitIfPaused(); } catch (_) { break; }  // user clicked Stop
+      if (_stopped) break;  // 2026-05-22: 仅响应 Stop, 不响应 click-pause —— Step1 纯 fetch 不操作 BOSS 页, 滚列表/切候选人不应卡死注册
       const bossId = item.uniqueId;  // e.g. "70177414-0"
       if (!bossId) continue;
       processed.add(bossId);
@@ -2047,7 +2047,7 @@ async function step1_scanList() {
     log("[step1] dataSources 不可用，回退到 DOM 扫描");
     let items = document.querySelectorAll(".geek-item");
     for (const item of items) {
-      try { await waitIfPaused(); } catch (_) { break; }  // user clicked Stop
+      if (_stopped) break;  // 2026-05-22: 仅响应 Stop, 同上
       const bossId = item.getAttribute("data-id");
       if (!bossId || processed.has(bossId)) continue;
       processed.add(bossId);
