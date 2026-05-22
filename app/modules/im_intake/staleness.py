@@ -1,13 +1,13 @@
 """F4 intake 候选人陈旧度判定 — 纯函数, 无 DB 依赖。
 
-规则 (2026-05-18 HR 反馈):
-- 候选人最后一次在 Boss 聊天的时间 > 7 天 → 视为陈旧
+规则 (2026-05-22 HR 反馈调整: 7d → 14d):
+- 候选人最后一次在 Boss 聊天的时间 > 14 天 → 视为陈旧
 - 陈旧候选人: 已入库则自动归档为 timed_out, 未入库则拒绝创建
-- 反归档时重置 intake_started_at, 作为 fallback 时间锚 → 给 7 天宽限期
+- 反归档时重置 intake_started_at, 作为 fallback 时间锚 → 给 14 天宽限期
 """
 from datetime import datetime, timezone, timedelta
 
-STALE_DAYS = 7
+STALE_DAYS = 14
 
 
 def _normalize_dt(dt: datetime | None) -> datetime | None:
@@ -33,9 +33,9 @@ def last_message_dt(
     才用", 而是 "时间下界". 这样:
 
     * 新建候选人 chat_snapshot 为空 → 用 fallback (= intake_started_at) 作为
-      时间锚, 给 7 天缓冲;
+      时间锚, 给 14 天缓冲;
     * 反归档候选人 chat_snapshot 仍有老消息但 ``intake_started_at`` 已被
-      重置为 now → max() 取 now → 给 7 天宽限期, 不会立即再次归档;
+      重置为 now → max() 取 now → 给 14 天宽限期, 不会立即再次归档;
     * 正常活跃候选人 chat 里有新消息 → max() 取最新消息时间, 业务行为不变。
 
     任何一侧为 None 时取另一侧; 都为 None 返回 None。

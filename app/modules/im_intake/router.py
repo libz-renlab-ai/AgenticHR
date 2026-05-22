@@ -307,7 +307,7 @@ def unarchive_candidate(
     user_id: int = Depends(get_current_user_id),
 ):
     """2026-05-18: 手动反归档。把 timed_out 候选人放回 awaiting_reply, 重置
-    intake_started_at 给 7 天宽限期 (作为 staleness 判定的 fallback 时间锚)。
+    intake_started_at 给 14 天宽限期 (作为 staleness 判定的 fallback 时间锚)。
 
     仅 timed_out 状态可反归档 — complete / abandoned / pending_human 各有其
     专门的恢复路径或不应被简单恢复。
@@ -323,7 +323,7 @@ def unarchive_candidate(
     now = datetime.now(timezone.utc)
     old_reject = c.reject_reason
     c.intake_status = "awaiting_reply"
-    c.intake_started_at = now  # 关键: 重置时间锚, 给 7 天宽限
+    c.intake_started_at = now  # 关键: 重置时间锚, 给 14 天宽限
     c.intake_completed_at = None
     c.reject_reason = ""
     c.last_checked_at = now
@@ -400,8 +400,8 @@ async def collect_chat(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
 ):
-    # 2026-05-18 入库前 stale 拦截: 新候选人 (DB 中无此 boss_id) 且本次 body.messages
-    # 最后一条 > 7 天前 → 不创建 candidate, 直接返回 skipped_stale_new。
+    # 2026-05-18 入库前 stale 拦截 (2026-05-22 7d→14d): 新候选人 (DB 中无此 boss_id) 且本次 body.messages
+    # 最后一条 > STALE_DAYS (14) 天前 → 不创建 candidate, 直接返回 skipped_stale_new。
     # 已存在候选人走原 flow, 由 analyze_chat 内的归档逻辑兜底。
     from app.modules.im_intake.staleness import last_message_dt, is_stale, STALE_DAYS
     existing_candidate = (

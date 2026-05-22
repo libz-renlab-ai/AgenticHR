@@ -70,17 +70,17 @@ class TestAnalyzeChatStaleArchive:
 
     @pytest.mark.asyncio
     async def test_stale_message_in_chat_snapshot_archives(self, db_session):
-        """已入库候选人, chat_snapshot 最后消息 10 天前 → analyze_chat 归档为 timed_out."""
+        """已入库候选人, chat_snapshot 最后消息 20 天前 → analyze_chat 归档为 timed_out (阈值 14 天)."""
         c = _mk_candidate(
             db_session,
-            chat_snapshot={"messages": [_msg("boss", "我考虑下", 10)]},
+            chat_snapshot={"messages": [_msg("boss", "我考虑下", 20)]},
         )
         svc = _build_svc(db_session)
         action = await svc.analyze_chat(c, messages=[], job=None)
         db_session.refresh(c)
         assert action.type == "archived_stale"
         assert c.intake_status == "timed_out"
-        assert "auto_archive_7d_no_reply" == c.reject_reason
+        assert "auto_archive_14d_no_reply" == c.reject_reason
         assert c.intake_completed_at is not None
 
     @pytest.mark.asyncio
@@ -119,9 +119,9 @@ class TestCollectChatStaleIngest:
     """POST /api/intake/collect-chat 入库前 stale 拦截."""
 
     def test_new_candidate_with_stale_messages_does_not_create(self, client, db_session):
-        """新 boss_id, messages 最后一条 10 天前 → 不入库."""
+        """新 boss_id, messages 最后一条 20 天前 → 不入库 (阈值 14 天)."""
         # 现实里 sent_at 是 ISO 字符串
-        old_ts = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+        old_ts = (datetime.now(timezone.utc) - timedelta(days=20)).isoformat()
         resp = client.post("/api/intake/collect-chat", json={
             "boss_id": "stale_new_b1",
             "name": "陈陈陈",
@@ -166,8 +166,8 @@ class TestCollectChatStaleIngest:
         """已有 candidate (即便 messages 旧) 不应被入库前拦截路径处理 ——
         走 analyze_chat 内的归档分支, candidate.id 保留 + status 改为 timed_out。
         """
-        # 预置一个已存在 candidate, 但聊天历史是 10 天前
-        old_ts = (datetime.now(timezone.utc) - timedelta(days=10)).isoformat()
+        # 预置一个已存在 candidate, 但聊天历史是 20 天前 (阈值 14 天)
+        old_ts = (datetime.now(timezone.utc) - timedelta(days=20)).isoformat()
         c = IntakeCandidate(
             user_id=1, boss_id="existing_old_b1", name="老候选人",
             intake_status="awaiting_reply",
@@ -196,7 +196,7 @@ class TestCollectChatStaleIngest:
         c2 = db_session.get(IntakeCandidate, cid)
         assert c2 is not None
         assert c2.intake_status == "timed_out"
-        assert c2.reject_reason == "auto_archive_7d_no_reply"
+        assert c2.reject_reason == "auto_archive_14d_no_reply"
 
 
 # ─── Phase 4 测试: 反归档端点 ─────────────────────────────────────────────
@@ -211,7 +211,7 @@ class TestUnarchive:
             intake_status="timed_out",
             intake_started_at=datetime.now(timezone.utc) - timedelta(days=30),
             intake_completed_at=datetime.now(timezone.utc) - timedelta(days=1),
-            reject_reason="auto_archive_7d_no_reply",
+            reject_reason="auto_archive_14d_no_reply",
             source="plugin",
         )
         db_session.add(c); db_session.commit(); db_session.refresh(c)
@@ -235,7 +235,7 @@ class TestUnarchive:
             user_id=1, boss_id="reset_b1", name="x",
             intake_status="timed_out",
             intake_started_at=old_start,
-            reject_reason="auto_archive_7d_no_reply",
+            reject_reason="auto_archive_14d_no_reply",
             source="plugin",
         )
         db_session.add(c); db_session.commit(); db_session.refresh(c)
@@ -290,7 +290,7 @@ class TestUnarchive:
             chat_snapshot={"messages": [
                 {"sender_id": "boss", "content": "ok", "sent_at": ten_days_ago},
             ]},
-            reject_reason="auto_archive_7d_no_reply",
+            reject_reason="auto_archive_14d_no_reply",
             source="plugin",
         )
         db_session.add(c); db_session.commit(); db_session.refresh(c)

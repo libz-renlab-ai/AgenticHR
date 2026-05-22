@@ -84,17 +84,17 @@ class TestIsStale:
 
     def test_old_dt_stale(self):
         now = self._now()
-        assert is_stale(now - timedelta(days=8), now=now) is True
+        assert is_stale(now - timedelta(days=15), now=now) is True
         assert is_stale(now - timedelta(days=30), now=now) is True
 
     def test_exactly_at_threshold_not_stale(self):
-        """边界: 恰好 7 天前不算陈旧 (> 而非 >=)."""
+        """边界: 恰好 14 天前不算陈旧 (> 而非 >=)."""
         now = self._now()
-        assert is_stale(now - timedelta(days=7), now=now) is False
+        assert is_stale(now - timedelta(days=14), now=now) is False
 
     def test_just_past_threshold_stale(self):
         now = self._now()
-        assert is_stale(now - timedelta(days=7, seconds=1), now=now) is True
+        assert is_stale(now - timedelta(days=14, seconds=1), now=now) is True
 
     def test_none_returns_false(self):
         """信息不足倾向放过."""
@@ -113,4 +113,4 @@ class TestIsStale:
         assert is_stale(old) is True
 
     def test_stale_days_constant(self):
-        assert STALE_DAYS == 7
+        assert STALE_DAYS == 14

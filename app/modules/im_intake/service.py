@@ -145,9 +145,9 @@ class IntakeService:
                     merged_messages.append(m)
                     seen.add(key)
 
-        # ── 2026-05-18: 7 天无新消息自动归档 ───────────────────────────────
+        # ── 2026-05-18/22: 14 天无新消息自动归档 (HR 反馈 7d→14d) ───────────
         # 用合并后的 messages 找最近 sent_at, 失败回退到 intake_started_at
-        # (反归档时被重置, 给 7 天宽限期)。已经是终态的候选人由后续
+        # (反归档时被重置, 给 14 天宽限期)。已经是终态的候选人由后续
         # decide_next_action 内的 terminal guard 处理, 这里不重复判。
         if candidate.intake_status not in TERMINAL_CANDIDATE_STATES:
             now_archive_chk = datetime.now(timezone.utc)
