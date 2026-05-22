@@ -2037,7 +2037,7 @@ async function step1_scanList() {
         log(`[step1] register error: ${e?.message || e}`);
       }
       progressDone += 1;
-      if (progressDone % 50 === 0) {
+      if (progressDone % 20 === 0) {
         intake_showToast(`Step1: 注册中 ${progressDone}/${total}...`, "info");
       }
       await sleep(30); // 本地 API，轻量节流
