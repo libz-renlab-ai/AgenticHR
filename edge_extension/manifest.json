@@ -33,5 +33,11 @@
   ],
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["timer_worker.js"],
+      "matches": ["https://www.zhipin.com/*"]
+    }
+  ]
 }

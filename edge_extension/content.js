@@ -787,7 +787,63 @@ function switchToTab(n) {
     if ((el.querySelector('.content')?.textContent||'').includes(n)) { el.click(); return true; }
   return false;
 }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+// ── Worker-based timer pump (绕过 hidden tab setTimeout 节流 2026-05-22) ──
+// 实测: hidden tab 中主线程 setTimeout(30) 实际 941ms, Worker setTimeout(30) 实际 32ms.
+// 用 Worker 喂 wake 消息让 sleep() 在前后台都准. 文档见
+// docs/superpowers/specs/2026-05-22-bg-runtime-research-findings.md
+let _timerWorker = null;         // null=未初始化, false=初始化失败 fallback, Worker 实例=就绪
+let _timerWorkerReqId = 0;
+const _timerWorkerPending = new Map();
+
+function _initTimerWorker() {
+  if (_timerWorker !== null) return _timerWorker;
+  try {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.getURL) {
+      _timerWorker = false;
+      return false;
+    }
+    const url = chrome.runtime.getURL('timer_worker.js');
+    const w = new Worker(url);
+    w.onmessage = (e) => {
+      if (e.data && e.data.type === 'wake') {
+        const resolve = _timerWorkerPending.get(e.data.reqId);
+        if (resolve) {
+          _timerWorkerPending.delete(e.data.reqId);
+          resolve();
+        }
+      }
+    };
+    w.onerror = (err) => {
+      console.warn('[timer-worker] runtime error, fallback to setTimeout:', err && err.message);
+      // 已经创建的 pending 用主线程 setTimeout 兜底唤醒 (按原期望 ms)
+      // 但 Worker 出错前我们没存储每个的 ms; 简单处理: 立即 resolve 所有未完成的, 触发上层重试或继续
+      for (const resolve of _timerWorkerPending.values()) resolve();
+      _timerWorkerPending.clear();
+      _timerWorker = false;
+    };
+    _timerWorker = w;
+  } catch (e) {
+    console.warn('[timer-worker] init failed, fallback to setTimeout:', e && e.message);
+    _timerWorker = false;
+  }
+  return _timerWorker;
+}
+
+function sleep(ms) {
+  const w = _initTimerWorker();
+  if (!w) return new Promise(r => setTimeout(r, ms));
+  return new Promise(resolve => {
+    const id = ++_timerWorkerReqId;
+    _timerWorkerPending.set(id, resolve);
+    try {
+      w.postMessage({ type: 'sleep', reqId: id, ms });
+    } catch (_) {
+      // postMessage 异常 (Worker 死了) 兜底
+      _timerWorkerPending.delete(id);
+      setTimeout(resolve, ms);
+    }
+  });
+}
 
 // Bridge to MAIN world (main_world_bridge.js) — needed to access page-side
 // Vue internals (el.__vue__) which are invisible from isolated content-script world.
@@ -807,12 +863,15 @@ function _bridgeCall(cmd, extras = {}) {
   });
 }
 
-function waitForSel(sel, timeout = 3000) {
-  return new Promise(resolve => {
-    if (document.querySelector(sel)) { resolve(true); return; }
-    const s = Date.now();
-    const iv = setInterval(() => { if (document.querySelector(sel) || Date.now()-s > timeout) { clearInterval(iv); resolve(!!document.querySelector(sel)); } }, 100);
-  });
+async function waitForSel(sel, timeout = 3000) {
+  // 2026-05-22: setInterval 100ms 改用 sleep 走 Worker, hidden tab 也能保 100ms 准
+  if (document.querySelector(sel)) return true;
+  const s = Date.now();
+  while (Date.now() - s < timeout) {
+    if (document.querySelector(sel)) return true;
+    await sleep(100);
+  }
+  return !!document.querySelector(sel);
 }
 function parseYr(t) { if (!t) return 0; if (t.includes('应届')) return 0; const m = t.match(/(\d+)\s*年/); return m ? parseInt(m[1]) : 0; }
 function normEdu(t) { if (!t) return ''; for (const [k,v] of Object.entries({'博士':'博士','硕士':'硕士','研究生':'硕士','本科':'本科','学士':'本科','大专':'大专','专科':'大专'})) if (t.includes(k)) return v; return t; }
@@ -1297,7 +1356,7 @@ async function intake_typeAndSendChatMessage(text) {
   input.focus();
   try { document.execCommand("selectAll", false); document.execCommand("delete", false); }
   catch (_) { input.textContent = ""; }
-  await new Promise((r) => setTimeout(r, 120));
+  await sleep(120);
 
   // Type char-by-char via execCommand so Vue v-model / draft sync
   for (const ch of text) {
@@ -1306,9 +1365,9 @@ async function intake_typeAndSendChatMessage(text) {
       input.textContent += ch;
       input.dispatchEvent(new InputEvent("input", { bubbles: true, data: ch, inputType: "insertText" }));
     }
-    await new Promise((r) => setTimeout(r, 25 + Math.random() * 55));
+    await sleep(25 + Math.random() * 55);
   }
-  await new Promise((r) => setTimeout(r, 300));
+  await sleep(300);
 
   // Prefer Vue-exposed sendText() via MAIN world bridge (proven live 2026-04-23)
   let triggered = false;
@@ -1330,7 +1389,7 @@ async function intake_typeAndSendChatMessage(text) {
   const SEND_CONFIRM_MS = 20000;
   const deadline = Date.now() + SEND_CONFIRM_MS;
   while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 250));
+    await sleep(250);
     const afterSelf = document.querySelectorAll(".chat-message-list .message-item .item-myself").length;
     if (afterSelf > beforeSelf) return { ok: true };
   }
@@ -1345,7 +1404,7 @@ async function intake_clickRequestResumeButton() {
   if (typeof simulateHumanClick === "function") await simulateHumanClick(btn);
   else btn.click();
   // Boss 弹出 "确定向牛人索取简历吗？" 确认框
-  await new Promise((r) => setTimeout(r, 800));
+  await sleep(800);
   let confirm = document.querySelector(".exchange-tooltip .boss-btn-primary");
   if (!confirm) {
     confirm = Array.from(document.querySelectorAll(".boss-popup__btn, button, span"))
@@ -1354,7 +1413,7 @@ async function intake_clickRequestResumeButton() {
   if (confirm) {
     if (typeof simulateHumanClick === "function") await simulateHumanClick(confirm);
     else confirm.click();
-    await new Promise((r) => setTimeout(r, 400));
+    await sleep(400);
   }
   return { ok: true };
 }
@@ -1446,17 +1505,17 @@ function intake_showToast(msg, kind) {
 
 function intake_waitFor(predicate, timeoutMs) {
   timeoutMs = timeoutMs || 10000;
-  return new Promise((resolve, reject) => {
+  // 2026-05-22: setTimeout 200 改 sleep, hidden tab 走 Worker 保 200ms 准
+  return (async () => {
     const start = Date.now();
-    const tick = () => {
+    while (true) {
       try {
-        if (predicate()) return resolve(true);
+        if (predicate()) return true;
       } catch {}
-      if (Date.now() - start > timeoutMs) return reject(new Error("timeout"));
-      setTimeout(tick, 200);
-    };
-    tick();
-  });
+      if (Date.now() - start > timeoutMs) throw new Error("timeout");
+      await sleep(200);
+    }
+  })();
 }
 
 // Retry an async network step a few times before giving up. BOSS直聘 lag
@@ -1524,7 +1583,7 @@ async function intake_scrollUntilGeekVisible(bossId, opts = {}) {
     }
     const before = document.querySelectorAll(".geek-item").length;
     scroller.scrollTop = scroller.scrollHeight;
-    await new Promise((r) => setTimeout(r, 1200));
+    await sleep(1200);
     const after = document.querySelectorAll(".geek-item").length;
     if (after === before) {
       // List bottomed out — the SPA returned no new rows after a full
@@ -1631,7 +1690,7 @@ async function intake_runOrchestrator(opts = {}) {
   const msgListEl = document.querySelector(".chat-message-list");
   if (msgListEl) {
     try { msgListEl.scrollTop = msgListEl.scrollHeight; } catch {}
-    await new Promise((r) => setTimeout(r, 600));
+    await sleep(600);
   }
 
   const root = document.querySelector(window.CHAT_SELECTORS.root);
