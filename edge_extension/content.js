@@ -2253,7 +2253,17 @@ async function step2_enrichCandidates() {
     // ── 执行 next_action ────────────────────────────────────────
     try {
       if (action.type === "send_hard" || action.type === "send_soft") {
-        const r = await window.intake_typeAndSendChatMessage(action.text);
+        // 2026-05-22 修复"失败永久卡死": 同轮重试 2 次 (隔 2s) 应对独立窗口
+        // 失焦时偶发 execCommand/Vue 时序问题. 仍失败则清缓存让下轮 Step2 必再试.
+        let r = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          r = await window.intake_typeAndSendChatMessage(action.text);
+          if (r.ok) break;
+          if (attempt < 3) {
+            log(`[step2] ${bossId} send 第 ${attempt}/3 次失败 (${r.reason}), 2s 后重试`);
+            await sleep(2000);
+          }
+        }
         if (r.ok) {
           const ackR = await fetch(`${serverUrl}/api/intake/candidates/${candidateId}/ack-sent`, {
             method: "POST",
@@ -2263,7 +2273,12 @@ async function step2_enrichCandidates() {
           if (!ackR.ok) log(`[step2] ack-sent HTTP ${ackR.status} for ${bossId}`);
           intake_showToast(`${parsed?.name || bossId}: 问题已发送`, "done");
         } else {
-          intake_showToast(`${parsed?.name || bossId}: 发送失败 — ${r.reason}`, "error");
+          // 2026-05-22: 清 _msgCounts 缓存避免下轮 Step2 走 skipped_no_new
+          // 永久跳过该候选人. 缓存清后下轮会重跑 collect-chat → 重新尝试 send.
+          delete _msgCounts[bossId];
+          chrome.storage.session.set({ intake_msg_counts: _msgCounts }).catch(() => {});
+          log(`[step2] ${bossId} send 3 次全失败, 已清缓存, 下轮 Step2 将重试`);
+          intake_showToast(`${parsed?.name || bossId}: 发送失败 (重试 3 次) — ${r.reason}`, "error");
         }
       } else if (action.type === "request_pdf") {
         const r = await window.intake_clickRequestResumeButton();
