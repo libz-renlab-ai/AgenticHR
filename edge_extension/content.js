@@ -2240,6 +2240,138 @@ async function step2_enrichCandidates() {
   return { ok: true, processed, skipped_missing, skipped_no_new, failed };
 }
 
+// ════════════════════════════════════════════════════════════════════
+// 后台运行诊断器 (research 2026-05-22)
+// ════════════════════════════════════════════════════════════════════
+//
+// 测量 Chrome 在后台 tab 时对自动化代码的影响。
+// 无副作用：仅采样 timer drift + 用合成 contenteditable 测试
+// execCommand/dispatchEvent，绝不触碰 BOSS 真实输入框或发送消息。
+//
+// 用法（开发者控制台，BOSS 标签页打开后）：
+//   await window.intake_bgDiagnostic()                    // 默认 90s
+//   await window.intake_bgDiagnostic({ durationMs:60000 })
+//
+// 跑起来立即切到其他标签页，等满 90s 切回来看 console.log 总结。
+// 完整样本存在 chrome.storage.local.bg_diag_last 里。
+
+async function intake_bgDiagnostic({ durationMs = 90000, intervalMs = 2000 } = {}) {
+  if (!location.host.includes('zhipin.com')) {
+    console.warn('[bg-diag] 请在 zhipin.com 页面运行');
+    return { ok: false, reason: 'not_on_zhipin' };
+  }
+
+  try { intake_showToast('🔬 后台诊断启动 ' + (durationMs/1000) + 's，请立即切到其他标签页', 'info'); } catch (_) {}
+  console.log('[bg-diag] 开始 ' + (durationMs/1000) + 's 采样。请立即切到其他标签页。');
+
+  // 合成 contenteditable 用于安全的输入测试（隐藏在屏幕外，零副作用）
+  const synth = document.createElement('div');
+  synth.contentEditable = 'true';
+  synth.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;';
+  document.body.appendChild(synth);
+
+  const samples = [];
+  const start = Date.now();
+
+  try {
+    let i = 0;
+    while (Date.now() - start < durationMs) {
+      i++;
+
+      // ── timer 节流测量 ──
+      const t0 = performance.now();
+      await new Promise(r => setTimeout(r, 30));
+      const actual30 = performance.now() - t0;
+
+      const t1 = performance.now();
+      await new Promise(r => setTimeout(r, 300));
+      const actual300 = performance.now() - t1;
+
+      // ── 合成 contenteditable 输入测试 ──
+      // 方法 A: focus + execCommand("insertText")
+      synth.textContent = '';
+      synth.focus();
+      const focusedA = document.activeElement === synth;
+      let execReturned = null;
+      try { execReturned = document.execCommand('insertText', false, 'A'); }
+      catch (e) { execReturned = 'throw:' + (e && e.message); }
+      const aResult = synth.textContent;
+
+      // 方法 B: dispatchEvent(InputEvent) 模拟，无 focus
+      synth.textContent = 'B';
+      let dispatchOk = false;
+      try {
+        dispatchOk = synth.dispatchEvent(new InputEvent('input', { bubbles: true, data: 'B', inputType: 'insertText' }));
+      } catch (e) { dispatchOk = 'throw:' + (e && e.message); }
+      const bResult = synth.textContent;
+
+      const sample = {
+        i,
+        tSec: Math.round((Date.now() - start) / 1000),
+        hidden: document.hidden,
+        vis: document.visibilityState,
+        hasFocus: document.hasFocus(),
+        timer30msActual: Math.round(actual30),
+        timer300msActual: Math.round(actual300),
+        execFocused: focusedA,
+        execReturned,
+        execProduced: aResult,
+        dispatchOk,
+        dispatchProduced: bResult,
+      };
+      samples.push(sample);
+      console.log('[bg-diag] #' + i + ':', JSON.stringify(sample));
+
+      // 控制总循环间隔
+      const usedThisTick = Math.round(actual30 + actual300);
+      const waitForNext = Math.max(0, intervalMs - usedThisTick);
+      if (waitForNext > 0) await new Promise(r => setTimeout(r, waitForNext));
+    }
+  } finally {
+    try { document.body.removeChild(synth); } catch (_) {}
+  }
+
+  // ── 汇总分析 ──
+  const visible = samples.filter(s => !s.hidden);
+  const hidden = samples.filter(s => s.hidden);
+  const avg = (arr, k) => arr.length ? Math.round(arr.reduce((a, s) => a + s[k], 0) / arr.length) : null;
+
+  const summary = {
+    totalSamples: samples.length,
+    visible: {
+      count: visible.length,
+      avg30msActual: avg(visible, 'timer30msActual'),
+      avg300msActual: avg(visible, 'timer300msActual'),
+      execAlwaysProduced: visible.length > 0 && visible.every(s => s.execProduced === 'A'),
+      dispatchAlwaysProduced: visible.length > 0 && visible.every(s => s.dispatchProduced === 'B'),
+    },
+    hidden: {
+      count: hidden.length,
+      avg30msActual: avg(hidden, 'timer30msActual'),
+      avg300msActual: avg(hidden, 'timer300msActual'),
+      execEverProduced: hidden.some(s => s.execProduced === 'A'),
+      execAlwaysProduced: hidden.length > 0 && hidden.every(s => s.execProduced === 'A'),
+      dispatchEverProduced: hidden.some(s => s.dispatchProduced === 'B'),
+      dispatchAlwaysProduced: hidden.length > 0 && hidden.every(s => s.dispatchProduced === 'B'),
+    },
+  };
+  console.log('[bg-diag] ====== 汇总 ======');
+  console.log('[bg-diag] 前台样本汇总:', summary.visible);
+  console.log('[bg-diag] 后台样本汇总:', summary.hidden);
+
+  await chrome.storage.local.set({
+    bg_diag_last: { finishedAt: Date.now(), durationMs, samples, summary },
+  });
+
+  try { intake_showToast('🔬 诊断完成 ('+samples.length+' 样本)，查看 DevTools Console', 'done'); } catch (_) {}
+  return { ok: true, sampleCount: samples.length, summary };
+}
+
+// 暴露给开发者控制台
+if (typeof window !== 'undefined') {
+  window.intake_bgDiagnostic = intake_bgDiagnostic;
+}
+
 // Auto-trigger on URL with intake_candidate_id query param (arrived via /intake deep link)
 if (
   location.host.includes("zhipin.com") &&
